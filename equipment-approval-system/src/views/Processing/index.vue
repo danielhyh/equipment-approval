@@ -5,12 +5,6 @@
         <div class="title"> 办件中心 </div>
         <div class="subtitle"> 大型医用设备审批办件管理 </div>
       </div>
-      <div class="right">
-        <el-button type="primary" class="add-btn">
-          <i class="el-icon-plus"></i>
-          新增办件
-        </el-button>
-      </div>
     </div>
     <div class="container"> </div>
   </div>
