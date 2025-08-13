@@ -97,8 +97,45 @@
           </el-table-column>
           <el-table-column label="操作" min-width="120" :align="'center'">
             <template #default>
-              <el-button link size="small" type="primary"> 编辑 </el-button>
-              <el-button link size="small" type="danger"> 删除 </el-button>
+              <el-button size="small" class="btn view-btn" type="primary" :icon="View">
+                查看
+              </el-button>
+              <el-button size="small" class="btn audit-btn" type="primary" :icon="Search">
+                初步审核
+              </el-button>
+              <el-button size="small" class="btn expert-btn" type="primary" :icon="Avatar">
+                专家审批
+              </el-button>
+              <el-dropdown placement="bottom" trigger="click">
+                <el-button size="small" class="btn" type="primary"> 正本 </el-button>
+                <template #dropdown>
+                  <el-dropdown-menu>
+                    <el-dropdown-item command="view">
+                      <el-icon><View /></el-icon>
+                      <span>查看</span>
+                    </el-dropdown-item>
+                    <el-dropdown-item command="download">
+                      <el-icon><Download /></el-icon>
+                      <span>下载</span>
+                    </el-dropdown-item>
+                  </el-dropdown-menu>
+                </template>
+              </el-dropdown>
+              <el-dropdown placement="bottom" trigger="click">
+                <el-button size="small" class="btn" type="primary"> 副本 </el-button>
+                <template #dropdown>
+                  <el-dropdown-menu>
+                    <el-dropdown-item command="view">
+                      <el-icon><View /></el-icon>
+                      <span>查看</span>
+                    </el-dropdown-item>
+                    <el-dropdown-item command="download">
+                      <el-icon><Download /></el-icon>
+                      <span>下载</span>
+                    </el-dropdown-item>
+                  </el-dropdown-menu>
+                </template>
+              </el-dropdown>
             </template>
           </el-table-column>
         </el-table>
@@ -110,17 +147,20 @@
           :total="page.total"
           @pagination="changePagination"
         />
+        <licence />
       </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts" name="ProcessingCenter">
-import { ref, computed, onMounted } from 'vue'
 import pagination from '@/components/Pagination/index.vue'
+import licence from './components/licence.vue'
+import { ref, computed, onMounted } from 'vue'
 import { getDictOptions } from '@/utils/dict'
 import type { DictDataType } from '@/utils/dict'
 import type { FormInstance } from 'element-plus'
+import { View, Search, Avatar, Download } from '@element-plus/icons-vue'
 type TypeList = {
   label: string
   value: number
@@ -391,6 +431,17 @@ onMounted(() => {
 </script>
 
 <style lang="scss" scoped>
+@keyframes fadeInMove {
+  0% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-2px);
+  }
+  100% {
+    transform: translateY(0px);
+  }
+}
 .processing-page {
   border-radius: 20px 20px 0 0;
   background-color: #fff;
@@ -525,6 +576,29 @@ onMounted(() => {
           --color: #409eff;
           --color-rab: 64, 158, 255;
         }
+      }
+      .btn {
+        border-radius: 10px;
+        color: #fff;
+        font-size: 12px;
+        background-image: linear-gradient(135deg, #06b6d4, #0891b2);
+        border: none;
+        margin-top: 4px;
+        &:hover {
+          animation: fadeInMove 0.3s ease;
+        }
+        &.view-btn {
+          background-image: linear-gradient(135deg, #165dff, #3b82f6);
+        }
+        &.audit-btn {
+          background-image: linear-gradient(135deg, #22c55e, #16a34a);
+        }
+        &.expert-btn {
+          background-image: linear-gradient(135deg, #f59e0b, #d97706);
+        }
+      }
+      .el-dropdown {
+        margin-left: 12px;
       }
     }
     .pagination-style {
