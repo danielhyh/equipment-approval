@@ -96,7 +96,7 @@
             </template>
           </el-table-column>
           <el-table-column label="操作" min-width="120" :align="'center'">
-            <template #default>
+            <template #default="scope">
               <el-button size="small" class="btn view-btn" type="primary" :icon="View">
                 查看
               </el-button>
@@ -106,7 +106,23 @@
               <el-button size="small" class="btn expert-btn" type="primary" :icon="Avatar">
                 专家审批
               </el-button>
-              <el-dropdown placement="bottom" trigger="click">
+              <el-button
+                size="small"
+                class="btn"
+                type="primary"
+                @click.stop="showLicenceFn(scope.row, 'A')"
+              >
+                正本
+              </el-button>
+              <el-button
+                size="small"
+                class="btn"
+                type="primary"
+                @click.stop="showLicenceFn(scope.row, 'B')"
+              >
+                副本
+              </el-button>
+              <!-- <el-dropdown placement="bottom" trigger="click">
                 <el-button size="small" class="btn" type="primary"> 正本 </el-button>
                 <template #dropdown>
                   <el-dropdown-menu>
@@ -135,7 +151,7 @@
                     </el-dropdown-item>
                   </el-dropdown-menu>
                 </template>
-              </el-dropdown>
+              </el-dropdown> -->
             </template>
           </el-table-column>
         </el-table>
@@ -147,20 +163,33 @@
           :total="page.total"
           @pagination="changePagination"
         />
-        <licence />
       </div>
     </div>
+    <Dialog v-model="liscenceVisible" v-bind="licenceDialogBind">
+      <div class="dialog-licence-content">
+        <div class="row">
+          <el-button size="small" type="success" :icon="Printer" @click.stop="printFn">
+            打印
+          </el-button>
+          <el-button size="small" type="warning" :icon="Download" @click.stop="downloadFn">
+            下载
+          </el-button>
+        </div>
+        <licence ref="licenceRef" v-bind="licenceData" />
+      </div>
+    </Dialog>
   </div>
 </template>
 
 <script setup lang="ts" name="ProcessingCenter">
+import { Dialog } from '@/components/Dialog/index'
 import pagination from '@/components/Pagination/index.vue'
 import licence from './components/licence.vue'
 import { ref, computed, onMounted } from 'vue'
 import { getDictOptions } from '@/utils/dict'
 import type { DictDataType } from '@/utils/dict'
 import type { FormInstance } from 'element-plus'
-import { View, Search, Avatar, Download } from '@element-plus/icons-vue'
+import { View, Search, Avatar, Download, Printer } from '@element-plus/icons-vue'
 type TypeList = {
   label: string
   value: number
@@ -423,6 +452,39 @@ const getTableListFn = () => {
     loading.value = false
   }, 1000)
 }
+
+// 正本|副本 弹窗展示
+let liscenceVisible = ref<boolean>(false)
+let licenceTitle = ref('正本')
+let licenceDialogBind = computed(() => {
+  return {
+    title: '许可证-' + licenceTitle.value,
+    width: '320mm',
+    maxHeight: '600px',
+    scroll: true,
+    fullscreen: true
+  }
+})
+let licenceData = ref({})
+
+let licenceRef = ref<InstanceType<typeof licence> | null>(null)
+const showLicenceFn = (row, type) => {
+  console.log('row', row)
+  licenceTitle.value = type === 'A' ? '正本' : '副本'
+  liscenceVisible.value = true
+}
+const printFn = () => {
+  if (!licenceRef.value) {
+    return
+  }
+  licenceRef.value?.print()
+}
+const downloadFn = () => {
+  if (!licenceRef.value) {
+    return
+  }
+  licenceRef.value?.download()
+}
 onMounted(() => {
   // 在组件挂载时可以进行一些初始化操作
   console.log('Processing Center mounted')
@@ -606,6 +668,15 @@ onMounted(() => {
       float: none;
       justify-content: flex-end;
     }
+  }
+}
+
+.dialog-licence-content {
+  .row {
+    padding: 0 20px;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
   }
 }
 </style>

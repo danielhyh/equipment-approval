@@ -20,6 +20,7 @@ const getBindValue = computed(() => {
   const delArr: string[] = ['fullscreen', 'title', 'maxHeight', 'appendToBody']
   const attrs = useAttrs()
   const obj = { ...attrs, ...props }
+
   for (const key in obj) {
     if (delArr.indexOf(key) !== -1) {
       delete obj[key]
