@@ -102,7 +102,7 @@ let typeList = ref([
   { label: '初步审核', value: 'firstAudit', component: 'UseInfo', icon: markRaw(Search) },
   { label: '专家审核', value: 'expertAudit', component: 'UseInfo', icon: markRaw(Avatar) }
 ])
-let typeActive = ref({ value: 'basicInfo', component: 'BasicInfo' })
+let typeActive = ref({ value: 'basicInfo', component: markRaw(BasicInfo) })
 const handlerType = (item) => {
   typeActive.value.value = item.value
   typeActive.value.component = item.component

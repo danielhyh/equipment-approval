@@ -1,6 +1,6 @@
 <template>
-  <div class="content-basis-msg">
-    <el-form :model="basicData" label-position="top">
+  <div class="content-basis-msg-page">
+    <el-form :model="basicData" label-position="top" inline>
       <el-form-item v-for="(item, i) in basicMsg" :key="i" :label="item.label" :prop="item.key">
         <el-input v-model="item.value" placeholder="请输入" disabled />
       </el-form-item>
@@ -38,4 +38,17 @@ onMounted(() => {
 })
 </script>
 
-<style scoped></style>
+<style lang="scss" scoped>
+.content-basis-msg-page {
+  padding: 20px;
+  background-color: #fff;
+  .el-form {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    grid-gap: 20px;
+    .el-form-item {
+      margin: 0;
+    }
+  }
+}
+</style>
