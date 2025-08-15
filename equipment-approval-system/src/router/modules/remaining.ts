@@ -243,6 +243,17 @@ const remainingRouter: AppRouteRecordRaw[] = [
       hidden: true,
       breadcrumb: false
     }
+  },
+  // todo
+  {
+    path: '/process-other',
+    component: () => import('@/views/Processing/ProcessOther.vue'),
+    name: 'ProcessOther',
+    meta: {
+      title: '办件详情',
+      hidden: true,
+      breadcrumb: false
+    }
   }
 ]
 

@@ -97,7 +97,13 @@
           </el-table-column>
           <el-table-column label="操作" min-width="120" :align="'center'">
             <template #default="scope">
-              <el-button size="small" class="btn view-btn" type="primary" :icon="View">
+              <el-button
+                size="small"
+                class="btn view-btn"
+                type="primary"
+                :icon="View"
+                @click.stop="gotoDetailFn(scope.row, 'view')"
+              >
                 查看
               </el-button>
               <el-button size="small" class="btn audit-btn" type="primary" :icon="Search">
@@ -186,10 +192,13 @@ import { Dialog } from '@/components/Dialog/index'
 import pagination from '@/components/Pagination/index.vue'
 import licence from './components/licence.vue'
 import { ref, computed, onMounted } from 'vue'
+import { useRouter, useRoute } from 'vue-router'
 import { getDictOptions } from '@/utils/dict'
 import type { DictDataType } from '@/utils/dict'
 import type { FormInstance } from 'element-plus'
 import { View, Search, Avatar, Download, Printer } from '@element-plus/icons-vue'
+
+const router = useRouter()
 type TypeList = {
   label: string
   value: number
@@ -484,6 +493,12 @@ const downloadFn = () => {
     return
   }
   licenceRef.value?.download()
+}
+
+// 查看 审核 专家审批
+const gotoDetailFn = (row, type) => {
+  console.log('gotoDetailFn', row, type)
+  router.push({ path: '/process-other', query: { id: row.id, type: type } })
 }
 onMounted(() => {
   // 在组件挂载时可以进行一些初始化操作

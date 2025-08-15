@@ -254,4 +254,5 @@ const resetForm = () => {
 const isExternal = (path: string) => {
   return /^(https?:|mailto:|tel:)/.test(path)
 }
+console.log('------', getIntDictOptions(DICT_TYPE.SYSTEM_MENU_TYPE))
 </script>
