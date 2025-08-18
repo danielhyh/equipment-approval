@@ -1,9 +1,9 @@
 <template>
-  <div class="content-basis-msg-page">
+  <div class="content-business-msg-page">
     <el-form :model="basicData" label-position="top" inline>
       <el-form-item
         v-for="(item, i) in basicMsg"
-        :class="{ 'el-form-item--span-2': item.key === 'address' }"
+        :class="{ 'el-form-item--span-2': item.key === 'specialInstructions' }"
         :key="i"
         :label="item.label"
         :prop="item.key"
@@ -12,7 +12,7 @@
           v-model="item.value"
           placeholder="请输入"
           disabled
-          v-if="item.key !== 'address'"
+          v-if="item.key !== 'specialInstructions'"
         />
         <el-input
           v-model="item.value"
@@ -27,7 +27,7 @@
   </div>
 </template>
 
-<script setup lang="ts" name="Basis">
+<script setup lang="ts" name="Business">
 import { ref, onMounted } from 'vue'
 let props = defineProps({
   list: {
@@ -36,15 +36,15 @@ let props = defineProps({
   }
 })
 let basicMsg = ref([
-  { label: '申请编号', value: '', key: 'applyNo' },
-  { label: '配置单位名称', value: '', key: 'configUnitName' },
-  { label: '统一社会信用代码', value: '', key: 'creditCode' },
-  { label: '法定代表人', value: '', key: 'legalPerson' },
-  { label: '联系人', value: '', key: 'contactPerson' },
-  { label: '联系电话', value: '', key: 'contactPhone' },
-  { label: '所有制性质', value: '', key: 'ownershipNature' },
-  { label: '申请日期', value: '', key: 'applyDate' },
-  { label: '详细地址', value: '', key: 'address' }
+  { label: '许可设备名称', key: 'equipmentName', value: '' },
+  { label: '阶梯配置机型', key: 'ladderModelName', value: '' },
+  { label: '设备配置地址', key: 'deviceAddress', value: '' },
+  { label: '生产企业', key: 'productionCompany', value: '' },
+  { label: '具体型号', key: 'specificModel', value: '' },
+  { label: '产品序列号', key: 'serialNumber', value: '' },
+  { label: '装机日期', key: 'installationDate', value: '' },
+  { label: '采购价格', key: 'purchasePrice', value: '' },
+  { label: '设备特殊说明', key: 'specialInstructions', value: '' }
 ])
 let basicData = ref({})
 onMounted(() => {
@@ -58,7 +58,7 @@ onMounted(() => {
 </script>
 
 <style lang="scss" scoped>
-.content-basis-msg-page {
+.content-business-msg-page {
   padding: 20px;
   background-color: #fff;
   &:deep(.el-form) {

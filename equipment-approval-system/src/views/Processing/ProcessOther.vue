@@ -58,7 +58,8 @@
 </template>
 
 <script setup lang="ts" name="ProcessOther">
-import BasicInfo from '@/views/Processing/components/basis.vue'
+import BasicInfo from './components/basis.vue'
+import Business from './components/business.vue'
 import {
   Back,
   Monitor,
@@ -97,7 +98,12 @@ let typeList = ref([
     component: markRaw(BasicInfo),
     icon: markRaw(InfoFilled)
   },
-  { label: '业务信息', value: 'deviceInfo', component: 'DeviceInfo', icon: markRaw(Management) },
+  {
+    label: '业务信息',
+    value: 'deviceInfo',
+    component: markRaw(Business),
+    icon: markRaw(Management)
+  },
   { label: '材料列表', value: 'useInfo', component: 'UseInfo', icon: markRaw(Connection) },
   { label: '初步审核', value: 'firstAudit', component: 'UseInfo', icon: markRaw(Search) },
   { label: '专家审核', value: 'expertAudit', component: 'UseInfo', icon: markRaw(Avatar) }
