@@ -28,6 +28,7 @@
 </template>
 
 <script setup lang="ts" name="Basis">
+// 基本信息
 import { ref, onMounted } from 'vue'
 let props = defineProps({
   list: {

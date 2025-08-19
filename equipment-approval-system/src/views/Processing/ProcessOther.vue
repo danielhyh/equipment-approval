@@ -43,13 +43,15 @@
           </div>
           <div class="type-content-page">
             <transition name="fade" mode="out-in">
-              <component :is="typeActive.component" :key="typeActive.value" />
+              <component ref="typeRef" :is="typeActive.component" :key="typeActive.value" />
             </transition>
           </div>
           <div class="handler-list">
-            <el-button size="default" type="success" :icon="Check">提交</el-button>
-            <el-button size="default" type="primary" :icon="Checked">暂存</el-button>
-            <el-button size="default" type="info" :icon="Back">返回</el-button>
+            <el-button size="default" type="success" :icon="Check" @click.stop="submitFn">
+              提交
+            </el-button>
+            <el-button size="default" type="primary" :icon="Checked"> 暂存 </el-button>
+            <el-button size="default" type="info" :icon="Back"> 返回 </el-button>
           </div>
         </div>
       </div>
@@ -60,6 +62,9 @@
 <script setup lang="ts" name="ProcessOther">
 import BasicInfo from './components/basis.vue'
 import Business from './components/business.vue'
+import UseInfo from './components/useInfo.vue'
+import Expert from './components/expert.vue'
+import Preliminary from './components/perliminary.vue'
 import {
   Back,
   Monitor,
@@ -104,15 +109,23 @@ let typeList = ref([
     component: markRaw(Business),
     icon: markRaw(Management)
   },
-  { label: '材料列表', value: 'useInfo', component: 'UseInfo', icon: markRaw(Connection) },
-  { label: '初步审核', value: 'firstAudit', component: 'UseInfo', icon: markRaw(Search) },
-  { label: '专家审核', value: 'expertAudit', component: 'UseInfo', icon: markRaw(Avatar) }
+  { label: '材料列表', value: 'useInfo', component: markRaw(UseInfo), icon: markRaw(Connection) },
+  {
+    label: '初步审核',
+    value: 'firstAudit',
+    component: markRaw(Preliminary),
+    icon: markRaw(Search)
+  },
+  { label: '专家审核', value: 'expertAudit', component: markRaw(Expert), icon: markRaw(Avatar) }
 ])
 let typeActive = ref({ value: 'basicInfo', component: markRaw(BasicInfo) })
 const handlerType = (item) => {
   typeActive.value.value = item.value
   typeActive.value.component = item.component
 }
+// 组件得 ref
+const typeRef = ref(null)
+const submitFn = () => {}
 </script>
 
 <style lang="scss" scoped>
@@ -133,8 +146,8 @@ const handlerType = (item) => {
         margin-left: 10px;
       }
     }
-    .right {
-    }
+    // .right {
+    // }
   }
   .content-page {
     height: calc(100vh - 54px);

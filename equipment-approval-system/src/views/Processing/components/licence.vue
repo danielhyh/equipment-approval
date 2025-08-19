@@ -62,7 +62,7 @@ import { ElMessage } from 'element-plus'
 import NEImage from '@/assets/lincence/national-emblem-b.png'
 import { ALicenceData, BLicenceData } from './licence'
 import { VuePrintNext } from 'vue-print-next'
-
+// 许可证
 let props = defineProps({
   licenceType: { type: String, default: 'A' }, // A:甲类 | B:乙类 控制标题  以及样式
   licenceSubtitle: { type: String, default: 'A' }, // A:正本 | B:副本 控制副标题 以及字段内容 以及样式
