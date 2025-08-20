@@ -43,7 +43,9 @@
           </div>
           <div class="type-content-page">
             <transition name="fade" mode="out-in">
-              <component ref="typeRef" :is="typeActive.component" :key="typeActive.value" />
+              <KeepAlive>
+                <component ref="typeRef" :is="typeActive.component" :key="typeActive.value" />
+              </KeepAlive>
             </transition>
           </div>
           <div class="handler-list">
@@ -51,7 +53,7 @@
               提交
             </el-button>
             <el-button size="default" type="primary" :icon="Checked"> 暂存 </el-button>
-            <el-button size="default" type="info" :icon="Back"> 返回 </el-button>
+            <el-button size="default" type="info" :icon="Back" @click="goBack"> 返回 </el-button>
           </div>
         </div>
       </div>

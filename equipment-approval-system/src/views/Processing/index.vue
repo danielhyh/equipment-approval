@@ -16,7 +16,7 @@
           @click="changeTypeFn(item)"
         >
           <span>{{ item.label }}</span>
-<!--          <i v-if="item.value">{{ item.value }}</i>-->
+          <!--          <i v-if="item.value">{{ item.value }}</i>-->
         </div>
       </div>
       <div class="search-list-container">
@@ -31,11 +31,12 @@
               />
             </el-select>
           </el-form-item>
-          <el-form-item label="设备类型" prop="licenseDeviceName" v-show="activeType !== 'basicInfoChange'">
-            <el-select
-              v-model="queryParams.licenseDeviceName"
-              placeholder="请选择设备类型"
-            >
+          <el-form-item
+            label="设备类型"
+            prop="licenseDeviceName"
+            v-show="activeType !== 'basicInfoChange'"
+          >
+            <el-select v-model="queryParams.licenseDeviceName" placeholder="请选择设备类型">
               <el-option
                 v-for="dict in dictEquipmentList"
                 :key="String(dict.value)"
@@ -52,8 +53,12 @@
             />
           </el-form-item>
           <el-form-item>
-            <el-button @click="handleQuery"><Icon icon="ep:search" class="mr-5px" /> 搜索</el-button>
-            <el-button @click="resetQuery"><Icon icon="ep:refresh" class="mr-5px" /> 重置</el-button>
+            <el-button @click="handleQuery"
+              ><Icon icon="ep:search" class="mr-5px" /> 搜索</el-button
+            >
+            <el-button @click="resetQuery"
+              ><Icon icon="ep:refresh" class="mr-5px" /> 重置</el-button
+            >
           </el-form-item>
         </el-form>
       </div>
@@ -103,10 +108,22 @@
               >
                 查看
               </el-button>
-              <el-button size="small" class="btn audit-btn" type="primary" :icon="Search">
+              <el-button
+                size="small"
+                class="btn audit-btn"
+                type="primary"
+                :icon="Search"
+                @click.stop="gotoDetailFn(scope.row, 'perliminary')"
+              >
                 初步审核
               </el-button>
-              <el-button size="small" class="btn expert-btn" type="primary" :icon="Avatar">
+              <el-button
+                size="small"
+                class="btn expert-btn"
+                type="primary"
+                :icon="Avatar"
+                @click.stop="gotoDetailFn(scope.row, 'expert')"
+              >
                 专家审批
               </el-button>
               <el-button
@@ -235,7 +252,7 @@ const queryParams = reactive({
   appStatus: undefined,
   licenseDeviceName: undefined,
   deptOrDeviceName: undefined,
-  appType: 1,
+  appType: 1
 })
 const queryFormRef = ref() // 搜索的表单
 /** 查询列表 */
@@ -245,6 +262,8 @@ const getList = async () => {
     const data = await ApplicationApi.getApplicationPage(queryParams)
     list.value = data.list
     total.value = data.total
+  } catch (err) {
+    console.log(err, '查询列表失败')
   } finally {
     loading.value = false
   }
@@ -276,12 +295,12 @@ let tableConfig = computed(() => {
     case 'apply':
       return {
         columns: [
-          { title: '申请单位', dataIndex: 'institutionName', minWidth: '120'},
-          { title: '设备名称', dataIndex: 'licenseDeviceName', minWidth: '120'},
+          { title: '申请单位', dataIndex: 'institutionName', minWidth: '120' },
+          { title: '设备名称', dataIndex: 'licenseDeviceName', minWidth: '120' },
           { title: '阶梯配置机型', dataIndex: 'ladderConfigModel', minWidth: '120' },
-          { title: '申请日期', dataIndex: 'createTime', minWidth: '120'},
+          { title: '申请日期', dataIndex: 'createTime', minWidth: '120' },
           { title: '状态', dataIndex: 'appStatus', minWidth: '120' },
-          { title: '剩余时间', dataIndex: 'remainingDays', minWidth: '120'}
+          { title: '剩余时间', dataIndex: 'remainingDays', minWidth: '120' }
         ]
       }
     case 'change':
@@ -379,7 +398,6 @@ const statusMap = (status: number) => {
     }
   )
 }
-
 
 // 正本|副本 弹窗展示
 let liscenceVisible = ref<boolean>(false)
