@@ -16,14 +16,13 @@
           @click="changeTypeFn(item)"
         >
           <span>{{ item.label }}</span>
-          <i v-if="item.value">{{ item.value }}</i>
+<!--          <i v-if="item.value">{{ item.value }}</i>-->
         </div>
       </div>
       <div class="search-list-container">
-        <el-form :model="formData" ref="formSearchRef" inline label-suffix=":" size="default">
-          <el-form-item label="状态" prop="status">
-            <el-select v-model="formData.status" placeholder="请选择状态" @change="getTableListFn">
-              <el-option label="全部" value="-1" />
+        <el-form :model="queryParams" ref="queryFormRef" inline label-suffix=":" size="default">
+          <el-form-item label="状态" prop="appStatus">
+            <el-select v-model="queryParams.appStatus" placeholder="请选择状态">
               <el-option
                 v-for="dict in dictStatusList"
                 :key="String(dict.value)"
@@ -32,13 +31,11 @@
               />
             </el-select>
           </el-form-item>
-          <el-form-item label="设备类型" prop="equipment" v-show="activeType !== 'basicInfoChange'">
+          <el-form-item label="设备类型" prop="licenseDeviceName" v-show="activeType !== 'basicInfoChange'">
             <el-select
-              v-model="formData.equipment"
+              v-model="queryParams.licenseDeviceName"
               placeholder="请选择设备类型"
-              @change="getTableListFn"
             >
-              <el-option label="全部设备" value="-1" />
               <el-option
                 v-for="dict in dictEquipmentList"
                 :key="String(dict.value)"
@@ -47,23 +44,23 @@
               />
             </el-select>
           </el-form-item>
-          <el-form-item prop="keyWord">
+          <el-form-item prop="deptOrDeviceName">
             <el-input
-              v-model="formData.keywords"
+              v-model="queryParams.deptOrDeviceName"
               placeholder="搜索申请单位或设备名称"
               clearable
-              @blur="getTableListFn"
-              @keyup.enter="getTableListFn"
             />
+          </el-form-item>
+          <el-form-item>
+            <el-button @click="handleQuery"><Icon icon="ep:search" class="mr-5px" /> 搜索</el-button>
+            <el-button @click="resetQuery"><Icon icon="ep:refresh" class="mr-5px" /> 重置</el-button>
           </el-form-item>
         </el-form>
       </div>
 
       <div class="table-container">
         <el-table
-          :data="tableData"
-          :columns="tableConfig.columns"
-          :pagination="page"
+          :data="list"
           :row-key="(row) => row.id"
           style="width: 100%; min-height: 500px"
           height="calc(100vh - 420px)"
@@ -86,7 +83,7 @@
           >
             <template #default="scope">
               <span
-                v-if="column.dataIndex === 'status'"
+                v-if="column.dataIndex === 'appStatus'"
                 class="status-label"
                 :class="statusMap(scope.row[column.dataIndex]).colorType"
               >
@@ -162,12 +159,11 @@
           </el-table-column>
         </el-table>
 
-        <pagination
-          class="pagination-style"
-          :page="page.pageNo"
-          :limit="page.pageSize"
-          :total="page.total"
-          @pagination="changePagination"
+        <Pagination
+          :total="total"
+          v-model:page="queryParams.pageNo"
+          v-model:limit="queryParams.pageSize"
+          @pagination="getList"
         />
       </div>
     </div>
@@ -189,14 +185,13 @@
 
 <script setup lang="ts" name="ProcessingCenter">
 import { Dialog } from '@/components/Dialog/index'
-import pagination from '@/components/Pagination/index.vue'
 import licence from './components/licence.vue'
 import { ref, computed, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { getDictOptions } from '@/utils/dict'
 import type { DictDataType } from '@/utils/dict'
-import type { FormInstance } from 'element-plus'
 import { View, Search, Avatar, Download, Printer } from '@element-plus/icons-vue'
+import { ApplicationApi } from '@/api/biz/application'
 
 const router = useRouter()
 type TypeList = {
@@ -209,37 +204,71 @@ type TypeList = {
 let typeList = ref<TypeList[]>([
   {
     label: '证书申请',
-    value: 0,
+    value: 1,
     type: 'apply',
     status: 'biz_app_status',
     equipment: 'biz_main_equipment_type'
   },
   {
     label: '证书补办',
-    value: 233,
+    value: 2,
     type: 'reissue',
     status: 'biz_review_result',
     equipment: 'biz_main_equipment_type'
   },
   {
     label: '证书变更',
-    value: 1,
+    value: 3,
     type: 'change',
     status: 'biz_review_result',
     equipment: 'biz_main_equipment_type'
   },
-  { label: '基本信息变更', value: 3, type: 'basicInfoChange', status: 'biz_review_result' }
+  { label: '基本信息变更', value: 4, type: 'basicInfoChange', status: 'biz_review_result' }
 ])
 let activeType = ref<string>('apply')
 let activeStatus = ref<string>('biz_app_status')
 let activeEquipment = ref<string>('biz_main_equipment_type')
 
+const queryParams = reactive({
+  pageNo: 1,
+  pageSize: 10,
+  appStatus: undefined,
+  licenseDeviceName: undefined,
+  deptOrDeviceName: undefined,
+  appType: 1,
+})
+const queryFormRef = ref() // 搜索的表单
+/** 查询列表 */
+const getList = async () => {
+  loading.value = true
+  try {
+    const data = await ApplicationApi.getApplicationPage(queryParams)
+    list.value = data.list
+    total.value = data.total
+  } finally {
+    loading.value = false
+  }
+}
+
+/** 搜索按钮操作 */
+const handleQuery = () => {
+  queryParams.pageNo = 1
+  getList()
+}
+
+/** 重置按钮操作 */
+const resetQuery = () => {
+  queryFormRef.value.resetFields()
+  handleQuery()
+}
+
 const changeTypeFn = (item: TypeList) => {
   activeType.value = item.type
   activeStatus.value = item.status || ''
   activeEquipment.value = item.equipment || ''
+  queryParams.appType = item.value
   // 切换类型时，重置表单
-  resetForm()
+  //resetForm()
   resetAllFn()
 }
 let tableConfig = computed(() => {
@@ -247,12 +276,12 @@ let tableConfig = computed(() => {
     case 'apply':
       return {
         columns: [
-          { title: '申请单位', dataIndex: 'applyCompany', minWidth: '120' },
-          { title: '设备名称', dataIndex: 'equipmentName', minWidth: '120' },
-          { title: '阶梯配置机型', dataIndex: 'applyType', minWidth: '120' },
-          { title: '申请日期', dataIndex: 'applyTime', minWidth: '120' },
-          { title: '状态', dataIndex: 'status', minWidth: '120' },
-          { title: '剩余时间', dataIndex: 'remainTime', minWidth: '120' }
+          { title: '申请单位', dataIndex: 'institutionName', minWidth: '120'},
+          { title: '设备名称', dataIndex: 'licenseDeviceName', minWidth: '120'},
+          { title: '阶梯配置机型', dataIndex: 'ladderConfigModel', minWidth: '120' },
+          { title: '申请日期', dataIndex: 'createTime', minWidth: '120'},
+          { title: '状态', dataIndex: 'appStatus', minWidth: '120' },
+          { title: '剩余时间', dataIndex: 'remainingDays', minWidth: '120'}
         ]
       }
     case 'change':
@@ -306,39 +335,40 @@ let page = ref<PageParam>({
 const changeIndex = (index: number) => {
   return page.value.pageSize * (page.value.pageNo - 1) + index + 1
 }
-const changePagination = (pagination: { page: number; limit: number }) => {
-  page.value.pageNo = pagination.page
-  page.value.pageSize = pagination.limit
-  getTableListFn()
-}
+// const changePagination = (pagination: { page: number; limit: number }) => {
+//   page.value.pageNo = pagination.page
+//   page.value.pageSize = pagination.limit
+//   getTableListFn()
+// }
 const resetAllFn = () => {
   page.value.pageNo = 1
   page.value.total = 0
-  getTableListFn()
+  getList()
 }
 
-type FormDataEnum = {
-  status: string
-  equipment?: string
-  keywords: string
-}
-let formData = ref<FormDataEnum>({
-  status: '-1',
-  equipment: '-1',
-  keywords: ''
-})
+// type FormDataEnum = {
+//   status: string
+//   equipment?: string
+//   keywords: string
+// }
+// let formData = ref<FormDataEnum>({
+//   status: '-1',
+//   equipment: '-1',
+//   keywords: ''
+// })
 
-let formSearchRef = ref<FormInstance | null>(null)
-const resetForm = () => {
-  formSearchRef.value?.resetFields()
-  formData.value = {
-    status: '-1',
-    equipment: '-1',
-    keywords: ''
-  }
-}
+// let formSearchRef = ref<FormInstance | null>(null)
+// const resetForm = () => {
+//   formSearchRef.value?.resetFields()
+//   formData.value = {
+//     status: '-1',
+//     equipment: '-1',
+//     keywords: ''
+//   }
+// }
 
-let tableData = ref<any[]>([])
+let list = ref<any[]>([])
+const total = ref(0) // 列表的总页数
 let loading = ref<boolean>(false)
 
 const statusMap = (status: number) => {
@@ -349,118 +379,7 @@ const statusMap = (status: number) => {
     }
   )
 }
-const getTableListFn = () => {
-  loading.value = true
-  let params = {
-    ...formData.value,
-    pageSize: page.value.pageSize,
-    pageNo: page.value.pageNo
-  }
-  if (params.status === '-1') {
-    delete (params as { [key: string]: any }).status
-  }
-  if (params.equipment === '-1') {
-    delete (params as { [key: string]: any }).equipment
-  }
-  // 模拟获取数据
-  setTimeout(() => {
-    // 假设获取到的数据
-    tableData.value = [
-      {
-        id: '0-1',
-        applyCompany: '公司A',
-        equipmentName: '设备A',
-        applyType: '类型A',
-        applyTime: '2023-01-01',
-        status: 0,
-        remainTime: '2天'
-      },
-      {
-        id: 1,
-        applyCompany: '公司A',
-        equipmentName: '设备A',
-        applyType: '类型A',
-        applyTime: '2023-01-01',
-        status: 1,
-        remainTime: '2天'
-      },
-      {
-        id: 2,
-        applyCompany: '公司B',
-        equipmentName: '设备B',
-        applyType: '类型B',
-        applyTime: '2023-02-01',
-        status: 2,
-        remainTime: '1天'
-      },
-      {
-        id: 3,
-        applyCompany: '公司B',
-        equipmentName: '设备B',
-        applyType: '类型B',
-        applyTime: '2023-02-01',
-        status: 3,
-        remainTime: '1天'
-      },
-      {
-        id: 4,
-        applyCompany: '公司B',
-        equipmentName: '设备B',
-        applyType: '类型B',
-        applyTime: '2023-02-01',
-        status: 4,
-        remainTime: '1天'
-      },
-      {
-        id: 5,
-        applyCompany: '公司B',
-        equipmentName: '设备B',
-        applyType: '类型B',
-        applyTime: '2023-02-01',
-        status: 5,
-        remainTime: '1天'
-      },
-      {
-        id: 6,
-        applyCompany: '公司B',
-        equipmentName: '设备B',
-        applyType: '类型B',
-        applyTime: '2023-02-01',
-        status: 6,
-        remainTime: '1天'
-      },
-      {
-        id: 7,
-        applyCompany: '公司B',
-        equipmentName: '设备B',
-        applyType: '类型B',
-        applyTime: '2023-02-01',
-        status: 7,
-        remainTime: '1天'
-      },
-      {
-        id: 8,
-        applyCompany: '公司B',
-        equipmentName: '设备B',
-        applyType: '类型B',
-        applyTime: '2023-02-01',
-        status: 8,
-        remainTime: '1天'
-      },
-      {
-        id: 9,
-        applyCompany: '公司B',
-        equipmentName: '设备B',
-        applyType: '类型B',
-        applyTime: '2023-02-01',
-        status: 9,
-        remainTime: '1天'
-      }
-    ]
-    page.value.total = tableData.value.length
-    loading.value = false
-  }, 1000)
-}
+
 
 // 正本|副本 弹窗展示
 let liscenceVisible = ref<boolean>(false)
@@ -503,7 +422,7 @@ const gotoDetailFn = (row, type) => {
 onMounted(() => {
   // 在组件挂载时可以进行一些初始化操作
   console.log('Processing Center mounted')
-  getTableListFn()
+  getList()
 })
 </script>
 

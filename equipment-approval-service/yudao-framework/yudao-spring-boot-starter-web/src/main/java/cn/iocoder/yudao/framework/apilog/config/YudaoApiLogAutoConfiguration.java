@@ -38,7 +38,7 @@ public class YudaoApiLogAutoConfiguration implements WebMvcConfigurer {
 
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
-        registry.addInterceptor(new ApiAccessLogInterceptor());
+//        registry.addInterceptor(new ApiAccessLogInterceptor());
     }
 
 }
