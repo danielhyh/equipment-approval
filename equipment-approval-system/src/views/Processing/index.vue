@@ -1,11 +1,11 @@
 <template>
   <div class="processing-page">
-    <div class="processing-page-header">
+    <!-- <div class="processing-page-header">
       <div class="left">
         <div class="title"> 办件中心 </div>
         <div class="subtitle"> 大型医用设备审批办件管理 </div>
       </div>
-    </div>
+    </div> -->
     <div class="container-body" v-loading="loading">
       <div class="type-tabs-list">
         <div
@@ -67,7 +67,7 @@
         <el-table
           :data="list"
           :row-key="(row) => row.id"
-          style="width: 100%; min-height: 500px"
+          style="width: 100%; min-height: 600px"
           height="calc(100vh - 420px)"
           :size="'default'"
         >
@@ -204,7 +204,7 @@
 import { Dialog } from '@/components/Dialog/index'
 import licence from './components/licence.vue'
 import { ref, computed, onMounted } from 'vue'
-import { useRouter, useRoute } from 'vue-router'
+import { useRouter } from 'vue-router'
 import { getDictOptions } from '@/utils/dict'
 import type { DictDataType } from '@/utils/dict'
 import { View, Search, Avatar, Download, Printer } from '@element-plus/icons-vue'
@@ -457,8 +457,9 @@ onMounted(() => {
   }
 }
 .processing-page {
-  border-radius: 20px 20px 0 0;
+  border-radius: 10px;
   background-color: #fff;
+  min-height: 100%;
 }
 .processing-page-header {
   padding: 10px;
