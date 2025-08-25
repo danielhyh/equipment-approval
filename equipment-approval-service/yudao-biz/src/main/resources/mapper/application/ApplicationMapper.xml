@@ -10,6 +10,7 @@
      -->
     <select id="page" resultType="cn.iocoder.yudao.module.biz.controller.admin.application.vo.ApplicationPageRespVO">
         SELECT
+        ba.id,
         bie.institution_name,
         ba.license_device_name,
         ba.ladder_config_model,
@@ -22,6 +23,7 @@
         JOIN
         biz_institution_ext bie ON ba.institution_id = bie.dept_id
         <where>
+             and ba.deleted = 0
             <if test="reqVO.appType != null and reqVO.appType != ''">
                 and app_type = #{reqVO.appType}
             </if>
@@ -38,5 +40,42 @@
         </where>
         ORDER BY
         create_time DESC
+    </select>
+    
+    <select id="selectBasicInfo" resultType="cn.iocoder.yudao.module.biz.controller.admin.application.vo.ApplicationBasicInformationVO">
+        SELECT
+            ba.id,
+            app_no,
+            institution_name,
+            license_device_name,
+            unified_social_credit_code,
+            legal_person,
+            contact_person,
+            contact_phone,
+            ownership_nature,
+            ba.create_time,
+            detailed_address
+        FROM
+            biz_application ba
+                JOIN biz_institution_ext bie
+        WHERE
+            ba.id = #{id} and ba.deleted = 0
+    </select>
+    
+    <select id="businessInfo" resultType="cn.iocoder.yudao.module.biz.controller.admin.application.vo.BusinessInfoVO">
+        SELECT
+            bce.license_device_name,
+            ladder_config_model,
+            equipment_config_address,
+            production_enterprise,
+            specific_model,
+            serial_number,
+            installation_date,
+            purchase_price,
+            special_description
+        FROM
+            biz_application ba
+                JOIN biz_class_a_equipment bce ON ba.equipment_id = bce.id
+        where ba.deleted = 0 and ba.id = #{id}
     </select>
 </mapper>

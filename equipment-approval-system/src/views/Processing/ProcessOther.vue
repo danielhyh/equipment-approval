@@ -14,17 +14,17 @@
         <div class="content-basis-msg">
           <div class="title-row">
             <el-icon><Management /></el-icon>
-            <span>西安交通大学第一附属医院</span>
+            <span> {{basicInfo.institutionName}}</span>
           </div>
           <div class="other-row">
             <div class="col"
               ><span class="label">申请编号：</span>
-              <span class="value">SQ-2024-09-23-0931</span>
+              <span class="value">{{basicInfo.appNo}}</span>
             </div>
             <div class="line"></div>
             <div class="col">
               <span class="label">设备名称:</span>
-              <span class="value">X线正电子发射断层扫描仪</span>
+              <span class="value">{{basicInfo.licenseDeviceName}}</span>
             </div>
           </div>
         </div>
@@ -78,26 +78,23 @@ import {
   Check,
   Checked
 } from '@element-plus/icons-vue'
-import { useRouter } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router'
 import { markRaw } from 'vue'
+import { ApplicationApi } from '@/api/biz/application'
+import {useApplicationDataStore} from '@/store/applicationData'
 
 const router = useRouter()
-let props = defineProps({
-  id: { type: String, default: '' },
-  handler: { type: String, default: 'view' }
-})
+const route = useRoute()
+const { id } = route.query
+// let props = defineProps({
+//   id: { type: String, default: '' },
+//   handler: { type: String, default: 'view' }
+// })
 // 返回上一页
 const goBack = () => {
   router.back()
 }
 
-// 基础数据
-let basice = reactive({
-  title: '西安交通大学第一附属医院',
-  code: 'DQ-2024-09-23-0931',
-  // 设备名称
-  deviceName: 'X线正电子发射断层扫描仪'
-})
 let typeList = ref([
   {
     label: '基本信息',
@@ -128,6 +125,28 @@ const handlerType = (item) => {
 // 组件得 ref
 const typeRef = ref(null)
 const submitFn = () => {}
+const basicInfo = ref({
+  id: null,
+  appNo: '',
+  institutionName: '',
+  licenseDeviceName: '',
+  unifiedSocialCreditCode: '',
+  legalPerson: '',
+  contactPerson: '',
+  contactPhone: '',
+  ownershipNature: '',
+  createTime: null,
+  detailedAddress: ''
+})
+const appData = useApplicationDataStore()
+const getBasicInfo = async () => {
+  var promise = await ApplicationApi.basicInfo(id)
+  basicInfo.value = promise
+  appData.basicInfo = basicInfo.value
+}
+onMounted(() => {
+  getBasicInfo()
+})
 </script>
 
 <style lang="scss" scoped>

@@ -1,5 +1,7 @@
 package cn.iocoder.yudao.module.biz.dal.dataobject.application;
 
+import cn.iocoder.yudao.framework.mybatis.core.type.LongListTypeHandler;
+import cn.iocoder.yudao.framework.mybatis.core.type.StringListTypeHandler;
 import lombok.*;
 
 import java.time.*;
@@ -85,11 +87,18 @@ public class ApplicationDO extends BaseDO {
     /**
      * 专家ID
      */
-    private Long expertId;
+    @TableField(typeHandler = LongListTypeHandler.class)
+    private List<Long> expertId;
     /**
      * 专家审核时间
      */
     private LocalDateTime expertReviewTime;
+
+    /**
+     * 专家审核附件
+     */
+    @TableField(typeHandler = StringListTypeHandler.class)
+    private List<String> expertAttachments;
     /**
      * 许可证编号
      */

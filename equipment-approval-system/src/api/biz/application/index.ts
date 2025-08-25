@@ -59,4 +59,14 @@ export const ApplicationApi = {
   exportApplication: async (params) => {
     return await request.download({ url: `/biz/application/export-excel`, params })
   },
-}
+  basicInfo: async (id) => {
+    return await request.get({ url: `/biz/application/basicInfo/${id}` })
+  },
+
+  bizInfo: async (id) => {
+    return await request.get({ url: `/biz/application/bizInfo/${id}` })
+  },
+  review: async (params) => {
+    return await request.post({ url: `/biz/application/approval`, params })
+  }
+}

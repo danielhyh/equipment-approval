@@ -1,5 +1,6 @@
 package cn.iocoder.yudao.module.biz.controller.admin.application;
 
+import jakarta.annotation.security.PermitAll;
 import org.springframework.web.bind.annotation.*;
 import jakarta.annotation.Resource;
 import org.springframework.validation.annotation.Validated;
@@ -98,6 +99,22 @@ public class ApplicationController {
         // 导出 Excel
         ExcelUtils.write(response, "申请.xls", "数据", ApplicationRespVO.class,
                         BeanUtils.toBean(list, ApplicationRespVO.class));
+    }
+
+    @GetMapping("/basicInfo/{id}")
+    public CommonResult<ApplicationBasicInformationVO> getApplicationBasicInformation(@PathVariable("id") Long id) {
+        return success(applicationService.getApplicationBasicInformation(id));
+    }
+
+    @GetMapping("/bizInfo/{id}")
+    public CommonResult<BusinessInfoVO> getBusinessInfo(@PathVariable("id") Long id) {
+        return success(applicationService.businessInfo(id));
+    }
+
+    @PostMapping("/approval")
+    public CommonResult<Void> approval(@RequestBody ApplicationReviewVO vo) {
+        applicationService.approval(vo);
+        return CommonResult.success(null);
     }
 
 }

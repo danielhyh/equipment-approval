@@ -29,7 +29,10 @@
 
 <script setup lang="ts" name="Basis">
 // 基本信息
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, watch } from 'vue'
+import {useApplicationDataStore} from '@/store/applicationData'
+const appData = useApplicationDataStore()
+
 let props = defineProps({
   list: {
     type: Object || null,
@@ -37,25 +40,29 @@ let props = defineProps({
   }
 })
 let basicMsg = ref([
-  { label: '申请编号', value: '', key: 'applyNo' },
-  { label: '配置单位名称', value: '', key: 'configUnitName' },
-  { label: '统一社会信用代码', value: '', key: 'creditCode' },
+  { label: '申请编号', value: '', key: 'appNo' },
+  { label: '配置单位名称', value: '', key: 'institutionName' },
+  { label: '统一社会信用代码', value: '', key: 'unifiedSocialCreditCode' },
   { label: '法定代表人', value: '', key: 'legalPerson' },
   { label: '联系人', value: '', key: 'contactPerson' },
   { label: '联系电话', value: '', key: 'contactPhone' },
   { label: '所有制性质', value: '', key: 'ownershipNature' },
-  { label: '申请日期', value: '', key: 'applyDate' },
-  { label: '详细地址', value: '', key: 'address' }
+  { label: '申请日期', value: '', key: 'createTime' },
+  { label: '详细地址', value: '', key: 'detailedAddress' }
 ])
 let basicData = ref({})
-onMounted(() => {
-  if (!!props.list) {
+watch(
+  () => appData.basicInfo,
+  (newVal) => {
+    if (!newVal) return
     basicMsg.value.forEach((item) => {
-      item.value = props.list[item.key]
-      basicData.value[item.key] = props.list[item.key]
+      item.value =  appData.basicInfo[item.key]
+      console.log(item)
+      basicData.value[item.key] = appData.basicInfo[item.key]
     })
+
   }
-})
+)
 </script>
 
 <style lang="scss" scoped>

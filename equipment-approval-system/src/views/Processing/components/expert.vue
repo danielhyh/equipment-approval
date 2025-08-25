@@ -14,15 +14,15 @@
         class="demo-ruleForm"
         label-position="top"
       >
-        <el-form-item label="审核结果" prop="reivew">
-          <el-radio-group v-model="formValue.reivew">
+        <el-form-item label="审核结果" prop="reviewResult">
+          <el-radio-group v-model="formValue.reviewResult">
             <el-radio value="1">通过</el-radio>
             <el-radio value="2">不通过</el-radio>
           </el-radio-group>
         </el-form-item>
-        <el-form-item label="审核备注" prop="remark">
+        <el-form-item label="审核备注" prop="reviewOpinion">
           <el-input
-            v-model="formValue.remark"
+            v-model="formValue.reviewOpinion"
             type="textarea"
             :autosize="{ minRows: 4, maxRows: 6 }"
           />
@@ -111,23 +111,23 @@
 import { UploadFile } from '@/components/UploadFile/index'
 import { ElMessage } from 'element-plus'
 import type { FormInstance, TableInstance } from 'element-plus'
-interface formType {
-  reivew: string | number | null
-  remark: string
-  licenseCode: string
-  createDate: string
-}
-let formValue = ref<formType>({
-  reivew: null,
-  remark: '',
+import {useRoute} from 'vue-router'
+
+const route = useRoute()
+const {id} = route.query
+let formValue = ref({
+  reviewResult: '',
+  reviewOpinion: '',
+  reviewType: 'INITIAL',
+  id: Number(id),
   licenseCode: '',
   createDate: ''
 })
 
 let formRef = ref<FormInstance | null>(null)
 let rules = reactive({
-  reivew: [{ required: true, message: '请选择审核结果', trigger: 'blur' }],
-  remark: [{ required: false, message: '请输入审核备注', trigger: 'blur' }],
+  reviewResult: [{ required: true, message: '请选择审核结果', trigger: 'blur' }],
+  reviewOpinion: [{ required: false, message: '请输入审核备注', trigger: 'blur' }],
   licenseCode: [
     { required: false, message: '请输入专家证书编号', trigger: 'blur' },
     { min: 11, max: 11, message: '请输入11位专家证书编号', trigger: 'blur' },
