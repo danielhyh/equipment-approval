@@ -22,4 +22,8 @@ public interface ApplicationMapper extends BaseMapperX<ApplicationDO> {
 
     IPage<ApplicationPageRespVO> page(IPage<ApplicationPageRespVO> page, @Param("reqVO") ApplicationPageReqVO reqVO);
 
+
+    ApplicationBasicInformationVO selectBasicInfo(@Param("id") Long id);
+
+    BusinessInfoVO businessInfo(@Param("id") Long id);
 }

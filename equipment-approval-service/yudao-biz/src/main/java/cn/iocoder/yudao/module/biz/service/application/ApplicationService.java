@@ -6,6 +6,7 @@ import cn.iocoder.yudao.module.biz.controller.admin.application.vo.*;
 import cn.iocoder.yudao.module.biz.dal.dataobject.application.ApplicationDO;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.common.pojo.PageParam;
+import org.apache.ibatis.annotations.Param;
 
 /**
  * 申请 Service 接口
@@ -59,4 +60,9 @@ public interface ApplicationService {
      */
     PageResult<ApplicationPageRespVO> getApplicationPage(ApplicationPageReqVO pageReqVO);
 
+    ApplicationBasicInformationVO getApplicationBasicInformation(Long id);
+
+    BusinessInfoVO businessInfo(Long id);
+
+    void approval(ApplicationReviewVO reviewVO);
 }
