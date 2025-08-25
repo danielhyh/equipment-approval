@@ -202,9 +202,8 @@
 
 <script setup lang="ts" name="ProcessingCenter">
 import { Dialog } from '@/components/Dialog/index'
-import licence from './components/licence.vue'
-import { ref, computed, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
+import licence from './components/license.vue'
+
 import { getDictOptions } from '@/utils/dict'
 import type { DictDataType } from '@/utils/dict'
 import { View, Search, Avatar, Download, Printer } from '@element-plus/icons-vue'

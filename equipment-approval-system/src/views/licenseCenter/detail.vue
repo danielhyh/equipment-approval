@@ -1,9 +1,9 @@
 <template>
-  <div class="process-other">
+  <div class="license-detail-box">
     <div class="header-row">
       <div class="left">
         <el-icon><Monitor /></el-icon>
-        <span>办件详情 - 陕西省大型医用设备在线审批归档系统</span>
+        <span>许可证详情 - {{ title }}</span>
       </div>
       <div class="right">
         <el-button type="primary" :icon="Back" @click="goBack">返回办件中心</el-button>
@@ -37,7 +37,8 @@
               :key="i"
               @click.stop="handlerType(item)"
             >
-              <el-icon><component :is="item.icon" class="el-icon" /></el-icon>
+              <Icon :icon="item.icon" />
+              <!-- <el-icon><component :is="item.icon" class="el-icon" /></el-icon> -->
               <span>{{ item.label }}</span>
             </div>
           </div>
@@ -48,49 +49,29 @@
               </KeepAlive>
             </transition>
           </div>
-          <div class="handler-list">
-            <el-button size="default" type="success" :icon="Check" @click.stop="submitFn">
-              提交
-            </el-button>
-            <el-button size="default" type="primary" :icon="Checked"> 暂存 </el-button>
-            <el-button size="default" type="info" :icon="Back" @click="goBack"> 返回 </el-button>
-          </div>
         </div>
       </div>
     </div>
   </div>
 </template>
 
-<script setup lang="ts" name="ProcessOther">
+<script setup lang="ts" name="LicenseCenterDetail">
+import { Back, Monitor, Management } from '@element-plus/icons-vue'
 import BasicInfo from './components/basis.vue'
 import Business from './components/business.vue'
 import UseInfo from './components/useInfo.vue'
+import Preliminary from './components/preliminary.vue'
 import Expert from './components/expert.vue'
-import Preliminary from './components/perliminary.vue'
-import {
-  Back,
-  Monitor,
-  Management,
-  InfoFilled,
-  Connection,
-  Search,
-  Avatar,
-  Check,
-  Checked
-} from '@element-plus/icons-vue'
-import { useRouter } from 'vue-router'
-import { markRaw } from 'vue'
-
+import Original from './components/original.vue'
+import Copy from './components/copy.vue'
 const router = useRouter()
-let props = defineProps({
-  id: { type: String, default: '' },
-  handler: { type: String, default: 'view' }
-})
-// 返回上一页
+const route = useRoute()
 const goBack = () => {
   router.back()
 }
-
+let licenseId = computed(() => route.query.id)
+provide('licenseId', licenseId)
+let title = ref('陕西省大型医用设备在线审批归档系统')
 // 基础数据
 let basice = reactive({
   title: '西安交通大学第一附属医院',
@@ -98,40 +79,79 @@ let basice = reactive({
   // 设备名称
   deviceName: 'X线正电子发射断层扫描仪'
 })
+
 let typeList = ref([
   {
     label: '基本信息',
     value: 'basicInfo',
     component: markRaw(BasicInfo),
-    icon: markRaw(InfoFilled)
+    icon: 'ep:info-filled'
   },
   {
     label: '业务信息',
     value: 'deviceInfo',
     component: markRaw(Business),
-    icon: markRaw(Management)
+    icon: 'ep:management'
   },
-  { label: '材料列表', value: 'useInfo', component: markRaw(UseInfo), icon: markRaw(Connection) },
+  {
+    label: '材料列表',
+    value: 'useInfo',
+    component: markRaw(UseInfo),
+    icon: 'ep:connection'
+  },
   {
     label: '初步审核',
     value: 'firstAudit',
     component: markRaw(Preliminary),
-    icon: markRaw(Search)
+    icon: 'ep:search'
   },
-  { label: '专家审核', value: 'expertAudit', component: markRaw(Expert), icon: markRaw(Avatar) }
+  {
+    label: '专家审核',
+    value: 'expertAudit',
+    component: markRaw(Expert),
+    icon: 'ep:avatar'
+  },
+  {
+    label: '正本信息',
+    value: 'originalInfo',
+    component: markRaw(Original),
+    icon: 'ep:checked'
+  },
+  {
+    label: '副本信息',
+    value: 'copyInfo',
+    component: markRaw(Copy),
+    icon: 'ep:document-copy'
+  },
+  {
+    label: '其他信息',
+    value: 'otherInfo',
+    icon: 'ep:more-filled'
+    // component: markRaw(Other)
+  },
+  {
+    label: '二维码',
+    value: 'qrcode',
+    // component: markRaw(Qrcode),
+    icon: 'ic:baseline-qrcode'
+  },
+  {
+    label: '操作历史',
+    value: 'operationHistory',
+    icon: 'lucide:history'
+    // component: markRaw(OperationHistory)
+  }
 ])
 let typeActive = ref({ value: 'basicInfo', component: markRaw(BasicInfo) })
 const handlerType = (item) => {
   typeActive.value.value = item.value
+  if (!item.component) return
   typeActive.value.component = item.component
 }
-// 组件得 ref
-const typeRef = ref(null)
-const submitFn = () => {}
 </script>
 
 <style lang="scss" scoped>
-.process-other {
+.license-detail-box {
   .header-row {
     display: flex;
     justify-content: space-between;
@@ -139,6 +159,7 @@ const submitFn = () => {}
     padding: 0 20px;
     background-image: linear-gradient(to right, #282ffc, #1c93f4);
     height: 54px;
+    border-radius: 8px;
     .left {
       display: flex;
       align-items: center;
@@ -152,13 +173,12 @@ const submitFn = () => {}
     // }
   }
   .content-page {
-    height: calc(100vh - 54px);
+    height: calc(100% - 54px);
     overflow-y: auto;
     background-color: #f5f7fa;
     .scroll-content {
-      max-width: 1240px;
       margin: 0 auto;
-      padding: 20px;
+      padding: 10px 0;
       .content-basis-msg {
         padding: 20px;
         border-radius: 10px;
@@ -211,6 +231,7 @@ const submitFn = () => {}
         .type-tag-list {
           display: flex;
           align-items: center;
+          overflow: auto;
           .type-tag-item {
             height: 44px;
             display: flex;
@@ -222,6 +243,7 @@ const submitFn = () => {}
             padding: 4px 14px;
             cursor: pointer;
             transition: all 0.3s ease;
+            flex-shrink: 0;
             span {
               margin-left: 4px;
             }

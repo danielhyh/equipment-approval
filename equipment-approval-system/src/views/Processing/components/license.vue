@@ -54,13 +54,12 @@
   </div>
 </template>
 
-<script setup lang="ts" name="Licence">
+<script setup lang="ts" name="License">
 import jsPDF from 'jspdf'
 import domtoimage from 'dom-to-image'
-import { ref, reactive, onMounted } from 'vue'
 import { ElMessage } from 'element-plus'
 import NEImage from '@/assets/lincence/national-emblem-b.png'
-import { ALicenceData, BLicenceData } from './licence'
+import { ALicenceData, BLicenceData } from './license'
 import { VuePrintNext } from 'vue-print-next'
 // 许可证
 let props = defineProps({
@@ -83,7 +82,7 @@ let props = defineProps({
   },
   stampUit: { type: String, default: '国家医疗机构保障局' }, // 签发单位
   stampDate: { type: String, default: '2023年01月01日' }, // 签发日期
-  seal: { type: String, default: '' }
+  seal: { type: String, default: '' } // 盖章
 })
 
 let licenceTitle = computed(() => {

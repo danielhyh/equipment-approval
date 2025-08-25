@@ -135,10 +135,10 @@
           </template>
         </el-table-column>
         <el-table-column label="操作" align="center" width="240">
-          <template #default>
+          <template #default="scope">
             <el-button type="primary" size="small">正本</el-button>
             <el-button type="primary" size="small">副本</el-button>
-            <el-button type="primary" size="small">详情</el-button>
+            <el-button type="primary" size="small" @click="handleDetail(scope.row)">详情</el-button>
           </template>
         </el-table-column>
       </el-table>
@@ -155,6 +155,7 @@
 
 <script setup lang="ts" name="LicenseCenter">
 import { Search, RefreshRight } from '@element-plus/icons-vue'
+import { useRouter } from 'vue-router'
 import { getDictOptions } from '@/utils/dict'
 import type { DictDataType } from '@/utils/dict'
 
@@ -254,6 +255,16 @@ const resetSearch = () => {
 const searchFn = () => {
   paramsValue.pageNum = 1
   getList()
+}
+
+let router = useRouter()
+const handleDetail = (row) => {
+  router.push({
+    path: '/license-detail',
+    query: {
+      id: row.id
+    }
+  })
 }
 
 onMounted(() => {
