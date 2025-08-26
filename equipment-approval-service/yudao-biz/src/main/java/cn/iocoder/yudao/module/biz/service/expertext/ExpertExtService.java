@@ -6,6 +6,7 @@ import cn.iocoder.yudao.module.biz.controller.admin.expertext.vo.*;
 import cn.iocoder.yudao.module.biz.dal.dataobject.expertext.ExpertExtDO;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.common.pojo.PageParam;
+import org.apache.ibatis.annotations.Param;
 
 /**
  * 专家扩展信息 Service 接口
@@ -58,5 +59,11 @@ public interface ExpertExtService {
      * @return 专家扩展信息分页
      */
     PageResult<ExpertExtRespVO> getExpertExtPage(ExpertExtPageReqVO pageReqVO);
+
+    List<ExpertExtRespVO> list(String keywords, String specialty);
+
+    List<String> getSpecialty();
+
+    List<ExpertReviewVO> selectReviewRecord(Long id);
 
 }

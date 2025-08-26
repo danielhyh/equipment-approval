@@ -68,5 +68,8 @@ export const ApplicationApi = {
   },
   review: async (params) => {
     return await request.post({ url: `/biz/application/approval`, params })
+  },
+  generateLicense: async(id: number) => {
+    return await request.get({ url: `/biz/application/generateLicense/${id}` })
   }
 }

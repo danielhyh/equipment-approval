@@ -5,15 +5,21 @@ import cn.iocoder.yudao.framework.common.exception.ErrorCode;
 import cn.iocoder.yudao.framework.common.exception.ServerException;
 import cn.iocoder.yudao.framework.common.exception.ServiceException;
 import cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils;
+import cn.iocoder.yudao.module.biz.service.license.DeviceLicenseService;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.google.common.base.CaseFormat;
 import com.google.common.collect.Lists;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.simple.JdbcClient;
 import org.springframework.stereotype.Service;
 import jakarta.annotation.Resource;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.time.LocalDateTime;
 import java.util.*;
 
@@ -41,6 +47,12 @@ public class ApplicationServiceImpl implements ApplicationService {
 
     @Resource
     private ApplicationMapper applicationMapper;
+
+    @Resource
+    private JdbcClient jdbcClient;
+
+    @Resource
+    private DeviceLicenseService  deviceLicenseService;
 
     @Override
     public Long createApplication(ApplicationSaveReqVO createReqVO) {
@@ -140,6 +152,36 @@ public class ApplicationServiceImpl implements ApplicationService {
         }
 
         applicationMapper.updateById(update);
+    }
+
+    @Override
+    public String getLicenseNumber(Long id) {
+        Map<String, String> map = jdbcClient.sql("""
+                SELECT
+                  ba.license_device_name,
+                  ladder_config_model,
+                  production_enterprise,
+                  region
+                FROM
+                  biz_application ba
+                  LEFT JOIN biz_class_a_equipment bce ON ba.equipment_id = bce.id
+                  LEFT JOIN biz_institution_ext bie ON ba.institution_id = bie.dept_id
+                WHERE
+                  ba.id = ?
+                """).param(id).query(this::resultSetToMap).single();
+
+        return deviceLicenseService.generateLicenseNumber("乙", map.get("region"), map.get("licenseDeviceName"),
+                map.get("ladderConfigModel"), map.get("productionEnterprise"));
+    }
+    private Map<String, String> resultSetToMap(ResultSet rs, int rowNum) throws SQLException {
+        Map<String, String> row = new HashMap<>();
+        for (int i = 1; i <= rs.getMetaData().getColumnCount(); i++) {
+            String columnName = rs.getMetaData().getColumnName(i);
+            columnName = CaseFormat.LOWER_UNDERSCORE.to(CaseFormat.LOWER_CAMEL, columnName);
+            Object value = rs.getObject(i);
+            row.put(columnName, value != null ? value.toString() : null);
+        }
+        return row;
     }
 
 }

@@ -12,9 +12,9 @@ public class ExpertExtSaveReqVO {
     @Schema(description = "主键ID", requiredMode = Schema.RequiredMode.REQUIRED, example = "21379")
     private Long id;
 
-    @Schema(description = "关联用户ID", requiredMode = Schema.RequiredMode.REQUIRED, example = "27725")
-    @NotNull(message = "关联用户ID不能为空")
-    private Long userId;
+//    @Schema(description = "关联用户ID", requiredMode = Schema.RequiredMode.REQUIRED, example = "27725")
+//    @NotNull(message = "关联用户ID不能为空")
+//    private Long userId;
 
     @Schema(description = "专家姓名", requiredMode = Schema.RequiredMode.REQUIRED, example = "赵六")
     @NotEmpty(message = "专家姓名不能为空")
@@ -41,11 +41,15 @@ public class ExpertExtSaveReqVO {
     @Schema(description = "邮箱")
     private String email;
 
-    @Schema(description = "资质证书")
-    private String qualificationCert;
+    private String remark;
 
-    @Schema(description = "状态：1-启用，0-禁用", requiredMode = Schema.RequiredMode.REQUIRED, example = "2")
-    @NotNull(message = "状态：1-启用，0-禁用不能为空")
-    private Integer status;
+    private String position;
+
+//    @Schema(description = "资质证书")
+//    private String qualificationCert;
+
+//    @Schema(description = "状态：1-启用，0-禁用", requiredMode = Schema.RequiredMode.REQUIRED, example = "2")
+//    @NotNull(message = "状态：1-启用，0-禁用不能为空")
+//    private Integer status;
 
 }

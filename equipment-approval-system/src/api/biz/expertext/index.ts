@@ -1,5 +1,4 @@
 import request from '@/config/axios'
-import type { Dayjs } from 'dayjs';
 
 /** 专家扩展信息信息 */
 export interface ExpertExt {
@@ -54,4 +53,14 @@ export const ExpertExtApi = {
   exportExpertExt: async (params) => {
     return await request.download({ url: `/biz/expert-ext/export-excel`, params })
   },
+  getList: async () => {
+    return await request.get({ url: `/biz/expert-ext/list` })
+  },
+
+  getSpecialty: async (params) => {
+    return await request.get({ url: `/biz/expert-ext/getSpecialty` , params})
+  },
+  expertReviewRecord: async(id) => {
+    return await request.get({ url: `/biz/expert-ext/expertReviewRecord/${id}` })
+  }
 }

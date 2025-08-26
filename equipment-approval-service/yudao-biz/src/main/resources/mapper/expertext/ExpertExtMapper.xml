@@ -14,21 +14,50 @@
             a.id,
             a.name,
             a.gender,
+            a.age,
             a.unit,
             a.title,
             a.position,
             a.specialty,
             a.phone,
             a.create_time,
-            COUNT(b.id) AS review_nums
+            COUNT(b.id) AS review_nums,
+            a.remark
         FROM
             biz_expert_ext a
-                JOIN
+              LEFT  JOIN
             biz_application b
             ON
                 FIND_IN_SET(a.id, b.expert_id) > 0
+        where a.deleted = 0
         GROUP BY
             a.id, a.name, a.gender, a.unit, a.title, a.position, a.specialty, a.phone, a.create_time
+    </select>
+
+    <select id="list" resultType="cn.iocoder.yudao.module.biz.controller.admin.expertext.vo.ExpertExtRespVO">
+        select
+            id,
+            name,
+            gender,
+            unit,
+            title,
+            specialty
+        from biz_expert_ext
+        where deleted = 0
+        <if test="keyword != null and keyword != ''">
+            and (unit like concat('%', #{keyword}, '%') or name like concat('%', #{keyword}, '%'))
+        </if>
+        <if test="specialty != null and specialty != ''">
+            and specialty = #{specialty}
+        </if>
+    </select>
+
+    <select id="selectReviewRecord" resultType="cn.iocoder.yudao.module.biz.controller.admin.expertext.vo.ExpertReviewVO">
+        select expert_review_time , app_status ,
+               a.license_device_name ,institution_name, app_no
+        from biz_application a
+        left join biz_institution_ext b on a.institution_id = b.dept_id
+        where find_in_set(#{id}, expert_id)
     </select>
 
 </mapper>

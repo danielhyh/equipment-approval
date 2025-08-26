@@ -101,4 +101,20 @@ public class ExpertExtController {
                         BeanUtils.toBean(list, ExpertExtRespVO.class));
     }
 
+    @GetMapping("/list")
+    public CommonResult<List<ExpertExtRespVO>> getExpertExtList(@RequestParam(required = false, name = "keywords") String keywords,
+                                                                @RequestParam(required = false, name = "specialty")String specialty) {
+        return success(expertExtService.list(keywords,  specialty));
+    }
+
+    @GetMapping("/getSpecialty")
+    public CommonResult<List<String >> getSpecialty() {
+        return success(expertExtService.getSpecialty());
+    }
+
+    @GetMapping("/expertReviewRecord/{id}")
+    public CommonResult<List<ExpertReviewVO>> getExpertReviewRecord(@PathVariable Long id) {
+        return success(expertExtService.selectReviewRecord(id));
+    }
+
 }

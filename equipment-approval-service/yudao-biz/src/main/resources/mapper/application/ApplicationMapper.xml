@@ -17,7 +17,7 @@
         ba.create_time,
         ba.app_status,
         ba.deadline,
-        DATEDIFF(ba.deadline, NOW()) AS remaining_days
+        GREATEST(DATEDIFF(ba.deadline, NOW()), 0) AS remaining_days
         FROM
         biz_application ba
         JOIN

@@ -14,29 +14,17 @@
         <div class="content-basis-msg">
           <div class="title-row">
             <el-icon><Management /></el-icon>
-<<<<<<< HEAD
-            <span>{{ basice.title }}</span>
-=======
             <span> {{basicInfo.institutionName}}</span>
->>>>>>> 306714c7060edd0158157cf75ff8b0a0a78a9f2e
           </div>
           <div class="other-row">
             <div class="col"
-              ><span class="label">申请编号：</span>
-<<<<<<< HEAD
-              <span class="value">{{ basice.code }}</span>
-=======
+            ><span class="label">申请编号：</span>
               <span class="value">{{basicInfo.appNo}}</span>
->>>>>>> 306714c7060edd0158157cf75ff8b0a0a78a9f2e
             </div>
             <div class="line"></div>
             <div class="col">
               <span class="label">设备名称:</span>
-<<<<<<< HEAD
-              <span class="value">{{ basice.deviceName }}</span>
-=======
               <span class="value">{{basicInfo.licenseDeviceName}}</span>
->>>>>>> 306714c7060edd0158157cf75ff8b0a0a78a9f2e
             </div>
           </div>
         </div>
@@ -136,7 +124,13 @@ const handlerType = (item) => {
 }
 // 组件得 ref
 const typeRef = ref(null)
-const submitFn = () => {}
+const submitFn = () => {
+  if (typeRef.value && typeof typeRef.value.submitFn === 'function') {
+    typeRef.value.submitFn(); // 调用子组件的 submitFn 方法
+  } else {
+    console.error('子组件未暴露 submitFn 方法或 typeRef 未正确绑定');
+  }
+}
 const basicInfo = ref({
   id: null,
   appNo: '',
