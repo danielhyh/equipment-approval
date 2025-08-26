@@ -117,4 +117,9 @@ public class ApplicationController {
         return CommonResult.success(null);
     }
 
+    @GetMapping("/generateLicense/{id}")
+    public  CommonResult<String> generateLicense(@PathVariable("id") Long id) {
+        return success(applicationService.getLicenseNumber(id));
+    }
+
 }

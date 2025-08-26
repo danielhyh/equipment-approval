@@ -57,4 +57,8 @@ public class ExpertExtRespVO {
     @Schema(description = "评审数量", requiredMode = Schema.RequiredMode.REQUIRED)
     @ExcelProperty("评审数量")
     private Integer reviewNums;
+
+    @Schema(description = "备注", requiredMode = Schema.RequiredMode.REQUIRED)
+    @ExcelProperty("备注")
+    private String remark;
 }

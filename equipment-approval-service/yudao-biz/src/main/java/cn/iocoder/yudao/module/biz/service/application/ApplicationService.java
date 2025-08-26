@@ -65,4 +65,6 @@ public interface ApplicationService {
     BusinessInfoVO businessInfo(Long id);
 
     void approval(ApplicationReviewVO reviewVO);
+
+    String getLicenseNumber(Long id);
 }

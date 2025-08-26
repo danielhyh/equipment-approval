@@ -38,6 +38,7 @@ public class ExpertExtServiceImpl implements ExpertExtService {
     public Long createExpertExt(ExpertExtSaveReqVO createReqVO) {
         // 插入
         ExpertExtDO expertExt = BeanUtils.toBean(createReqVO, ExpertExtDO.class);
+        expertExt.setStatus(1);
         expertExtMapper.insert(expertExt);
 
         // 返回
@@ -84,6 +85,21 @@ public class ExpertExtServiceImpl implements ExpertExtService {
         IPage<ExpertExtRespVO> page = new Page<>(pageReqVO.getPageNo(), pageReqVO.getPageSize());
         expertExtMapper.page(page, pageReqVO);
         return new PageResult<>(page.getRecords(), page.getTotal());
+    }
+
+    @Override
+    public List<ExpertExtRespVO> list(String keywords, String specialty) {
+        return expertExtMapper.list(keywords, specialty);
+    }
+
+    @Override
+    public List<String> getSpecialty() {
+        return expertExtMapper.getSpecialty();
+    }
+
+    @Override
+    public List<ExpertReviewVO> selectReviewRecord(Long id) {
+        return expertExtMapper.selectReviewRecord(id);
     }
 
 }

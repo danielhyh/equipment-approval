@@ -29,7 +29,7 @@
         </el-form-item>
         <div class="row-col">
           <el-form-item label="许可证编号" prop="licenseCode">
-            <el-input v-model="formValue.licenseCode" show-word-limit maxlength="11" />
+            <el-input v-model="formValue.licenseCode" disabled show-word-limit  maxlength="11" />
           </el-form-item>
           <el-form-item label="生成日期" prop="createDate">
             <el-date-picker
@@ -49,14 +49,17 @@
       <div class="contact-row">
         <div class="search-row">
           <el-input
-            v-model.trim="searchValue.keyword"
+            v-model.trim="searchExpertForm.keyword"
             placeholder="请输入专家姓名或医院"
+            @change="getSpecialtyList"
             clearable
           />
-          <el-select v-model="searchValue.type" placeholder="请选择专业类别" clearable>
-            <el-option label="心血管" value="1" />
-            <el-option label="神经外科" value="2" />
-            <el-option label="骨科" value="3" />
+          <el-select v-model="searchExpertForm.specialty" @change="getSpecialtyList" placeholder="请选择专业类别" clearable>
+            <el-option
+              v-for="(item,index) in specialtyList"
+                       :key="index"
+                       :label="item" 
+                       :value="item"/>
           </el-select>
         </div>
         <el-table
@@ -69,9 +72,13 @@
         >
           <el-table-column type="selection" width="55" :selectable="selectableFn" align="center" />
           <el-table-column prop="name" label="专家姓名" />
-          <el-table-column prop="gender" label="性别" />
-          <el-table-column prop="hospital" label="医院名称" />
-          <el-table-column prop="typeName" label="专业类别" />
+          <el-table-column prop="gender" label="性别">
+            <template #default="scope">
+              {{ getDictLabel(DICT_TYPE.SYSTEM_USER_SEX, scope.row.gender) }}
+            </template>
+          </el-table-column>
+          <el-table-column prop="unit" label="医院名称" />
+          <el-table-column prop="specialty" label="专业类别" />
           <el-table-column prop="remark" label="备注" />
         </el-table>
 
@@ -111,39 +118,44 @@
 import { UploadFile } from '@/components/UploadFile/index'
 import { ElMessage } from 'element-plus'
 import type { FormInstance, TableInstance } from 'element-plus'
-import {useRoute} from 'vue-router'
+import { useRoute } from 'vue-router'
+import { ExpertExtApi } from '@/api/biz/expertext'
+import { DICT_TYPE, getDictLabel } from '@/utils/dict'
+import {ApplicationApi} from '@/api/biz/application'
 
 const route = useRoute()
-const {id} = route.query
+const { id } = route.query
 let formValue = ref({
   reviewResult: '',
   reviewOpinion: '',
-  reviewType: 'INITIAL',
+  reviewType: 'EXPERT',
   id: Number(id),
   licenseCode: '',
-  createDate: ''
+  createDate: '',
+  expertAttachments: '', //上传附件的地址 多个以逗号隔开
+  expertIds: '',//选中的专家的id
 })
 
 let formRef = ref<FormInstance | null>(null)
 let rules = reactive({
   reviewResult: [{ required: true, message: '请选择审核结果', trigger: 'blur' }],
   reviewOpinion: [{ required: false, message: '请输入审核备注', trigger: 'blur' }],
-  licenseCode: [
-    { required: false, message: '请输入专家证书编号', trigger: 'blur' },
-    { min: 11, max: 11, message: '请输入11位专家证书编号', trigger: 'blur' },
-    {
-      validator: (rule: any, value: string, callback: any) => {
-        // 第一个字符是 甲或者乙 剩余字符都是0-9数字 正则表达式
-        if (!/^[甲乙][0-9]{10}$/.test(value)) {
-          callback(new Error('请输入正确的专家证书编号'))
-        } else {
-          callback()
-        }
-      },
-      trigger: 'blur'
-    }
-  ],
-  createDate: [{ required: true, message: '请输入专家证书编号', trigger: 'blur' }]
+  // licenseCode: [
+  //   { required: false, message: '请输入专家证书编号', trigger: 'blur' },
+  //   { min: 11, max: 11, message: '请输入11位专家证书编号', trigger: 'blur' },
+  //   {
+  //     validator: (rule: any, value: string, callback: any) => {
+  //       // 第一个字符是 甲或者乙 剩余字符都是0-9数字 正则表达式
+  //       if (!/^[甲乙][0-9]{10}$/.test(value)) {
+  //         callback(new Error('请输入正确的专家证书编号'))
+  //       } else {
+  //         callback()
+  //       }
+  //     },
+  //     trigger: 'blur'
+  //   }
+  // ],
+  createDate: [{ required: true, message: '请选择日期', trigger: 'blur' }]
 })
 
 interface listDataType {
@@ -155,67 +167,7 @@ interface listDataType {
   type: number
   remark: string
 }
-// 搜索
-let searchValue = ref({
-  keyword: '',
-  type: ''
-})
-let expertList = ref([
-  {
-    id: 1,
-    gender: '男',
-    name: '张三',
-    hospital: '陕西省第一人民医院',
-    typeName: '心血管',
-    type: 1,
-    remark: ''
-  },
-  {
-    id: 2,
-    gender: '男',
-    name: '李四',
-    hospital: '陕西省第二人民医院',
-    typeName: '神经外科',
-    type: 2,
-    remark: ''
-  },
-  {
-    id: 3,
-    gender: '男',
-    name: '王五',
-    hospital: '陕西省第三人民医院',
-    typeName: '骨科',
-    type: 3,
-    remark: ''
-  },
-  {
-    id: 4,
-    gender: '男',
-    name: '赵六',
-    hospital: '陕西省第四人民医院',
-    typeName: '心血管',
-    type: 1,
-    remark: ''
-  },
-  {
-    id: 5,
-    gender: '男',
-    name: '孙七',
-    hospital: '陕西省第五人民医院',
-    typeName: '神经外科',
-    type: 2,
-    remark: ''
-  },
-  {
-    id: 6,
-    gender: '男',
-    name: '周八',
-    hospital: '陕西省第六人民医院',
-    typeName: '骨科',
-    type: 3,
-    remark: ''
-  }
-])
+let expertList = ref([])
 let multipleTableRef = ref<TableInstance | null>(null)
 let selectMultiple = ref<listDataType[]>([])
 let maxLimit = 3
@@ -229,7 +181,7 @@ const selectableFn = (row) => {
   }
   return true
 }
-const handleSelectionChange = (val: any) => {
+const handleSelectionChange = (val: []) => {
   if (!multipleTableRef.value) return
 
   if (val.length > maxLimit) {
@@ -237,6 +189,9 @@ const handleSelectionChange = (val: any) => {
     multipleTableRef.value.clearSelection()
     return
   }
+  let expertIdArr = []
+  val.forEach(item => expertIdArr.push(item.id))
+  formValue.value.expertIds = expertIdArr.join(',')
   selectMultiple.value = val
 }
 const handleRowClick = (row, col, event) => {
@@ -262,8 +217,31 @@ const submitFn = async () => {
       ElMessage.error('请填写完整信息')
       return
     }
+  //调用接口
+  formValue.value.expertAttachments = fileList.value.join(',')
+  console.log(formValue.value)
+  await ApplicationApi.review(formValue)
   } catch (err) {}
 }
+const specialtyList = ref([])
+const getExpertList = async () => {
+  expertList.value = await ExpertExtApi.getList()
+}
+const getSpecialtyList = async () => {
+  specialtyList.value = await ExpertExtApi.getSpecialty(searchExpertForm.value)
+}
+const searchExpertForm = ref({
+  keyword: undefined,
+  specialty: undefined,
+})
+const generateLicenseNum = async () => {
+  formValue.value.licenseCode = await ApplicationApi.generateLicense(Number(id))
+}
+onMounted(() => {
+  getExpertList()
+  getSpecialtyList()
+  generateLicenseNum()
+})
 
 defineExpose({
   submitFn
