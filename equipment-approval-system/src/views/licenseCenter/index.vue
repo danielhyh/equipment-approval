@@ -136,8 +136,12 @@
         </el-table-column>
         <el-table-column label="操作" align="center" width="240">
           <template #default="scope">
-            <el-button type="primary" size="small">正本</el-button>
-            <el-button type="primary" size="small">副本</el-button>
+            <el-button type="primary" size="small" @click.stop="openLicense(scope.row, 'A')">
+              正本
+            </el-button>
+            <el-button type="primary" size="small" @click.stop="openLicense(scope.row, 'B')">
+              副本
+            </el-button>
             <el-button type="primary" size="small" @click="handleDetail(scope.row)">详情</el-button>
           </template>
         </el-table-column>
@@ -150,12 +154,27 @@
         @pagination="getList"
       />
     </div>
+
+    <!-- 弹窗 - 许可证 -->
+    <Dialog v-model="dialogVisible" v-bind="dialogBind">
+      <div class="dialog-licence-content">
+        <div class="row" v-if="isLicense">
+          <el-button size="small" type="success" :icon="Printer" @click.stop="printFn">
+            打印
+          </el-button>
+          <el-button size="small" type="warning" :icon="Download" @click.stop="downloadFn">
+            下载
+          </el-button>
+        </div>
+        <component :is="dialogComponent" v-bind="dialogComponentProps" ref="dialogComponentRef" />
+      </div>
+    </Dialog>
   </div>
 </template>
 
 <script setup lang="ts" name="LicenseCenter">
-import { Search, RefreshRight } from '@element-plus/icons-vue'
-import { useRouter } from 'vue-router'
+import License from '../Processing/components/license.vue'
+import { Search, RefreshRight, Printer, Download } from '@element-plus/icons-vue'
 import { getDictOptions } from '@/utils/dict'
 import type { DictDataType } from '@/utils/dict'
 
@@ -267,6 +286,53 @@ const handleDetail = (row) => {
   })
 }
 
+// 弹窗
+let dialogVisible = ref(false)
+let dialogBind = reactive({
+  title: '许可证-正本',
+  width: '320mm',
+  maxHeight: '600px',
+  scroll: true,
+  fullscreen: true
+})
+let dialogComponent = ref(markRaw(License))
+let dialogComponentProps = ref({})
+let dialogComponentRef = ref<InstanceType<typeof License> | null>(null)
+let isLicense = ref(true)
+// 打开许可证弹窗
+const openLicense = (row, type) => {
+  console.log(row, type)
+
+  dialogComponent.value = markRaw(License)
+  dialogBind.width = '320mm'
+  if (type === 'A') {
+    dialogBind.title = '许可证-正本'
+    dialogComponentProps.value = {
+      licenceType: 'A',
+      licenceSubtitle: 'A'
+    }
+  } else {
+    dialogBind.title = '许可证-副本'
+    dialogComponentProps.value = {
+      licenceType: 'A',
+      licenceSubtitle: 'B'
+    }
+  }
+  dialogVisible.value = true
+}
+const printFn = () => {
+  if (!dialogComponentRef.value) {
+    return
+  }
+  dialogComponentRef.value?.print()
+}
+const downloadFn = () => {
+  if (!dialogComponentRef.value) {
+    return
+  }
+  dialogComponentRef.value?.download()
+}
+
 onMounted(() => {
   getList()
 })
@@ -371,6 +437,14 @@ onMounted(() => {
       content: '';
       clear: both;
     }
+  }
+}
+.dialog-licence-content {
+  .row {
+    padding: 0 20px;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
   }
 }
 </style>
