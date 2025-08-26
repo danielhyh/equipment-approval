@@ -24,7 +24,7 @@
   </div>
 </template>
 
-<script setup lang="ts" name="History">
+<script setup lang="ts" name="HistoryProcess">
 let historyList = ref([
   {
     time: '2023-08-01 10:00:00',

@@ -6,7 +6,7 @@
         <span>许可证详情 - {{ title }}</span>
       </div>
       <div class="right">
-        <el-button type="primary" :icon="Back" @click="goBack">返回办件中心</el-button>
+        <el-button type="primary" :icon="Back" @click="goBack">返回上一页</el-button>
       </div>
     </div>
     <div class="content-page">
