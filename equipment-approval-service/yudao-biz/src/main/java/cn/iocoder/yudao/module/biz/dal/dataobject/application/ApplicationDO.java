@@ -108,6 +108,9 @@ public class ApplicationDO extends BaseDO {
      */
     private LocalDate licenseValidDate;
 
+    //许可证生成时间
+    private LocalDate licenseGenerateDate;
+
     /**
      * 截止日期
      */

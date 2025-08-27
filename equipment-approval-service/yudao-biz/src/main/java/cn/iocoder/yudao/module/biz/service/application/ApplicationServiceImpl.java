@@ -1,22 +1,22 @@
 package cn.iocoder.yudao.module.biz.service.application;
 
-import cn.hutool.core.collection.CollUtil;
 import cn.iocoder.yudao.framework.common.exception.ErrorCode;
-import cn.iocoder.yudao.framework.common.exception.ServerException;
 import cn.iocoder.yudao.framework.common.exception.ServiceException;
+import cn.iocoder.yudao.framework.common.exception.enums.GlobalErrorCodeConstants;
+import cn.iocoder.yudao.framework.security.core.LoginUser;
 import cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils;
-import cn.iocoder.yudao.module.biz.service.license.DeviceLicenseService;
+import cn.iocoder.yudao.module.biz.service.devicelicense.DeviceLicenseService;
+import cn.iocoder.yudao.module.biz.service.operation.OperationLogService;
+import com.alibaba.fastjson.JSON;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.google.common.base.CaseFormat;
 import com.google.common.collect.Lists;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.simple.JdbcClient;
 import org.springframework.stereotype.Service;
 import jakarta.annotation.Resource;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -26,14 +26,11 @@ import java.util.*;
 import cn.iocoder.yudao.module.biz.controller.admin.application.vo.*;
 import cn.iocoder.yudao.module.biz.dal.dataobject.application.ApplicationDO;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
-import cn.iocoder.yudao.framework.common.pojo.PageParam;
 import cn.iocoder.yudao.framework.common.util.object.BeanUtils;
 
 import cn.iocoder.yudao.module.biz.dal.mysql.application.ApplicationMapper;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
-import static cn.iocoder.yudao.framework.common.util.collection.CollectionUtils.convertList;
-import static cn.iocoder.yudao.framework.common.util.collection.CollectionUtils.diffList;
 import static cn.iocoder.yudao.module.biz.enums.ErrorCodeConstants.*;
 
 /**
@@ -53,6 +50,9 @@ public class ApplicationServiceImpl implements ApplicationService {
 
     @Resource
     private DeviceLicenseService  deviceLicenseService;
+
+    @Resource
+    private OperationLogService operationService;
 
     @Override
     public Long createApplication(ApplicationSaveReqVO createReqVO) {
@@ -120,6 +120,7 @@ public class ApplicationServiceImpl implements ApplicationService {
     @Override
     public void approval(ApplicationReviewVO reviewVO) {
         Long loginUserId = SecurityFrameworkUtils.getLoginUserId();
+        String loginUserNickname = SecurityFrameworkUtils.getLoginUserNickname();
         String reviewType = reviewVO.getReviewType();
         Long id = reviewVO.getId();
         Integer result = reviewVO.getReviewResult();
@@ -134,7 +135,8 @@ public class ApplicationServiceImpl implements ApplicationService {
             update.setInitialReviewTime(LocalDateTime.now());
             update.setInitialReviewerId(loginUserId);
             update.setInitialReviewOpinion(opinion);
-            update.setAppStatus(result == 1 ? 2 : 3);
+            update.setAppStatus(result == 1 ? 4 : 3);
+            operationService.log(reviewVO.getId(), loginUserId, loginUserNickname, result ==1 ? "初步审核已通过,待专家审核": "初步审核未通过");
         } else if ("EXPERT".equals(reviewType)) {
             update.setExpertReviewResult(result);
             update.setExpertReviewTime(LocalDateTime.now());
@@ -147,6 +149,7 @@ public class ApplicationServiceImpl implements ApplicationService {
                 update.setExpertAttachments(Lists.newArrayList(StringUtils.split(expertAttachments)));
             }
             update.setAppStatus(result == 1 ? 5 : 6);
+            operationService.log(reviewVO.getId(), loginUserId, loginUserNickname, result ==1 ? "专家审核通过": "专家审核未通过", null,"expertIdList", JSON.toJSONString(expertIdList));
         } else {
             throw new ServiceException(new ErrorCode(1199, "无效的审核类型: " + reviewType));
         }
@@ -173,6 +176,12 @@ public class ApplicationServiceImpl implements ApplicationService {
         return deviceLicenseService.generateLicenseNumber("乙", map.get("region"), map.get("licenseDeviceName"),
                 map.get("ladderConfigModel"), map.get("productionEnterprise"));
     }
+
+    @Override
+    public ApprovalDetailsVO approvalDetails(Long id) {
+        return applicationMapper.approvalDetails(id);
+    }
+
     private Map<String, String> resultSetToMap(ResultSet rs, int rowNum) throws SQLException {
         Map<String, String> row = new HashMap<>();
         for (int i = 1; i <= rs.getMetaData().getColumnCount(); i++) {

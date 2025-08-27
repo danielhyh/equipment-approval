@@ -1,7 +1,7 @@
-package cn.iocoder.yudao.module.biz.dal.mysql.license;
+package cn.iocoder.yudao.module.biz.dal.mysql.devicelicense;
 
 import cn.iocoder.yudao.framework.mybatis.core.mapper.BaseMapperX;
-import cn.iocoder.yudao.module.biz.dal.dataobject.license.DeviceLicenseDO;
+import cn.iocoder.yudao.module.biz.dal.dataobject.devicelicense.DeviceLicenseDO;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 import org.apache.ibatis.annotations.Select;

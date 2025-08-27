@@ -1,8 +1,8 @@
-package cn.iocoder.yudao.module.biz.service.license;
+package cn.iocoder.yudao.module.biz.service.devicelicense;
 
 import cn.iocoder.yudao.framework.common.exception.ServiceException;
-import cn.iocoder.yudao.module.biz.dal.dataobject.license.DeviceLicenseDO;
-import cn.iocoder.yudao.module.biz.dal.mysql.license.DeviceLicenseMapper;
+import cn.iocoder.yudao.module.biz.dal.dataobject.devicelicense.DeviceLicenseDO;
+import cn.iocoder.yudao.module.biz.dal.mysql.devicelicense.DeviceLicenseMapper;
 import jakarta.annotation.Resource;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -28,9 +28,6 @@ public class DeviceLicenseService {
     ) {
 
         // 1. 参数校验
-        if (!"甲".equals(deviceClass) && !"乙".equals(deviceClass)) {
-            throw new ServiceException(1111, "设备类别必须是'甲'或'乙'");
-        }
         if (stepType == null ) {
             throw new ServiceException(1111, "阶梯分型不能为空");
         }
@@ -38,17 +35,10 @@ public class DeviceLicenseService {
         if (stepCode == null) {
             throw new ServiceException(1111, "不支持的阶梯分型: " + stepType);
         }
-        String provCode = PROVINCE_MAP.get(provinceName);
-        if (provCode == null) {
-            throw new ServiceException(1111, "不支持的省份: " + provinceName);
-        }
+        String provCode = PROVINCE_MAP.get("陕西省");
 
-        String categoryCode;
-        if ("甲".equals(deviceClass)) {
-            categoryCode = CATEGORY_CODE_JIA.get(categoryName);
-        } else {
-            categoryCode = CATEGORY_CODE_YI.get(categoryName);
-        }
+        String categoryCode = CATEGORY_CODE_YI.get(categoryName);
+
         if (categoryCode == null) {
             throw new ServiceException(1111, "不支持的设备类型: " + categoryName);
         }

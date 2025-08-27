@@ -122,4 +122,9 @@ public class ApplicationController {
         return success(applicationService.getLicenseNumber(id));
     }
 
+    @GetMapping("/approvalDetails")
+    public CommonResult<ApprovalDetailsVO>  getApprovalDetails(@RequestParam("id") Long id) {
+        return success(applicationService.approvalDetails(id));
+    }
+
 }

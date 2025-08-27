@@ -8,10 +8,20 @@
       :inline="true"
       label-width="68px"
     >
-      <el-form-item label="" prop="userId">
+      <el-form-item label="专业类别" prop="specialty">
+        <el-select v-model="queryParams.specialty" clearable placeholder="请选择" style="width: 160px">
+          <el-option
+            v-for="item in categories"
+            :key="item.value"
+            :label="item.label"
+            :value="item.value"
+          />
+        </el-select>
+      </el-form-item>
+      <el-form-item label="" prop="keywords">
         <el-input
-          v-model="queryParams.userId"
-          placeholder="请输入"
+          v-model="queryParams.keywords"
+          placeholder="请输入专家姓名或工作单位"
           clearable
           @keyup.enter="handleQuery"
           class="!w-240px"
@@ -152,21 +162,22 @@ const { t } = useI18n() // 国际化
 const loading = ref(true) // 列表的加载中
 const list = ref<ExpertExt[]>([]) // 列表的数据
 const total = ref(0) // 列表的总页数
+
+const categories =  [
+  { value: '放射影像', label: '放射影像' },
+  { value: '放射治疗', label: '放射治疗' },
+  { value: '核医学', label: '核医学' },
+  { value: '卫生管理', label: '卫生管理' },
+  { value: '直线加速器', label: '直线加速器' },
+  { value: '医学设备与安全防护', label: '医学设备与安全防护' },
+  { value: '医学智能工程', label: '医学智能工程' }
+  // 可继续添加更多选项
+]
 const queryParams = reactive({
   pageNo: 1,
   pageSize: 10,
-  userId: undefined,
-  name: undefined,
-  gender: undefined,
-  age: undefined,
-  unit: undefined,
-  title: undefined,
+  keywords: undefined,
   specialty: undefined,
-  phone: undefined,
-  email: undefined,
-  qualificationCert: undefined,
-  status: undefined,
-  createTime: []
 })
 const queryFormRef = ref() // 搜索的表单
 

@@ -43,5 +43,5 @@ public class ExpertExtPageReqVO extends PageParam {
     @Schema(description = "资质证书")
     private String qualificationCert;
 
-
+    private String keywords;
 }

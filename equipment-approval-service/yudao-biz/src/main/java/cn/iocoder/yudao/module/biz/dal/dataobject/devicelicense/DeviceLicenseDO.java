@@ -1,4 +1,4 @@
-package cn.iocoder.yudao.module.biz.dal.dataobject.license;
+package cn.iocoder.yudao.module.biz.dal.dataobject.devicelicense;
 
 import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.AllArgsConstructor;

@@ -54,8 +54,7 @@ public interface ExpertExtService {
 
     /**
      * 获得专家扩展信息分页
-     *
-     * @param pageReqVO 分页查询
+
      * @return 专家扩展信息分页
      */
     PageResult<ExpertExtRespVO> getExpertExtPage(ExpertExtPageReqVO pageReqVO);

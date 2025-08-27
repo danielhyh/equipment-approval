@@ -94,7 +94,7 @@ public class ExpertExtServiceImpl implements ExpertExtService {
 
     @Override
     public List<String> getSpecialty() {
-        return expertExtMapper.getSpecialty();
+        return expertExtMapper.getSpecialty().stream().distinct().toList();
     }
 
     @Override

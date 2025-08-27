@@ -83,8 +83,8 @@ public class ExpertExtController {
     @GetMapping("/page")
     @Operation(summary = "获得专家扩展信息分页")
     @PreAuthorize("@ss.hasPermission('biz:expert-ext:query')")
-    public CommonResult<PageResult<ExpertExtRespVO>> getExpertExtPage(@Valid ExpertExtPageReqVO pageReqVO) {
-        PageResult<ExpertExtRespVO> pageResult = expertExtService.getExpertExtPage(pageReqVO);
+    public CommonResult<PageResult<ExpertExtRespVO>> getExpertExtPage(@Valid ExpertExtPageReqVO reqVO) {
+        PageResult<ExpertExtRespVO> pageResult = expertExtService.getExpertExtPage(reqVO);
         return success(BeanUtils.toBean(pageResult, ExpertExtRespVO.class));
     }
 
