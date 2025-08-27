@@ -6,7 +6,7 @@
         <span>许可证详情 - {{ title }}</span>
       </div>
       <div class="right">
-        <el-button type="primary" :icon="Back" @click="goBack">返回办件中心</el-button>
+        <el-button type="primary" :icon="Back" @click="goBack">返回上一页</el-button>
       </div>
     </div>
     <div class="content-page">
@@ -64,6 +64,8 @@ import Preliminary from './components/preliminary.vue'
 import Expert from './components/expert.vue'
 import Original from './components/original.vue'
 import Copy from './components/copy.vue'
+import OtherMsg from './components/otherMsg.vue'
+import history from './components/history.vue'
 const router = useRouter()
 const route = useRoute()
 const goBack = () => {
@@ -126,20 +128,20 @@ let typeList = ref([
   {
     label: '其他信息',
     value: 'otherInfo',
-    icon: 'ep:more-filled'
-    // component: markRaw(Other)
+    icon: 'ep:more-filled',
+    component: markRaw(OtherMsg)
   },
-  {
-    label: '二维码',
-    value: 'qrcode',
-    // component: markRaw(Qrcode),
-    icon: 'ic:baseline-qrcode'
-  },
+  // {
+  //   label: '二维码',
+  //   value: 'qrcode',
+  //   // component: markRaw(Qrcode),
+  //   icon: 'ic:baseline-qrcode'
+  // },
   {
     label: '操作历史',
     value: 'operationHistory',
-    icon: 'lucide:history'
-    // component: markRaw(OperationHistory)
+    icon: 'lucide:history',
+    component: markRaw(history)
   }
 ])
 let typeActive = ref({ value: 'basicInfo', component: markRaw(BasicInfo) })

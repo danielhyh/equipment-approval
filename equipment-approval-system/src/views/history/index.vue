@@ -1,35 +1,20 @@
 <template>
-  <div class="license-center-box" v-loading="loading">
+  <div class="history-page-box" v-loading="loading">
     <div class="statistics-row">
       <div class="left">
-        <Icon icon="ph:farm-fill" :size="20" />
-        <span class="title">许可证统计</span>
+        <Icon icon="lucide:history" :size="20" />
+        <span class="title">历史数据</span>
       </div>
-      <div class="right">
+      <!-- <div class="right">
         <div class="statistics-item" v-for="item in statisticsList" :key="item.key">
           <Icon class="statistics-icon" :icon="item.icon" />
           <span class="statistics-label">{{ item.label }}:</span>
           <span class="statistics-value">{{ item.value }}</span>
         </div>
-      </div>
+      </div> -->
     </div>
     <div class="seach-row">
       <el-form v-model="paramsValue" inline label-suffix=":">
-        <!-- 许可证类型 licenseType -->
-        <el-form-item label="许可证类型">
-          <el-select
-            v-model="paramsValue.licenseType"
-            placeholder="请选择 许可证类型"
-            style="width: 130px"
-          >
-            <el-option
-              v-for="item in licenseTypeOptions"
-              :key="item.value"
-              :label="item.label"
-              :value="item.value"
-            />
-          </el-select>
-        </el-form-item>
         <!-- 设备类型 licenseDevice -->
         <el-form-item label="设备类型">
           <el-select
@@ -112,28 +97,6 @@
         <el-table-column label="正本发证日期" prop="originalIssueDate" align="center" />
         <!-- 副本发证日期  -->
         <el-table-column label="副本发证日期" prop="copyIssueDate" align="center" />
-        <!-- 许可证类型	 -->
-        <el-table-column label="许可证类型" prop="licenseType" align="center">
-          <template #default="scope">
-            <el-tag :style="licenseTypeStyle(scope.row)" class="license-type-tag" round>
-              {{
-                licenseTypeOptions.find((item) => item.value === scope.row.licenseType)?.label ||
-                '--'
-              }}
-            </el-tag>
-          </template>
-        </el-table-column>
-        <!-- 状态 -->
-        <el-table-column label="状态" prop="status" align="center" width="90">
-          <template #default="scope">
-            <el-tag :type="scope.row.status === '1' ? 'success' : 'danger'" round>
-              <Icon :icon="scope.row.status === '1' ? 'ep:select' : 'ep:close-bold'" />
-              <span>
-                {{ statusOptions.find((item) => item.value === scope.row.status)?.label || '--' }}
-              </span>
-            </el-tag>
-          </template>
-        </el-table-column>
         <el-table-column label="操作" align="center" width="240">
           <template #default="scope">
             <el-button type="primary" size="small" @click.stop="openLicense(scope.row, 'A')">
@@ -172,14 +135,11 @@
   </div>
 </template>
 
-<script setup lang="ts" name="LicenseCenter">
+<script setup lang="ts" name="HistoryPage">
 import License from '../Processing/components/license.vue'
 import { Search, RefreshRight, Printer, Download } from '@element-plus/icons-vue'
 import { getDictOptions } from '@/utils/dict'
 import type { DictDataType } from '@/utils/dict'
-
-// 许可证类型
-const licenseTypeOptions = computed<DictDataType[]>(() => getDictOptions('license_type'))
 // 设备类型
 const licenseDeviceOptions = computed<DictDataType[]>(() =>
   getDictOptions('biz_main_equipment_type')
@@ -191,37 +151,17 @@ const ladderConfigOptions = computed<DictDataType[]>(() =>
 // 所属区域
 const areaOptions = computed<DictDataType[]>(() => getDictOptions('biz_area_list'))
 // 状态
-const statusOptions = reactive([
-  { label: '正常', value: '1' },
-  { label: '已注销', value: '2' }
-])
-// 统计数据
-interface StatisticsType {
-  label: string
-  value: string
-  key: string
-  icon: string
-}
-// 申请证书 | 补办证书 | 变更证书 | 总计
-let statisticsList = reactive<StatisticsType[]>([
-  { label: '申请证书', value: '239', key: 's-q-z-s', icon: 'ep:circle-plus-filled' },
-  { label: '补办证书', value: '134', key: 'b-c-z-s', icon: 'ep:refresh-right' },
-  { label: '变更证书', value: '24', key: 'g-c-z-s', icon: 'ep:edit' },
-  { label: '总计', value: '407', key: 'z-z-s', icon: 'mage:star-fill' }
-])
-// 处理 许可证类型 列表样式
-const licenseTypeStyle = (row) => {
-  let rowDict = licenseTypeOptions.value.find((item) => item.value === row.licenseType)
-  let cssClass = rowDict?.cssClass || ''
-  return { '--color': cssClass.replace('c-', '#') }
-}
+// const statusOptions = reactive([
+//   { label: '正常', value: '1' },
+//   { label: '已注销', value: '2' }
+// ])
+
 let loading = ref<boolean>(false)
 interface ParamsType {
   pageNum: number
   pageSize: number
   total: number
   keyword: string
-  licenseType: string
   licenseDevice: string
   ladderConfig: string
   area: string
@@ -230,7 +170,6 @@ let paramsValue = reactive<ParamsType>({
   pageNum: 1,
   pageSize: 10,
   total: 0,
-  licenseType: '',
   keyword: '',
   licenseDevice: '',
   ladderConfig: '',
@@ -254,7 +193,6 @@ const getList = () => {
         areaName: '北京市',
         originalIssueDate: '2023-01-15',
         copyIssueDate: '2023-01-16',
-        licenseType: '1',
         status: '1'
       }
     ]
@@ -264,7 +202,6 @@ const resetSearch = () => {
   paramsValue = Object.assign(paramsValue, {
     pageNum: 1,
     keyword: '',
-    licenseType: '',
     licenseDevice: '',
     ladderConfig: '',
     area: ''
@@ -339,14 +276,14 @@ onMounted(() => {
 </script>
 
 <style lang="scss" scoped>
-.license-center-box {
+.history-page-box {
   border-radius: 10px;
   background-color: #fff;
   padding: 10px;
   .statistics-row {
     display: flex;
     align-items: center;
-    justify-content: space-between;
+    justify-content: flex-start;
     margin-bottom: 20px;
     padding-bottom: 10px;
     border-bottom: 1px solid #e5e5e5;

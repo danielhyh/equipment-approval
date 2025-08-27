@@ -37,7 +37,7 @@
         <div class="licence-stamp-date">
           <div class="stamp-row">
             <span class="label">签发机关</span>
-            <span class="value">陕西省卫生健康委员会</span>
+            <span class="value">{{ stampUit }}</span>
           </div>
           <div class="remark">（盖章）</div>
           <div class="date-row">
@@ -80,7 +80,7 @@ let props = defineProps({
       ]
     }
   },
-  stampUit: { type: String, default: '国家医疗机构保障局' }, // 签发单位
+  stampUit: { type: String, default: '陕西省卫生健康委员会' }, // 签发单位
   stampDate: { type: String, default: '2023年01月01日' }, // 签发日期
   seal: { type: String, default: '' } // 盖章
 })

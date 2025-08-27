@@ -14,17 +14,17 @@
         <div class="content-basis-msg">
           <div class="title-row">
             <el-icon><Management /></el-icon>
-            <span> {{basicInfo.institutionName}}</span>
+            <span> {{ basicInfo.institutionName }}</span>
           </div>
           <div class="other-row">
             <div class="col"
-            ><span class="label">申请编号：</span>
-              <span class="value">{{basicInfo.appNo}}</span>
+              ><span class="label">申请编号：</span>
+              <span class="value">{{ basicInfo.appNo }}</span>
             </div>
             <div class="line"></div>
             <div class="col">
               <span class="label">设备名称:</span>
-              <span class="value">{{basicInfo.licenseDeviceName}}</span>
+              <span class="value">{{ basicInfo.licenseDeviceName }}</span>
             </div>
           </div>
         </div>
@@ -48,7 +48,7 @@
               </KeepAlive>
             </transition>
           </div>
-          <div class="handler-list">
+          <div class="handler-list" v-if="type !== 'view'">
             <el-button size="default" type="success" :icon="Check" @click.stop="submitFn">
               提交
             </el-button>
@@ -81,15 +81,11 @@ import {
 import { useRouter, useRoute } from 'vue-router'
 import { markRaw } from 'vue'
 import { ApplicationApi } from '@/api/biz/application'
-import {useApplicationDataStore} from '@/store/applicationData'
+import { useApplicationDataStore } from '@/store/applicationData'
 
 const router = useRouter()
 const route = useRoute()
-const { id } = route.query
-// let props = defineProps({
-//   id: { type: String, default: '' },
-//   handler: { type: String, default: 'view' }
-// })
+const { id, type } = route.query
 // 返回上一页
 const goBack = () => {
   router.back()
@@ -126,9 +122,9 @@ const handlerType = (item) => {
 const typeRef = ref(null)
 const submitFn = () => {
   if (typeRef.value && typeof typeRef.value.submitFn === 'function') {
-    typeRef.value.submitFn(); // 调用子组件的 submitFn 方法
+    typeRef.value.submitFn() // 调用子组件的 submitFn 方法
   } else {
-    console.error('子组件未暴露 submitFn 方法或 typeRef 未正确绑定');
+    console.error('子组件未暴露 submitFn 方法或 typeRef 未正确绑定')
   }
 }
 const basicInfo = ref({
