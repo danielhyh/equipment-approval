@@ -302,7 +302,6 @@ let isLicense = ref(true)
 // 打开许可证弹窗
 const openLicense = (row, type) => {
   console.log(row, type)
-
   dialogComponent.value = markRaw(License)
   dialogBind.width = '320mm'
   if (type === 'A') {

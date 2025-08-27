@@ -3,7 +3,7 @@
     <div class="page-b-p">
       <div class="title">
         <Icon icon="svg-icon:user-graduatel" :size="24" color="#165DFF" />
-        <span>初步审核</span>
+        <span>专家审核</span>
       </div>
 
       <el-form
@@ -29,7 +29,7 @@
         </el-form-item>
         <div class="row-col">
           <el-form-item label="许可证编号" prop="licenseCode">
-            <el-input v-model="formValue.licenseCode" disabled show-word-limit  maxlength="11" />
+            <el-input v-model="formValue.licenseCode" disabled show-word-limit maxlength="11" />
           </el-form-item>
           <el-form-item label="生成日期" prop="createDate">
             <el-date-picker
@@ -54,12 +54,18 @@
             @change="getSpecialtyList"
             clearable
           />
-          <el-select v-model="searchExpertForm.specialty" @change="getSpecialtyList" placeholder="请选择专业类别" clearable>
+          <el-select
+            v-model="searchExpertForm.specialty"
+            @change="getSpecialtyList"
+            placeholder="请选择专业类别"
+            clearable
+          >
             <el-option
-              v-for="(item,index) in specialtyList"
-                       :key="index"
-                       :label="item" 
-                       :value="item"/>
+              v-for="(item, index) in specialtyList"
+              :key="index"
+              :label="item"
+              :value="item"
+            />
           </el-select>
         </div>
         <el-table
@@ -121,7 +127,7 @@ import type { FormInstance, TableInstance } from 'element-plus'
 import { useRoute } from 'vue-router'
 import { ExpertExtApi } from '@/api/biz/expertext'
 import { DICT_TYPE, getDictLabel } from '@/utils/dict'
-import {ApplicationApi} from '@/api/biz/application'
+import { ApplicationApi } from '@/api/biz/application'
 
 const route = useRoute()
 const { id } = route.query
@@ -133,7 +139,7 @@ let formValue = ref({
   licenseCode: '',
   createDate: '',
   expertAttachments: '', //上传附件的地址 多个以逗号隔开
-  expertIds: '',//选中的专家的id
+  expertIds: '' //选中的专家的id
 })
 
 let formRef = ref<FormInstance | null>(null)
@@ -190,7 +196,7 @@ const handleSelectionChange = (val: []) => {
     return
   }
   let expertIdArr = []
-  val.forEach(item => expertIdArr.push(item.id))
+  val.forEach((item) => expertIdArr.push(item.id))
   formValue.value.expertIds = expertIdArr.join(',')
   selectMultiple.value = val
 }
@@ -217,10 +223,10 @@ const submitFn = async () => {
       ElMessage.error('请填写完整信息')
       return
     }
-  //调用接口
-  formValue.value.expertAttachments = fileList.value.join(',')
-  console.log(formValue.value)
-  await ApplicationApi.review(formValue)
+    //调用接口
+    formValue.value.expertAttachments = fileList.value.join(',')
+    console.log(formValue.value)
+    await ApplicationApi.review(formValue)
   } catch (err) {}
 }
 const specialtyList = ref([])
@@ -232,7 +238,7 @@ const getSpecialtyList = async () => {
 }
 const searchExpertForm = ref({
   keyword: undefined,
-  specialty: undefined,
+  specialty: undefined
 })
 const generateLicenseNum = async () => {
   formValue.value.licenseCode = await ApplicationApi.generateLicense(Number(id))

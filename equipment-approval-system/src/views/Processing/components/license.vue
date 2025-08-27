@@ -32,7 +32,9 @@
           </div>
         </div>
         <!-- 二维码 -->
-        <div class="licence-qr-code" v-if="!isBLicenceSub"></div>
+        <div class="licence-qr-code" v-show="!isBLicenceSub">
+          <Qrcode :width="83" tag="img" ref="qrcodeRef" />
+        </div>
         <!-- 签发机关 年月日盖章 -->
         <div class="licence-stamp-date">
           <div class="stamp-row">
@@ -363,8 +365,6 @@ defineExpose({
   left: 5mm;
   width: 22mm;
   height: 22mm;
-  background-color: #ebc773;
-  display: none;
 }
 
 .licence-stamp-date {
@@ -544,8 +544,6 @@ defineExpose({
     left: 5mm;
     width: 22mm;
     height: 22mm;
-    background-color: #ebc773;
-    display: none;
   }
 
   .licence-stamp-date {

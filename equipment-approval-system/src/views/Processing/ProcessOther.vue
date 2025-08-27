@@ -48,7 +48,13 @@
               </KeepAlive>
             </transition>
           </div>
-          <div class="handler-list" v-if="type !== 'view'">
+          <div
+            class="handler-list"
+            v-if="
+              type !== 'view' &&
+              (typeActive.value === 'firstAudit' || typeActive.value === 'expertAudit')
+            "
+          >
             <el-button size="default" type="success" :icon="Check" @click.stop="submitFn">
               提交
             </el-button>
@@ -119,7 +125,8 @@ const handlerType = (item) => {
   typeActive.value.component = item.component
 }
 // 组件得 ref
-const typeRef = ref(null)
+const typeRef = ref<InstanceType<typeof Preliminary> | InstanceType<typeof Expert> | null>(null)
+
 const submitFn = () => {
   if (typeRef.value && typeof typeRef.value.submitFn === 'function') {
     typeRef.value.submitFn() // 调用子组件的 submitFn 方法

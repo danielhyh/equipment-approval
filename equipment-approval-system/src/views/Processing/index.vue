@@ -184,6 +184,8 @@
         />
       </div>
     </div>
+
+    <!-- <Qrcode text="http://113.45.143.70:8899/institution/index.html" /> -->
     <Dialog v-model="liscenceVisible" v-bind="licenceDialogBind">
       <div class="dialog-licence-content">
         <div class="row">
@@ -203,7 +205,6 @@
 <script setup lang="ts" name="ProcessingCenter">
 import { Dialog } from '@/components/Dialog/index'
 import licence from './components/license.vue'
-
 import { getDictOptions } from '@/utils/dict'
 import type { DictDataType } from '@/utils/dict'
 import { View, Search, Avatar, Download, Printer } from '@element-plus/icons-vue'
