@@ -12,12 +12,13 @@
         label-width="120px"
         class="demo-ruleForm"
         label-position="top"
+        :disabled="isDisabled"
       >
         <el-form-item label="审核结果" prop="reviewResult">
           <el-radio-group v-model="formValue.reviewResult">
-            <el-radio label="1">通过</el-radio>
-            <el-radio label="0">不通过</el-radio>
-<!--            <el-radio label="3">退回补充材料</el-radio>-->
+            <el-radio value="1">通过</el-radio>
+            <el-radio value="0">不通过</el-radio>
+            <!--            <el-radio label="3">退回补充材料</el-radio>-->
           </el-radio-group>
         </el-form-item>
         <el-form-item label="审核备注" prop="reviewOpinion">
@@ -34,25 +35,42 @@
 
 <script setup lang="ts" name="Perliminary">
 import { ElMessage } from 'element-plus'
-import {ApplicationApi} from '@/api/biz/application'
+import { ApplicationApi } from '@/api/biz/application'
 import type { FormInstance } from 'element-plus'
-import {useRoute} from 'vue-router'
+import { useApplicationDataStore } from '@/store/applicationData'
+let props = defineProps({
+  disabled: {
+    type: Boolean,
+    default: false
+  }
+})
+let isDisabled = computed(() => {
+  return props.disabled
+})
+const useAppData = useApplicationDataStore()
+const getReviewDetails = computed(() => {
+  return useAppData.getReviewDetails
+})
 
 const route = useRoute()
-const {id} = route.query
+const { id } = route.query
+
 let formValue = ref({
   reviewResult: '',
   reviewOpinion: '',
   reviewType: 'INITIAL',
   id: Number(id)
 })
+const updateFormValue = () => {
+  formValue.value.reviewResult = getReviewDetails.value.initialReviewResult
+  formValue.value.reviewOpinion = getReviewDetails.value.initialReviewOpinion
+}
 
 let formRef = ref<FormInstance | null>(null)
 let rules = reactive({
   reviewResult: [{ required: true, message: '请选择审核结果', trigger: 'blur' }],
   reviewOpinion: [{ required: false, message: '请输入审核备注', trigger: 'blur' }]
 })
-
 const submitFn = async () => {
   if (!formRef.value) {
     ElMessage.error('表单加载错误')
@@ -64,10 +82,21 @@ const submitFn = async () => {
       ElMessage.error('请填写完整信息')
       return
     }
-    await ApplicationApi.review(formValue)
-  } catch (err) {}
+    await ApplicationApi.review(unref(formValue))
+    ElMessage.success('提交成功')
+    return { success: true }
+  } catch (err) {
+    console.log(err)
+    ElMessage.error('提交失败')
+  }
 }
-
+watch(
+  () => getReviewDetails.value,
+  () => {
+    updateFormValue()
+  },
+  { deep: true, immediate: true }
+)
 defineExpose({
   submitFn
 })
@@ -100,7 +129,33 @@ defineExpose({
     .el-form-item {
       .el-form-item__label {
         color: #333;
-        font-weight: 600;
+        font-weight: bold;
+      }
+      .el-input,
+      .el-textarea {
+        .el-input__inner,
+        .el-textarea__inner {
+          --el-disabled-text-color: #000;
+        }
+        .el-input__inner::placeholder {
+          -webkit-text-fill-color: #999;
+        }
+      }
+      .el-radio {
+        .is-checked {
+          .el-radio__inner {
+            border-color: #999;
+            background-color: #fff;
+
+            &::after {
+              background-color: #5b5b5b;
+            }
+          }
+        }
+
+        .el-radio__label {
+          color: #000;
+        }
       }
     }
   }

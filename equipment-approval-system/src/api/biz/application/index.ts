@@ -67,13 +67,18 @@ export const ApplicationApi = {
     return await request.get({ url: `/biz/application/bizInfo/${id}` })
   },
   review: async (params) => {
-    return await request.post({ url: `/biz/application/approval`, params })
+    return await request.post({ url: `/biz/application/approval`, data: params })
   },
-  generateLicense: async (id: number) => {
+  generateLicense: async (id: string | number) => {
     return await request.get({ url: `/biz/application/generateLicense/${id}` })
   },
   // 审核详情
-  reviewDetail: async (id: number) => {
-    return await request.get({ url: `/biz/application/reviewDetail/${id}` })
+  reviewDetail: async (id: string | null) => {
+    if (id === null) {
+      console.log(`id不能为空`)
+      return
+    }
+
+    return await request.get({ url: `/biz/application/approvalDetails`, params: { id } })
   }
 }

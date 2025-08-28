@@ -30,7 +30,7 @@
 <script setup lang="ts" name="Basis">
 // 基本信息
 import { ref, onMounted, watch } from 'vue'
-import {useApplicationDataStore} from '@/store/applicationData'
+import { useApplicationDataStore } from '@/store/applicationData'
 const appData = useApplicationDataStore()
 
 let props = defineProps({
@@ -56,11 +56,9 @@ watch(
   (newVal) => {
     if (!newVal) return
     basicMsg.value.forEach((item) => {
-      item.value =  appData.basicInfo[item.key]
-      console.log(item)
+      item.value = appData.basicInfo[item.key]
       basicData.value[item.key] = appData.basicInfo[item.key]
     })
-
   }
 )
 </script>

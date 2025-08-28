@@ -13,6 +13,7 @@
         label-width="120px"
         class="demo-ruleForm"
         label-position="top"
+        :disabled="isDisabled"
       >
         <el-form-item label="审核结果" prop="reviewResult">
           <el-radio-group v-model="formValue.reviewResult">
@@ -46,6 +47,7 @@
         <Icon icon="svg-icon:user-graduatel" :size="24" color="#165DFF" />
         <span>关联专家</span>
       </div>
+
       <div class="contact-row">
         <div class="search-row">
           <el-input
@@ -114,7 +116,9 @@
           :drag="true"
           :file-size="10"
           :auto-upload="true"
+          :disabled="isDisabled"
         />
+        <el-empty v-if="fileList.length === 0 && isDisabled" :image-size="80" />
       </div>
     </div>
   </div>
@@ -128,9 +132,24 @@ import { useRoute } from 'vue-router'
 import { ExpertExtApi } from '@/api/biz/expertext'
 import { DICT_TYPE, getDictLabel } from '@/utils/dict'
 import { ApplicationApi } from '@/api/biz/application'
-
+import { useApplicationDataStore } from '@/store/applicationData'
+const useAppData = useApplicationDataStore()
+const getReviewDetails = computed(() => {
+  return useAppData.getReviewDetails
+})
 const route = useRoute()
 const { id } = route.query
+
+let props = defineProps({
+  disabled: {
+    type: Boolean,
+    default: false
+  }
+})
+let isDisabled = computed(() => {
+  return props.disabled
+})
+
 let formValue = ref({
   reviewResult: '',
   reviewOpinion: '',
@@ -141,6 +160,28 @@ let formValue = ref({
   expertAttachments: '', //上传附件的地址 多个以逗号隔开
   expertIds: '' //选中的专家的id
 })
+const updateFormValue = () => {
+  formValue.value.reviewResult = getReviewDetails.value.expertReviewResult
+  formValue.value.reviewOpinion = getReviewDetails.value.expertReviewOpinion
+  formValue.value.licenseCode = getReviewDetails.value.licenseNo
+  formValue.value.createDate = getReviewDetails.value.licenseGenerateDate
+  formValue.value.expertAttachments = getReviewDetails.value.expertAttachments
+  formValue.value.expertIds = getReviewDetails.value.expertId
+  // 文件回显处理
+  if (getReviewDetails.value.expertAttachments) {
+    fileList.value = getReviewDetails.value.expertAttachments.split(',')
+  }
+  // 列表回显处理
+  if (expertList.value.length) {
+    let expertIdArr = formValue.value.expertIds?.split(',') || []
+    expertIdArr.forEach((eg) => {
+      let item = expertList.value.find((eg) => eg.id === Number(eg))
+      if (item) {
+        selectMultiple.value.push(item)
+      }
+    })
+  }
+}
 
 let formRef = ref<FormInstance | null>(null)
 let rules = reactive({
@@ -178,6 +219,10 @@ let multipleTableRef = ref<TableInstance | null>(null)
 let selectMultiple = ref<listDataType[]>([])
 let maxLimit = 3
 const selectableFn = (row) => {
+  if (isDisabled.value) {
+    return false
+  }
+
   let includesBool = selectMultiple.value.findIndex((eg) => eg.id === row.id)
   if (includesBool !== -1) {
     return true
@@ -187,7 +232,7 @@ const selectableFn = (row) => {
   }
   return true
 }
-const handleSelectionChange = (val: []) => {
+const handleSelectionChange = (val: listDataType[]) => {
   if (!multipleTableRef.value) return
 
   if (val.length > maxLimit) {
@@ -195,8 +240,8 @@ const handleSelectionChange = (val: []) => {
     multipleTableRef.value.clearSelection()
     return
   }
-  let expertIdArr = []
-  val.forEach((item) => expertIdArr.push(item.id))
+  let expertIdArr: number[] = []
+  val.forEach((item: listDataType) => expertIdArr.push(item.id))
   formValue.value.expertIds = expertIdArr.join(',')
   selectMultiple.value = val
 }
@@ -207,11 +252,15 @@ const handleRowClick = (row, col, event) => {
 }
 
 const removeItem = (item: listDataType) => {
+  if (isDisabled.value) {
+    return
+  }
+
   handleRowClick(item, null, null)
 }
 
 // 附件
-let fileList = ref([])
+let fileList = ref<string[]>([])
 const submitFn = async () => {
   if (!formRef.value) {
     ElMessage.error('表单加载错误')
@@ -225,13 +274,17 @@ const submitFn = async () => {
     }
     //调用接口
     formValue.value.expertAttachments = fileList.value.join(',')
-    console.log(formValue.value)
-    await ApplicationApi.review(formValue)
-  } catch (err) {}
+    await ApplicationApi.review(formValue.value)
+    ElMessage.success('提交成功')
+    return { success: true }
+  } catch (err) {
+    console.log(err)
+  }
 }
 const specialtyList = ref([])
 const getExpertList = async () => {
   expertList.value = await ExpertExtApi.getList()
+  updateFormValue()
 }
 const getSpecialtyList = async () => {
   specialtyList.value = await ExpertExtApi.getSpecialty(searchExpertForm.value)
@@ -278,13 +331,33 @@ defineExpose({
   }
   &:deep(.demo-ruleForm) {
     padding: 20px 0;
-    .el-form-item {
-      .el-form-item__label {
-        color: #333;
-        font-weight: 600;
+    .el-form-item__label {
+      color: #333;
+      font-weight: bold;
+    }
+    .el-input,
+    .el-textarea {
+      .el-input__inner,
+      .el-textarea__inner {
+        --el-disabled-text-color: #000;
       }
-      .el-date-editor {
-        width: 100%;
+      .el-input__inner::placeholder {
+        -webkit-text-fill-color: #999;
+      }
+    }
+    .el-radio {
+      .is-checked {
+        .el-radio__inner {
+          border-color: #999;
+          background-color: #fff;
+          &::after {
+            background-color: #5b5b5b;
+          }
+        }
+      }
+
+      .el-radio__label {
+        color: #000;
       }
     }
     .row-col {

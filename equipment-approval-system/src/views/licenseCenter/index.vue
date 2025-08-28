@@ -173,6 +173,7 @@
 </template>
 
 <script setup lang="ts" name="LicenseCenter">
+import { LicenseApi } from '@/api/biz/license'
 import License from '../Processing/components/license.vue'
 import { Search, RefreshRight, Printer, Download } from '@element-plus/icons-vue'
 import { getDictOptions } from '@/utils/dict'
@@ -242,23 +243,39 @@ const changeIndex = (index: number) => {
 let tableData = ref<any[]>([])
 const getList = () => {
   loading.value = true
-  setTimeout(() => {
-    loading.value = false
-    tableData.value = [
-      {
-        id: 1,
-        licenseNo: 'XK-YLQX-2023-0001',
-        configUnit: '北京协和医院',
-        deviceName: '64排螺旋CT',
-        ladderConfigModel: 'Revolution CT',
-        areaName: '北京市',
-        originalIssueDate: '2023-01-15',
-        copyIssueDate: '2023-01-16',
-        licenseType: '1',
-        status: '1'
-      }
-    ]
-  }, 1000)
+
+  let params = {
+    pageNum: paramsValue.pageNum,
+    pageSize: paramsValue.pageSize,
+    licenseType: paramsValue.licenseType,
+    keywords: paramsValue.keyword,
+    deviceType: paramsValue.licenseDevice,
+    ladderConfigModel: paramsValue.ladderConfig,
+    region: paramsValue.area
+  }
+  LicenseApi.getLicensePage(params)
+    .then((res) => {
+      console.log(res, '-------')
+      let { list, total } = res
+      tableData.value = list.map((eg) => {
+        return {
+          id: eg.licenseNo,
+          licenseNo: eg.licenseNo,
+          configUnit: eg.configUnitName,
+          deviceName: eg.licenseDeviceName,
+          ladderConfigModel: eg.ladderConfigModel,
+          areaName: eg.region,
+          originalIssueDate: eg.originalIssuanceDate,
+          copyIssueDate: eg.duplicateIssuanceDate,
+          licenseType: eg.licenseType,
+          status: eg.status
+        }
+      })
+      paramsValue.total = total
+    })
+    .finally(() => {
+      loading.value = false
+    })
 }
 const resetSearch = () => {
   paramsValue = Object.assign(paramsValue, {

@@ -113,6 +113,7 @@
                 class="btn audit-btn"
                 type="primary"
                 :icon="Search"
+                v-if="scope.row.appStatus === '1'"
                 @click.stop="gotoDetailFn(scope.row, 'perliminary')"
               >
                 初步审核
@@ -122,6 +123,7 @@
                 class="btn expert-btn"
                 type="primary"
                 :icon="Avatar"
+                v-if="scope.row.appStatus === '4'"
                 @click.stop="gotoDetailFn(scope.row, 'expert')"
               >
                 专家审批
@@ -142,36 +144,6 @@
               >
                 副本
               </el-button>
-              <!-- <el-dropdown placement="bottom" trigger="click">
-                <el-button size="small" class="btn" type="primary"> 正本 </el-button>
-                <template #dropdown>
-                  <el-dropdown-menu>
-                    <el-dropdown-item command="view">
-                      <el-icon><View /></el-icon>
-                      <span>查看</span>
-                    </el-dropdown-item>
-                    <el-dropdown-item command="download">
-                      <el-icon><Download /></el-icon>
-                      <span>下载</span>
-                    </el-dropdown-item>
-                  </el-dropdown-menu>
-                </template>
-              </el-dropdown>
-              <el-dropdown placement="bottom" trigger="click">
-                <el-button size="small" class="btn" type="primary"> 副本 </el-button>
-                <template #dropdown>
-                  <el-dropdown-menu>
-                    <el-dropdown-item command="view">
-                      <el-icon><View /></el-icon>
-                      <span>查看</span>
-                    </el-dropdown-item>
-                    <el-dropdown-item command="download">
-                      <el-icon><Download /></el-icon>
-                      <span>下载</span>
-                    </el-dropdown-item>
-                  </el-dropdown-menu>
-                </template>
-              </el-dropdown> -->
             </template>
           </el-table-column>
         </el-table>
@@ -434,8 +406,7 @@ const downloadFn = () => {
 
 // 查看 审核 专家审批
 const gotoDetailFn = (row, type) => {
-  console.log('gotoDetailFn', row, type)
-  router.push({ path: '/process-other', query: { id: row.id, type: type } })
+  router.push({ path: '/process-other', query: { id: row.id, type: type, status: row.appStatus } })
 }
 onMounted(() => {
   // 在组件挂载时可以进行一些初始化操作

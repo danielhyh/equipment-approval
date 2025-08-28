@@ -1,9 +1,9 @@
 <template>
-  <div class="process-other">
+  <div class="process-other" v-loading="loading">
     <div class="header-row">
       <div class="left">
         <el-icon><Monitor /></el-icon>
-        <span>办件详情 - 陕西省大型医用设备在线审批归档系统</span>
+        <span>{{ titleName + '-' + basicInfo.institutionName }}</span>
       </div>
       <div class="right">
         <el-button type="primary" :icon="Back" @click="goBack">返回办件中心</el-button>
@@ -44,21 +44,20 @@
           <div class="type-content-page">
             <transition name="fade" mode="out-in">
               <KeepAlive>
-                <component ref="typeRef" :is="typeActive.component" :key="typeActive.value" />
+                <component
+                  ref="typeRef"
+                  :is="typeActive.component"
+                  :key="typeActive.value"
+                  v-bind="bindComponent"
+                />
               </KeepAlive>
             </transition>
           </div>
-          <div
-            class="handler-list"
-            v-if="
-              type !== 'view' &&
-              (typeActive.value === 'firstAudit' || typeActive.value === 'expertAudit')
-            "
-          >
+          <div class="handler-list" v-if="!checkDisabled">
             <el-button size="default" type="success" :icon="Check" @click.stop="submitFn">
               提交
             </el-button>
-            <el-button size="default" type="primary" :icon="Checked"> 暂存 </el-button>
+            <!-- <el-button size="default" type="primary" :icon="Checked"> 暂存 </el-button> -->
             <el-button size="default" type="info" :icon="Back" @click="goBack"> 返回 </el-button>
           </div>
         </div>
@@ -89,9 +88,37 @@ import { markRaw } from 'vue'
 import { ApplicationApi } from '@/api/biz/application'
 import { useApplicationDataStore } from '@/store/applicationData'
 
+let loading = ref(false)
 const router = useRouter()
 const route = useRoute()
-const { id, type } = route.query
+const { id, type, status } = route.query
+
+let bindComponent = computed(() => ({ disabled: checkDisabled.value }))
+// 校验当前组件是否可以编辑
+const checkDisabled = computed(() => {
+  if (type === 'view') {
+    return true
+  }
+  if (typeActive.value.value === 'firstAudit' && status === '1') {
+    return false
+  }
+  if (typeActive.value.value === 'expertAudit' && status === '4') {
+    return false
+  }
+  return true
+})
+const titleName = computed(() => {
+  if (type === 'view') {
+    return '办件详情'
+  }
+  if (type === 'perliminary') {
+    return '初步审核'
+  }
+  if (type === 'expert') {
+    return '专家审批'
+  }
+})
+
 // 返回上一页
 const goBack = () => {
   router.back()
@@ -127,9 +154,12 @@ const handlerType = (item) => {
 // 组件得 ref
 const typeRef = ref<InstanceType<typeof Preliminary> | InstanceType<typeof Expert> | null>(null)
 
-const submitFn = () => {
+const submitFn = async () => {
   if (typeRef.value && typeof typeRef.value.submitFn === 'function') {
-    typeRef.value.submitFn() // 调用子组件的 submitFn 方法
+    let response = await typeRef.value.submitFn() // 调用子组件的 submitFn 方法
+    if (response.success) {
+      goBack()
+    }
   } else {
     console.error('子组件未暴露 submitFn 方法或 typeRef 未正确绑定')
   }
@@ -149,9 +179,23 @@ const basicInfo = ref({
 })
 const appData = useApplicationDataStore()
 const getBasicInfo = async () => {
-  var promise = await ApplicationApi.basicInfo(id)
-  basicInfo.value = promise
-  appData.basicInfo = basicInfo.value
+  try {
+    loading.value = true
+    let allPromise = await Promise.all([
+      ApplicationApi.basicInfo(id),
+      ApplicationApi.reviewDetail(id)
+    ])
+
+    var promise = allPromise[0]
+    basicInfo.value = promise
+    appData.basicInfo = basicInfo.value
+
+    let reviewDetails = allPromise[1]
+    appData.updateReviewDetails(reviewDetails)
+    loading.value = false
+  } catch (err) {
+    loading.value = false
+  }
 }
 onMounted(() => {
   getBasicInfo()

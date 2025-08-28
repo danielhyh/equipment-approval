@@ -5,29 +5,32 @@
       <span>申请材料</span>
     </div>
     <div class="file-list-box">
-      <div class="file-item" v-for="item in filesData" :key="item.id">
-        <Icon :icon="getFileIcon(item.fileType)" :size="32" color="#165DFF" />
-        <div class="file-name">{{ item.name }}</div>
-        <div class="file-des">
-          <span>上传时间：{{ item.uploadTime }}</span>
-          <em>|</em>
-          <span>文件大小：{{ item.size }}</span>
+      <template v-if="filesData.length > 0">
+        <div class="file-item" v-for="item in filesData" :key="item.id">
+          <Icon :icon="getFileIcon(item.fileType)" :size="32" color="#165DFF" />
+          <div class="file-name">{{ item.name }}</div>
+          <div class="file-des">
+            <span>上传时间：{{ item.uploadTime }}</span>
+            <em>|</em>
+            <span>文件大小：{{ item.size }}</span>
+          </div>
+          <div class="handler-box">
+            <el-button round size="small" type="primary" :icon="View" @click.stop="viewFn(item)"
+              >查看</el-button
+            >
+            <el-button round size="small" type="warning" :icon="Download">下载</el-button>
+          </div>
         </div>
-        <div class="handler-box">
-          <el-button round size="small" type="primary" :icon="View" @click.stop="viewFn(item)"
-            >查看</el-button
-          >
-          <el-button round size="small" type="warning" :icon="Download">下载</el-button>
-        </div>
-      </div>
+      </template>
+      <el-empty v-else :image-size="120" />
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
 import { List, View, Download } from '@element-plus/icons-vue'
-import {  ApplicationMaterialApi } from '@/api/biz/applicationmaterial'
-import {useRoute} from 'vue-router'
+import { ApplicationMaterialApi } from '@/api/biz/applicationmaterial'
+import { useRoute } from 'vue-router'
 const route = useRoute()
 const { id } = route.query
 // 修正 interface 定义
@@ -99,31 +102,30 @@ const getFileType = (filename) => {
   return filename.substring(lastDotIndex + 1).toLowerCase()
 }
 const getInfoList = async () => {
-  const params = {id: id}
+  const params = { id: id }
   infoList.value = await ApplicationMaterialApi.list(params)
-  infoList.value.forEach(item => {
-      let obj:Partial<fileItemType> = {}
-      obj.name = item.materialName
+  infoList.value.forEach((item) => {
+    let obj: Partial<fileItemType> = {}
+    obj.name = item.materialName
 
-      obj.id = item.id
-      obj.fileType = getFileType(item.materialName)
-      obj.size = bytesToMB(item.fileSize)
-      obj.url = item.filePath
-      obj.uploadTime = item.uploadTime?.toString()
-      filesData.value.push(obj)
+    obj.id = item.id
+    obj.fileType = getFileType(item.materialName)
+    obj.size = bytesToMB(item.fileSize)
+    obj.url = item.filePath
+    obj.uploadTime = item.uploadTime?.toString()
+    filesData.value.push(obj)
   })
-
 }
-const bytesToMB = (bytes:number) =>{
-  if (bytes === 0) return '0 MB';
-  const mb = bytes / (1024 * 1024); // 转为 MB
-  return mb.toFixed(2) + ' MB'; // 保留两位小数
+const bytesToMB = (bytes: number) => {
+  if (bytes === 0) return '0 MB'
+  const mb = bytes / (1024 * 1024) // 转为 MB
+  return mb.toFixed(2) + ' MB' // 保留两位小数
 }
 defineExpose({
   viewFn
 })
 onMounted(() => {
-  getInfoList();
+  getInfoList()
 })
 </script>
 
