@@ -23,8 +23,7 @@ public class DeviceLicenseService {
             String deviceClass,           // "甲" or "乙"
             String provinceName,          // 如"北京市"
             String categoryName,          // 如"质子放射治疗系统"
-            String stepType,              // "0", "1", "2", "3"
-            String manufacturer           // 生产厂家名称
+            String stepType             // "0", "1", "2", "3"
     ) {
 
         // 1. 参数校验
@@ -51,7 +50,7 @@ public class DeviceLicenseService {
             // 取最早生成的那个（最小 ID）
             licenseToUse = reusable.get(0);
             // 更新厂家（可能不同请求厂家不同，按最新）
-            licenseToUse.setManufacturer(manufacturer);
+//            licenseToUse.setManufacturer(manufacturer);
             // 状态仍为 GENERATED，等待业务后续改为 USED
         }
 
@@ -66,14 +65,13 @@ public class DeviceLicenseService {
 
         //  查询该厂家已配置数量
         int manufacturerCount = deviceLicenseMapper.countByProvinceAndCategoryAndStepAndManufacturer(
-                provinceName, categoryName, stepType, manufacturer);
+                provinceName, categoryName, stepType);
 
         if (manufacturerCount >= 3) {
             throw new ServiceException(1111,"该厂家在本地区此类设备已达上限（3台），无法继续申请。");
         }
         if (licenseToUse != null) {
             // 复用已有编号
-            licenseToUse.setManufacturer(manufacturer);
             deviceLicenseMapper.insertOrUpdate(licenseToUse); // 更新厂家
             return licenseToUse.getLicenseNumber();
         }
@@ -92,7 +90,6 @@ public class DeviceLicenseService {
         license.setCategoryCode(categoryName);
         license.setStepType(stepType);
         license.setDeviceClass(deviceClass);
-        license.setManufacturer(manufacturer);
 
         deviceLicenseMapper.insert(license);
 

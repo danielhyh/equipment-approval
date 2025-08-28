@@ -54,7 +54,8 @@
             contact_phone,
             ownership_nature,
             ba.create_time,
-            detailed_address
+            detailed_address,
+            region
         FROM
             biz_application ba
                 JOIN biz_institution_ext bie

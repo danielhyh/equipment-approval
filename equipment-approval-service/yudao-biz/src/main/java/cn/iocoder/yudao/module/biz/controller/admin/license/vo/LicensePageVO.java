@@ -10,6 +10,10 @@ import lombok.Setter;
 @Schema(description = "管理后台 - 许可证中心分页响应对象 VO")
 public class LicensePageVO {
 
+
+    @Schema(description = "申请id")
+    private Long appId;
+
     @Schema(description = "正本id")
     private Long originalId;
 

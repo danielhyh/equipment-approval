@@ -2,6 +2,8 @@ package cn.iocoder.yudao.module.biz.controller.admin.application.vo;
 
 import lombok.Data;
 
+import java.time.LocalDate;
+
 @Data
 public class ApplicationReviewVO {
 
@@ -17,4 +19,8 @@ public class ApplicationReviewVO {
     private String expertIds;
 
     private String expertAttachments;
+
+    private String licenseCode;
+
+    private LocalDate licenseGenerateDate;
 }

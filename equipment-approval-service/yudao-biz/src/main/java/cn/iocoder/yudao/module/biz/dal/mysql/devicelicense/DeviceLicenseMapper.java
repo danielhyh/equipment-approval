@@ -15,12 +15,11 @@ public interface DeviceLicenseMapper extends BaseMapperX<DeviceLicenseDO> {
     @Select("select count(*) from biz_device_license where province_code = #{p} and category_code = #{c} and step_type = #{s} and status = 'USED'")
     Integer countByProvinceAndCategoryAndStep(@Param("p") String province, @Param("c") String category, @Param("s") String step);
 
-    @Select("SELECT COUNT(*) FROM biz_device_license d WHERE d.province_code = #{p} AND d.category_code = #{c} AND d.step_type = #{s} AND d.manufacturer = #{m} and status = 'USED'")
+    @Select("SELECT COUNT(*) FROM biz_device_license d WHERE d.province_code = #{p} AND d.category_code = #{c} AND d.step_type = #{s} and status = 'USED'")
     Integer countByProvinceAndCategoryAndStepAndManufacturer(
             @Param("p") String province,
             @Param("c") String category,
-            @Param("s") String step,
-            @Param("m") String manufacturer);
+            @Param("s") String step);
 
 
     @Select("select * from biz_device_license where license_number = #{l}")

@@ -5,6 +5,8 @@ import cn.iocoder.yudao.framework.common.exception.ServiceException;
 import cn.iocoder.yudao.framework.common.exception.enums.GlobalErrorCodeConstants;
 import cn.iocoder.yudao.framework.security.core.LoginUser;
 import cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils;
+import cn.iocoder.yudao.module.biz.dal.dataobject.institutionext.InstitutionExtDO;
+import cn.iocoder.yudao.module.biz.dal.mysql.institutionext.InstitutionExtMapper;
 import cn.iocoder.yudao.module.biz.service.devicelicense.DeviceLicenseService;
 import cn.iocoder.yudao.module.biz.service.operation.OperationLogService;
 import com.alibaba.fastjson.JSON;
@@ -14,6 +16,7 @@ import com.google.common.base.CaseFormat;
 import com.google.common.collect.Lists;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.jdbc.core.simple.JdbcClient;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import jakarta.annotation.Resource;
 import org.springframework.validation.annotation.Validated;
@@ -22,6 +25,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.concurrent.Executor;
 
 import cn.iocoder.yudao.module.biz.controller.admin.application.vo.*;
 import cn.iocoder.yudao.module.biz.dal.dataobject.application.ApplicationDO;
@@ -53,6 +57,9 @@ public class ApplicationServiceImpl implements ApplicationService {
 
     @Resource
     private OperationLogService operationService;
+
+    @Resource
+    private Executor bizExecutor;
 
     @Override
     public Long createApplication(ApplicationSaveReqVO createReqVO) {
@@ -141,20 +148,57 @@ public class ApplicationServiceImpl implements ApplicationService {
             update.setExpertReviewResult(result);
             update.setExpertReviewTime(LocalDateTime.now());
             update.setExpertReviewOpinion(opinion);
-            List<Long> expertIdList = Arrays.stream(StringUtils.split(expertIds))
+            List<Long> expertIdList = Arrays.stream(StringUtils.split(expertIds,","))
                     .map(Long::valueOf)
                     .toList();
             update.setExpertId(expertIdList);
             if (StringUtils.isNotBlank(expertAttachments)) {
-                update.setExpertAttachments(Lists.newArrayList(StringUtils.split(expertAttachments)));
+                update.setExpertAttachments(Lists.newArrayList(StringUtils.split(expertAttachments, ",")));
             }
             update.setAppStatus(result == 1 ? 5 : 6);
+            if (result == 1) {
+                //专家审核通过后异步执行创建正本，同事修改许可证序列号表状态为已使用
+                generateOriginal(reviewVO);
+            }
             operationService.log(reviewVO.getId(), loginUserId, loginUserNickname, result ==1 ? "专家审核通过": "专家审核未通过", null,"expertIdList", JSON.toJSONString(expertIdList));
         } else {
             throw new ServiceException(new ErrorCode(1199, "无效的审核类型: " + reviewType));
         }
 
         applicationMapper.updateById(update);
+    }
+
+    @Async("bizExecutor")
+    public void generateOriginal(ApplicationReviewVO reviewVO) {
+        Long id = reviewVO.getId();
+        ApplicationBasicInformationVO vo = applicationMapper.selectBasicInfo(id);
+        ApplicationDO aDo = applicationMapper.selectById(reviewVO.getId());
+        String sql = """
+                INSERT INTO biz_license_original (
+                                application_id,
+                                license_no,
+                                config_unit_name,
+                                ownership_nature,
+                                issuing_authority,
+                                unified_social_credit_code,
+                                ladder_config_model,
+                                issue_date,
+                                legal_person,
+                                equipment_config_address,
+                                license_device_name,
+                                detailed_address,
+                                valid_date
+                            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """;
+        //插入正本表
+        jdbcClient.sql(sql).params(
+                id, reviewVO.getLicenseCode(), vo.getInstitutionName(), vo.getOwnershipNature(), "陕西省卫生健康委员会",
+                vo.getUnifiedSocialCreditCode(), aDo.getLadderConfigModel(), reviewVO.getLicenseGenerateDate(), vo.getLegalPerson(),
+                "陕西省"+ vo.getRegion(), aDo.getLicenseDeviceName(), vo.getDetailedAddress()
+        ).update();
+        //修改序列号表状态
+        jdbcClient.sql("update biz_device_license set status = 'USED' where license_number = ?")
+                .param(reviewVO.getLicenseCode()).update();
     }
 
     @Override
@@ -174,7 +218,7 @@ public class ApplicationServiceImpl implements ApplicationService {
                 """).param(id).query(this::resultSetToMap).single();
 
         return deviceLicenseService.generateLicenseNumber("乙", map.get("region"), map.get("licenseDeviceName"),
-                map.get("ladderConfigModel"), map.get("productionEnterprise"));
+                map.get("ladderConfigModel"));
     }
 
     @Override

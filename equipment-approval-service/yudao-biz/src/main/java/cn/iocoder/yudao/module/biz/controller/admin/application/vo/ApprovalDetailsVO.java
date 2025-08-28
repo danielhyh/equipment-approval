@@ -1,5 +1,6 @@
 package cn.iocoder.yudao.module.biz.controller.admin.application.vo;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Data;
 
 import java.time.LocalDate;
@@ -19,6 +20,7 @@ public class ApprovalDetailsVO {
     private String expertId;
 
     //证书生成时间
+    @JsonFormat(pattern = "yyyy-MM-dd")
     private LocalDate licenseGenerateDate;
 
     //专家附件path 多个时以逗号分隔

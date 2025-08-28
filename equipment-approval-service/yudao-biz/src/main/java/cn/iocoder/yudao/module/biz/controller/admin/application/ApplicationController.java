@@ -1,6 +1,11 @@
 package cn.iocoder.yudao.module.biz.controller.admin.application;
 
+import cn.iocoder.yudao.module.biz.controller.admin.license.vo.DuplicateLicenseVO;
+import cn.iocoder.yudao.module.biz.controller.admin.license.vo.OriginalLicenseVO;
 import jakarta.annotation.security.PermitAll;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.simple.JdbcClient;
 import org.springframework.web.bind.annotation.*;
 import jakarta.annotation.Resource;
 import org.springframework.validation.annotation.Validated;
@@ -38,6 +43,10 @@ public class ApplicationController {
 
     @Resource
     private ApplicationService applicationService;
+    @Autowired
+    private JdbcTemplate jdbcTemplate;
+    @Autowired
+    private JdbcClient jdbcClient;
 
     @PostMapping("/create")
     @Operation(summary = "创建申请")
@@ -125,6 +134,50 @@ public class ApplicationController {
     @GetMapping("/approvalDetails")
     public CommonResult<ApprovalDetailsVO>  getApprovalDetails(@RequestParam("id") Long id) {
         return success(applicationService.approvalDetails(id));
+    }
+
+    @GetMapping("/getOriginal")
+    public CommonResult<OriginalLicenseVO> getOriginal(@RequestParam("id") Long id) {
+        String sql = """
+                SELECT
+                            config_unit_name,
+                            unified_social_credit_code,
+                            legal_person,
+                            license_device_name,
+                            ownership_nature,
+                            ladder_config_model,
+                            equipment_config_address,
+                            detailed_address,
+                            issuing_authority,
+                            issue_date
+                        from biz_license_original a
+                        left join biz_application b on a.application_id = b.id
+                        where b.id = ?
+                """;
+        OriginalLicenseVO single = jdbcClient.sql(sql).param(id).query(OriginalLicenseVO.class).single();
+        return success(single);
+    }
+
+    @GetMapping("/getDuplicate")
+    public CommonResult<DuplicateLicenseVO> getDuplicate(@RequestParam("id") Long id) {
+        String sql = """
+                SELECT
+                            production_enterprise,
+                            specific_model,
+                            product_serial_no,
+                            installation_date,
+                            info_submit_date,
+                            duplicate_issuing_authority,
+                            duplicate_issue_date,
+                            remark
+                        FROM
+                            biz_license_duplicate a
+                left join biz_license_original b on a.original_id = b.id
+                left join biz_application c on b.application_id = c.id
+                where c.id = ?
+                """;
+        DuplicateLicenseVO single = jdbcClient.sql(sql).param(id).query(DuplicateLicenseVO.class).single();
+        return success(single);
     }
 
 }

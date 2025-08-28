@@ -5,6 +5,7 @@
 
     <select id="page" resultType="cn.iocoder.yudao.module.biz.controller.admin.license.vo.LicensePageVO">
         SELECT
+            c.id as app_id,
             a.id as original_id,
             b.id as duplicate_id,
             a.license_no,
