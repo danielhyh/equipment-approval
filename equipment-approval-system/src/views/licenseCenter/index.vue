@@ -255,11 +255,10 @@ const getList = () => {
   }
   LicenseApi.getLicensePage(params)
     .then((res) => {
-      console.log(res, '-------')
       let { list, total } = res
       tableData.value = list.map((eg) => {
         return {
-          id: eg.licenseNo,
+          id: eg.appId,
           licenseNo: eg.licenseNo,
           configUnit: eg.configUnitName,
           deviceName: eg.licenseDeviceName,
@@ -268,10 +267,16 @@ const getList = () => {
           originalIssueDate: eg.originalIssuanceDate,
           copyIssueDate: eg.duplicateIssuanceDate,
           licenseType: eg.licenseType,
-          status: eg.status
+          status: eg.status,
+          originalId: eg.originalId,
+          duplicateId: eg.duplicateId
         }
       })
       paramsValue.total = total
+    })
+    .catch(() => {
+      tableData.value = []
+      paramsValue.total = 0
     })
     .finally(() => {
       loading.value = false
@@ -304,6 +309,37 @@ const handleDetail = (row) => {
 }
 
 // 弹窗
+interface DialogComponentPropsType {
+  licenceType: string
+  licenceSubtitle: string
+  code?: string
+  licenseData?: (string | null | undefined)[]
+  stampUit?: string | null
+  stampDate?: string | null
+  seal?: string
+}
+interface originalType {
+  configUnitName?: string | null
+  unifiedSocialCreditCode?: string | null
+  legalPerson?: string | null
+  licenseDeviceName?: string | null
+  ownershipNature?: string | null
+  ladderConfigModel?: string | null
+  equipmentConfigAddress?: string | null
+  detailedAddress?: string | null
+  issuingAuthority?: string | null
+  issueDate?: string | null
+}
+interface copyType extends originalType {
+  productionEnterprise?: string | null
+  infoSubmitDate?: string | null
+  specificModel?: string | null
+  productSerialNo?: string | null
+  installationDate?: string | null
+  remark?: string | null
+  duplicateIssuingAuthority?: string | null
+  duplicateIssueDate?: string | null
+}
 let dialogVisible = ref(false)
 let dialogBind = reactive({
   title: '许可证-正本',
@@ -313,28 +349,75 @@ let dialogBind = reactive({
   fullscreen: true
 })
 let dialogComponent = ref(markRaw(License))
-let dialogComponentProps = ref({})
+let dialogComponentProps = ref<DialogComponentPropsType | {}>({})
 let dialogComponentRef = ref<InstanceType<typeof License> | null>(null)
 let isLicense = ref(true)
 // 打开许可证弹窗
-const openLicense = (row, type) => {
-  console.log(row, type)
-  dialogComponent.value = markRaw(License)
-  dialogBind.width = '320mm'
+const openLicense = async (row, type) => {
+  loading.value = true
+  let originalParam = { id: row.originalId }
+  let copyParam = { id: row.duplicateId }
   if (type === 'A') {
     dialogBind.title = '许可证-正本'
-    dialogComponentProps.value = {
-      licenceType: 'A',
-      licenceSubtitle: 'A'
-    }
+    dialogComponentProps.value = { licenceType: 'B', licenceSubtitle: 'A' }
   } else {
     dialogBind.title = '许可证-副本'
-    dialogComponentProps.value = {
-      licenceType: 'A',
-      licenceSubtitle: 'B'
-    }
+    dialogComponentProps.value = { licenceType: 'B', licenceSubtitle: 'B' }
   }
-  dialogVisible.value = true
+  dialogComponentProps.value.code = row.licenseNo
+
+  dialogComponent.value = markRaw(License)
+  dialogBind.width = '320mm'
+  try {
+    let response = await Promise.all([
+      LicenseApi.getLicenseOriginal(originalParam),
+      LicenseApi.getLicenseCopy(copyParam)
+    ])
+    let result = formateDialogLicense({ ...response[0], ...response[1] }, type)
+    dialogComponentProps.value.licenseData = result
+    dialogVisible.value = true
+  } catch (err) {
+    loading.value = false
+    ElMessage.error(`获取 ${dialogBind.title} 失败`)
+  }
+  loading.value = false
+}
+
+const formateDialogLicense = (data: copyType, type: string) => {
+  let arr: (string | null | undefined)[] = []
+  if (type === 'A') {
+    arr.push(data.configUnitName)
+    arr.push(data.unifiedSocialCreditCode)
+    arr.push(data.legalPerson)
+    arr.push(data.licenseDeviceName)
+    arr.push(data.ownershipNature)
+    arr.push(data.ladderConfigModel)
+    arr.push(data.equipmentConfigAddress)
+    dialogComponentProps.value.stampUit = data.issuingAuthority
+    dialogComponentProps.value.stampDate = data.issueDate
+    return arr
+  }
+  arr.push(data.configUnitName)
+  arr.push(data.productionEnterprise)
+  arr.push(data.legalPerson)
+  arr.push(data.specificModel)
+  arr.push(data.ownershipNature)
+  arr.push(data.productSerialNo)
+  arr.push(data.equipmentConfigAddress)
+  arr.push(dayTimeFormate(data.installationDate))
+  arr.push(data.unifiedSocialCreditCode)
+  arr.push(dayTimeFormate(data.infoSubmitDate))
+  arr.push(data.licenseDeviceName)
+  arr.push(data.remark)
+  arr.push(data.ladderConfigModel)
+  dialogComponentProps.value.stampUit = data.duplicateIssuingAuthority
+  dialogComponentProps.value.stampDate = data.duplicateIssueDate
+  return arr
+}
+
+const dayTimeFormate = (time) => {
+  if (!time) return ''
+  return time.replace(/(\d{4})-(\d{2})-(\d{2})/, '$1 年 $2 月 $3 日')
 }
 const printFn = () => {
   if (!dialogComponentRef.value) {

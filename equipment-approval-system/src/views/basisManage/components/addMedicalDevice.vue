@@ -72,7 +72,14 @@
 
       <div class="title-row">
         <div class="left"> <Icon icon="mingcute:group-3-fill" /> <span>设备使用人员</span></div>
-        <el-button type="primary" :icon="CirclePlus" round size="small" v-if="!isView">
+        <el-button
+          type="primary"
+          :icon="CirclePlus"
+          round
+          size="small"
+          v-if="!isView"
+          @click.stop="addUsePerson"
+        >
           添加
         </el-button>
       </div>
@@ -85,20 +92,34 @@
         <el-table-column label="出生日期" prop="birthDate" show-overflow-tooltip align="center" />
         <el-table-column label="职称" prop="careerTitle" show-overflow-tooltip align="center" />
         <el-table-column label="操作" width="140" align="center" v-if="!isView">
-          <template #default>
+          <template #default="scope">
             <!-- 编辑 -->
-            <el-button type="primary" size="small"> 编辑</el-button>
+            <el-button type="primary" size="small" @click.stop="editUsePerson(scope.row)">
+              编辑
+            </el-button>
             <!-- 删除 -->
-            <el-button type="danger" size="small"> 删除</el-button>
+            <el-button type="danger" size="small" @click.stop="deleteUsePerson(scope.$index)">
+              删除
+            </el-button>
           </template>
         </el-table-column>
       </el-table>
     </el-form>
+    <Dialog v-model="dialogVisible" v-bind="dialogBind" @closed="resetUsePersonForm">
+      <AddUsePerson ref="usePersonRef" />
+      <template #footer>
+        <el-button type="primary" @click="submitUsePerson"> 提交 </el-button>
+        <el-button type="info" @click="resetUsePersonForm"> 取消 </el-button>
+      </template>
+    </Dialog>
   </div>
 </template>
 
 <script setup lang="ts" name="AddMedicalDevice">
+import { ElMessageBox } from 'element-plus'
 import { CirclePlus } from '@element-plus/icons-vue'
+import AddUsePerson from './addUsePerson.vue'
+
 let props = defineProps({
   row: {
     type: Object,
@@ -110,6 +131,7 @@ let isView = computed(() => props.type === 'view')
 let isEdit = computed(() => props.type === 'edit')
 // 使用人员
 interface UsePersonType {
+  id?: string
   name: string
   phone: string
   idCard: string
@@ -178,6 +200,54 @@ let rules = ref({
   unitName: [{ required: true, message: '请输入配置单位名称', trigger: 'blur' }]
 })
 
+let dialogVisible = ref(false)
+let dialogBind = reactive({
+  title: '新增用户',
+  width: '450px',
+  maxHeight: '530px',
+  scroll: true,
+  fullscreen: true
+})
+let usePersonRef = ref<InstanceType<typeof usePersonRef> | null>(null)
+const addUsePerson = () => {
+  dialogBind.title = '新增设备使用人员'
+  dialogVisible.value = true
+}
+const submitUsePerson = () => {
+  usePersonRef.value
+    .submit()
+    .then(({ value, isEditIndex }) => {
+      if (isEditIndex) {
+        formData.usePersonList.push(value)
+      } else {
+        formData.usePersonList.splice(isEditIndex, 1, value)
+      }
+      resetUsePersonForm()
+    })
+    .catch((err) => {
+      console.log(err)
+    })
+}
+const resetUsePersonForm = () => {
+  usePersonRef.value.resetUserForm()
+  dialogVisible.value = false
+}
+const editUsePerson = (row: UsePersonType) => {
+  dialogBind.title = '编辑设备使用人员'
+  dialogVisible.value = true
+  nextTick(() => {
+    usePersonRef.value && usePersonRef.value.editUserForm(row)
+  })
+}
+const deleteUsePerson = ($index) => {
+  ElMessageBox.confirm('确定删除吗？', '提示', {
+    confirmButtonText: '确定',
+    cancelButtonText: '取消',
+    type: 'warning'
+  }).then(() => {
+    formData.usePersonList.splice($index, 1)
+  })
+}
 onMounted(() => {
   if (isView || isEdit) {
     formData = Object.assign(formData, props.row)

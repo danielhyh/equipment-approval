@@ -38,16 +38,16 @@
         <!-- 签发机关 年月日盖章 -->
         <div class="licence-stamp-date">
           <div class="stamp-row">
-            <span class="label">签发机关</span>
+            <span class="label">发证机关</span>
             <span class="value">{{ stampUit }}</span>
           </div>
           <div class="remark">（盖章）</div>
           <div class="date-row">
-            <em></em>
+            <em>{{ stampDateEg[0] }}</em>
             <span> 年 </span>
-            <em></em>
+            <em>{{ stampDateEg[1] }}</em>
             <span> 月 </span>
-            <em></em>
+            <em>{{ stampDateEg[2] }}</em>
             <span> 日 </span>
           </div>
         </div>
@@ -68,7 +68,7 @@ let props = defineProps({
   licenceType: { type: String, default: 'A' }, // A:甲类 | B:乙类 控制标题  以及样式
   licenceSubtitle: { type: String, default: 'A' }, // A:正本 | B:副本 控制副标题 以及字段内容 以及样式
   code: { type: String, default: '甲2703200938' },
-  licenceData: {
+  licenseData: {
     type: Array,
     default: () => {
       return [
@@ -111,13 +111,17 @@ let licenceContent = computed(() => {
     props.licenceSubtitle === 'A'
       ? JSON.parse(JSON.stringify(ALicenceData))
       : JSON.parse(JSON.stringify(BLicenceData))
-  // 根据传入的 licenceData 替换默认数据
-  if (props.licenceData.length > 0) {
-    props.licenceData.forEach((item, index) => {
+  // 根据传入的 licenseData 替换默认数据
+  if (props.licenseData.length > 0) {
+    props.licenseData.forEach((item, index) => {
       data[index].value = item || ''
     })
   }
   return data
+})
+let stampDateEg = computed(() => {
+  if (!props.stampDate) return ['', '', '']
+  return props.stampDate.split('-')
 })
 let firstColumns = computed(() => {
   return licenceContent.value.filter((_, index) => index % 2 === 0)
@@ -404,6 +408,9 @@ defineExpose({
   font-size: 12pt;
   font-style: normal;
   font-family: '黑体', 'Microsoft Yahei', sans-serif;
+  em {
+    font-style: normal;
+  }
 }
 .licence-stamp-date .date-row em {
   display: inline-block;

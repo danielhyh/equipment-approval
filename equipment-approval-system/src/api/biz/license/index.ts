@@ -15,11 +15,11 @@ export const LicenseApi = {
     return await request.get({ url: `/biz/license/page`, params })
   },
   /* 许可证中心正本查询 */
-  getLicenseOriginal: async (params: { id: string }) => {
-    return await request.get({ url: `/admin-api/biz/license/getOriginalById`, params })
+  getLicenseOriginal: async (params: { id: number }) => {
+    return await request.get({ url: `/biz/license/getOriginalById`, params })
   },
   /* 许可证中心副本查询 */
-  getLicenseCopy: async (params: { id: string }) => {
-    return await request.get({ url: `/admin-api/biz/license/getDuplicateById`, params })
+  getLicenseCopy: async (params: { id: number }) => {
+    return await request.get({ url: `/biz/license/getDuplicateById`, params })
   }
 }
