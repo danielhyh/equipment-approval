@@ -40,14 +40,14 @@ public class ExpertExtController {
 
     @PostMapping("/create")
     @Operation(summary = "创建专家扩展信息")
-    @PreAuthorize("@ss.hasPermission('biz:expert-ext:create')")
+    //@PreAuthorize("@ss.hasPermission('biz:expert-ext:create')")
     public CommonResult<Long> createExpertExt(@Valid @RequestBody ExpertExtSaveReqVO createReqVO) {
         return success(expertExtService.createExpertExt(createReqVO));
     }
 
     @PutMapping("/update")
     @Operation(summary = "更新专家扩展信息")
-    @PreAuthorize("@ss.hasPermission('biz:expert-ext:update')")
+    //@PreAuthorize("@ss.hasPermission('biz:expert-ext:update')")
     public CommonResult<Boolean> updateExpertExt(@Valid @RequestBody ExpertExtSaveReqVO updateReqVO) {
         expertExtService.updateExpertExt(updateReqVO);
         return success(true);
@@ -56,7 +56,7 @@ public class ExpertExtController {
     @DeleteMapping("/delete")
     @Operation(summary = "删除专家扩展信息")
     @Parameter(name = "id", description = "编号", required = true)
-    @PreAuthorize("@ss.hasPermission('biz:expert-ext:delete')")
+    //@PreAuthorize("@ss.hasPermission('biz:expert-ext:delete')")
     public CommonResult<Boolean> deleteExpertExt(@RequestParam("id") Long id) {
         expertExtService.deleteExpertExt(id);
         return success(true);
@@ -65,7 +65,7 @@ public class ExpertExtController {
     @DeleteMapping("/delete-list")
     @Parameter(name = "ids", description = "编号", required = true)
     @Operation(summary = "批量删除专家扩展信息")
-                @PreAuthorize("@ss.hasPermission('biz:expert-ext:delete')")
+                //@PreAuthorize("@ss.hasPermission('biz:expert-ext:delete')")
     public CommonResult<Boolean> deleteExpertExtList(@RequestParam("ids") List<Long> ids) {
         expertExtService.deleteExpertExtListByIds(ids);
         return success(true);
@@ -74,7 +74,7 @@ public class ExpertExtController {
     @GetMapping("/get")
     @Operation(summary = "获得专家扩展信息")
     @Parameter(name = "id", description = "编号", required = true, example = "1024")
-    @PreAuthorize("@ss.hasPermission('biz:expert-ext:query')")
+    //@PreAuthorize("@ss.hasPermission('biz:expert-ext:query')")
     public CommonResult<ExpertExtRespVO> getExpertExt(@RequestParam("id") Long id) {
         ExpertExtDO expertExt = expertExtService.getExpertExt(id);
         return success(BeanUtils.toBean(expertExt, ExpertExtRespVO.class));
@@ -82,7 +82,7 @@ public class ExpertExtController {
 
     @GetMapping("/page")
     @Operation(summary = "获得专家扩展信息分页")
-    @PreAuthorize("@ss.hasPermission('biz:expert-ext:query')")
+    //@PreAuthorize("@ss.hasPermission('biz:expert-ext:query')")
     public CommonResult<PageResult<ExpertExtRespVO>> getExpertExtPage(@Valid ExpertExtPageReqVO reqVO) {
         PageResult<ExpertExtRespVO> pageResult = expertExtService.getExpertExtPage(reqVO);
         return success(BeanUtils.toBean(pageResult, ExpertExtRespVO.class));
@@ -90,7 +90,7 @@ public class ExpertExtController {
 
     @GetMapping("/export-excel")
     @Operation(summary = "导出专家扩展信息 Excel")
-    @PreAuthorize("@ss.hasPermission('biz:expert-ext:export')")
+    //@PreAuthorize("@ss.hasPermission('biz:expert-ext:export')")
     @ApiAccessLog(operateType = EXPORT)
     public void exportExpertExtExcel(@Valid ExpertExtPageReqVO pageReqVO,
               HttpServletResponse response) throws IOException {

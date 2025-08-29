@@ -3,8 +3,10 @@ package cn.iocoder.yudao.module.biz.service.application;
 import cn.iocoder.yudao.framework.common.exception.ErrorCode;
 import cn.iocoder.yudao.framework.common.exception.ServiceException;
 import cn.iocoder.yudao.framework.common.exception.enums.GlobalErrorCodeConstants;
+import cn.iocoder.yudao.framework.common.pojo.PageParam;
 import cn.iocoder.yudao.framework.security.core.LoginUser;
 import cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils;
+import cn.iocoder.yudao.module.biz.controller.app.application.vo.AppApplicationSaveReqVO;
 import cn.iocoder.yudao.module.biz.dal.dataobject.institutionext.InstitutionExtDO;
 import cn.iocoder.yudao.module.biz.dal.mysql.institutionext.InstitutionExtMapper;
 import cn.iocoder.yudao.module.biz.service.devicelicense.DeviceLicenseService;
@@ -24,6 +26,7 @@ import org.springframework.validation.annotation.Validated;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.Executor;
 
@@ -58,8 +61,31 @@ public class ApplicationServiceImpl implements ApplicationService {
     @Resource
     private OperationLogService operationService;
 
-    @Resource
-    private Executor bizExecutor;
+    private final DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("yyyyMMddHHmmss");
+
+    @Override
+    public Long createApplication(AppApplicationSaveReqVO createReqVO) {
+        // 插入
+        ApplicationDO application = BeanUtils.toBean(createReqVO, ApplicationDO.class);
+        application.setAppNo("SQ-"+timeFormatter.format(LocalDateTime.now()));
+        application.setAppStatus(1);//待初审
+        applicationMapper.insert(application);
+        //记录操作日志
+        Long loginUserId = SecurityFrameworkUtils.getLoginUserId();
+        String loginUserNickname = SecurityFrameworkUtils.getLoginUserNickname();
+        operationService.log(application.getId(), loginUserId, loginUserNickname, "发起申请");
+        // 返回
+        return application.getId();
+    }
+
+    @Override
+    public void updateApplication(AppApplicationSaveReqVO updateReqVO) {
+        // 校验存在
+        validateApplicationExists(updateReqVO.getId());
+        // 更新
+        ApplicationDO updateObj = BeanUtils.toBean(updateReqVO, ApplicationDO.class);
+        applicationMapper.updateById(updateObj);
+    }
 
     @Override
     public Long createApplication(ApplicationSaveReqVO createReqVO) {
@@ -157,6 +183,8 @@ public class ApplicationServiceImpl implements ApplicationService {
             }
             update.setAppStatus(result == 1 ? 5 : 6);
             if (result == 1) {
+                update.setLicenseNo(reviewVO.getLicenseCode());
+                update.setLicenseGenerateDate(reviewVO.getLicenseGenerateDate());
                 //专家审核通过后异步执行创建正本，同事修改许可证序列号表状态为已使用
                 generateOriginal(reviewVO);
             }
@@ -207,11 +235,9 @@ public class ApplicationServiceImpl implements ApplicationService {
                 SELECT
                   ba.license_device_name,
                   ladder_config_model,
-                  production_enterprise,
                   region
                 FROM
                   biz_application ba
-                  LEFT JOIN biz_class_a_equipment bce ON ba.equipment_id = bce.id
                   LEFT JOIN biz_institution_ext bie ON ba.institution_id = bie.dept_id
                 WHERE
                   ba.id = ?

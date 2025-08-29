@@ -27,4 +27,6 @@ public class ApplicationPageRespVO {
     private String deadline;
 
     private String remainingDays;
+
+    private String appType;
 }

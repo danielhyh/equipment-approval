@@ -43,14 +43,14 @@ public class InstitutionExtController {
 
     @PostMapping("/create")
     @Operation(summary = "创建机构扩展信息")
-    @PreAuthorize("@ss.hasPermission('biz:institution-ext:create')")
+    //@PreAuthorize("@ss.hasPermission('biz:institution-ext:create')")
     public CommonResult<Long> createInstitutionExt(@Valid @RequestBody InstitutionExtSaveReqVO createReqVO) {
         return success(institutionExtService.createInstitutionExt(createReqVO));
     }
 
     @PutMapping("/update")
     @Operation(summary = "更新机构扩展信息")
-    @PreAuthorize("@ss.hasPermission('biz:institution-ext:update')")
+    //@PreAuthorize("@ss.hasPermission('biz:institution-ext:update')")
     public CommonResult<Boolean> updateInstitutionExt(@Valid @RequestBody InstitutionExtSaveReqVO updateReqVO) {
         institutionExtService.updateInstitutionExt(updateReqVO);
         return success(true);
@@ -59,7 +59,7 @@ public class InstitutionExtController {
     @DeleteMapping("/delete")
     @Operation(summary = "删除机构扩展信息")
     @Parameter(name = "id", description = "编号", required = true)
-    @PreAuthorize("@ss.hasPermission('biz:institution-ext:delete')")
+    //@PreAuthorize("@ss.hasPermission('biz:institution-ext:delete')")
     public CommonResult<Boolean> deleteInstitutionExt(@RequestParam("id") Long id) {
         institutionExtService.deleteInstitutionExt(id);
         return success(true);
@@ -68,7 +68,7 @@ public class InstitutionExtController {
     @DeleteMapping("/delete-list")
     @Parameter(name = "ids", description = "编号", required = true)
     @Operation(summary = "批量删除机构扩展信息")
-                @PreAuthorize("@ss.hasPermission('biz:institution-ext:delete')")
+                //@PreAuthorize("@ss.hasPermission('biz:institution-ext:delete')")
     public CommonResult<Boolean> deleteInstitutionExtList(@RequestParam("ids") List<Long> ids) {
         institutionExtService.deleteInstitutionExtListByIds(ids);
         return success(true);
@@ -82,7 +82,7 @@ public class InstitutionExtController {
             )
     ))
     @Parameter(name = "id", description = "编号", required = true, example = "1024")
-    @PreAuthorize("@ss.hasPermission('biz:institution-ext:query')")
+    //@PreAuthorize("@ss.hasPermission('biz:institution-ext:query')")
     public CommonResult<InstitutionExtDetailsVO> getInstitutionExt(@RequestParam("id") Long id) {
         InstitutionExtDetailsVO institutionExt = institutionExtService.getDetails(id);
         return success(institutionExt);
@@ -95,7 +95,7 @@ public class InstitutionExtController {
                             schema = @Schema(implementation = InstitutionExtRespVO.class)
                     )
             ))
-    @PreAuthorize("@ss.hasPermission('biz:institution-ext:query')")
+    //@PreAuthorize("@ss.hasPermission('biz:institution-ext:query')")
     public CommonResult<PageResult<InstitutionExtRespVO>> getInstitutionExtPage(@Valid InstitutionExtPageReqVO pageReqVO) {
         PageResult<InstitutionExtDO> pageResult = institutionExtService.getInstitutionExtPage(pageReqVO);
         return success(BeanUtils.toBean(pageResult, InstitutionExtRespVO.class));
@@ -103,7 +103,7 @@ public class InstitutionExtController {
 
     @GetMapping("/export-excel")
     @Operation(summary = "导出机构扩展信息 Excel")
-    @PreAuthorize("@ss.hasPermission('biz:institution-ext:export')")
+    //@PreAuthorize("@ss.hasPermission('biz:institution-ext:export')")
     @ApiAccessLog(operateType = EXPORT)
     public void exportInstitutionExtExcel(@Valid InstitutionExtPageReqVO pageReqVO,
               HttpServletResponse response) throws IOException {

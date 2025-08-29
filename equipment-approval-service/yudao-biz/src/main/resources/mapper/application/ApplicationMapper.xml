@@ -17,6 +17,7 @@
         ba.create_time,
         ba.app_status,
         ba.deadline,
+        ba.app_type,
         GREATEST(DATEDIFF(ba.deadline, NOW()), 0) AS remaining_days
         FROM
         biz_application ba
@@ -58,7 +59,7 @@
             region
         FROM
             biz_application ba
-                JOIN biz_institution_ext bie
+                JOIN biz_institution_ext bie on ba.institution_id = bie.dept_id
         WHERE
             ba.id = #{id} and ba.deleted = 0
     </select>

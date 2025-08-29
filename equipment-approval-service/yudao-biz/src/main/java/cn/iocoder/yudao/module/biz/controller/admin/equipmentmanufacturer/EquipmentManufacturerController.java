@@ -46,14 +46,14 @@ public class EquipmentManufacturerController {
 
     @PostMapping("/create")
     @Operation(summary = "创建设备生产企业")
-
+    //@PreAuthorize("@ss.hasPermission('biz:equipment-manufacturer:create')")
     public CommonResult<Long> createEquipmentManufacturer(@Valid @RequestBody EquipmentManufacturerSaveReqVO createReqVO) {
         return success(equipmentManufacturerService.createEquipmentManufacturer(createReqVO));
     }
 
     @PutMapping("/update")
     @Operation(summary = "更新设备生产企业")
-
+    //@PreAuthorize("@ss.hasPermission('biz:equipment-manufacturer:update')")
     public CommonResult<Boolean> updateEquipmentManufacturer(@Valid @RequestBody EquipmentManufacturerSaveReqVO updateReqVO) {
         equipmentManufacturerService.updateEquipmentManufacturer(updateReqVO);
         return success(true);
@@ -62,7 +62,7 @@ public class EquipmentManufacturerController {
     @DeleteMapping("/delete")
     @Operation(summary = "删除设备生产企业")
     @Parameter(name = "id", description = "编号", required = true)
-
+    //@PreAuthorize("@ss.hasPermission('biz:equipment-manufacturer:delete')")
     public CommonResult<Boolean> deleteEquipmentManufacturer(@RequestParam("id") Long id) {
         equipmentManufacturerService.deleteEquipmentManufacturer(id);
         return success(true);
@@ -71,7 +71,7 @@ public class EquipmentManufacturerController {
     @DeleteMapping("/delete-list")
     @Parameter(name = "ids", description = "编号", required = true)
     @Operation(summary = "批量删除设备生产企业")
-
+                //@PreAuthorize("@ss.hasPermission('biz:equipment-manufacturer:delete')")
     public CommonResult<Boolean> deleteEquipmentManufacturerList(@RequestParam("ids") List<Long> ids) {
         equipmentManufacturerService.deleteEquipmentManufacturerListByIds(ids);
         return success(true);
@@ -85,7 +85,7 @@ public class EquipmentManufacturerController {
                     @Schema(implementation = EquipmentManufacturerRespVO.class)))}
     )
     @Parameter(name = "id", description = "编号", required = true, example = "1024")
-
+    //@PreAuthorize("@ss.hasPermission('biz:equipment-manufacturer:query')")
     public CommonResult<EquipmentManufacturerRespVO> getEquipmentManufacturer(@RequestParam("id") Long id) {
         EquipmentManufacturerDO equipmentManufacturer = equipmentManufacturerService.getEquipmentManufacturer(id);
         return success(BeanUtils.toBean(equipmentManufacturer, EquipmentManufacturerRespVO.class));
@@ -96,6 +96,7 @@ public class EquipmentManufacturerController {
             {@ApiResponse(content =
             @Content(schema =
             @Schema(implementation = EquipmentManufacturerRespVO.class)))})
+    //@PreAuthorize("@ss.hasPermission('biz:equipment-manufacturer:query')")
     public CommonResult<PageResult<EquipmentManufacturerRespVO>> getEquipmentManufacturerPage(@Valid EquipmentManufacturerPageReqVO pageReqVO) {
         PageResult<EquipmentManufacturerDO> pageResult = equipmentManufacturerService.getEquipmentManufacturerPage(pageReqVO);
         return success(BeanUtils.toBean(pageResult, EquipmentManufacturerRespVO.class));
@@ -103,7 +104,7 @@ public class EquipmentManufacturerController {
 
     @GetMapping("/export-excel")
     @Operation(summary = "导出设备生产企业 Excel")
-
+    //@PreAuthorize("@ss.hasPermission('biz:equipment-manufacturer:export')")
     @ApiAccessLog(operateType = EXPORT)
     public void exportEquipmentManufacturerExcel(@Valid EquipmentManufacturerPageReqVO pageReqVO, HttpServletResponse response) throws IOException {
         pageReqVO.setPageSize(PageParam.PAGE_SIZE_NONE);

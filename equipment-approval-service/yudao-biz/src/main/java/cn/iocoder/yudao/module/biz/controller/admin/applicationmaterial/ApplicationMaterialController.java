@@ -40,14 +40,14 @@ public class ApplicationMaterialController {
 
     @PostMapping("/create")
     @Operation(summary = "创建申请资料")
-    @PreAuthorize("@ss.hasPermission('biz:application-material:create')")
+    //@PreAuthorize("@ss.hasPermission('biz:application-material:create')")
     public CommonResult<Long> createApplicationMaterial(@Valid @RequestBody ApplicationMaterialSaveReqVO createReqVO) {
         return success(applicationMaterialService.createApplicationMaterial(createReqVO));
     }
 
     @PutMapping("/update")
     @Operation(summary = "更新申请资料")
-    @PreAuthorize("@ss.hasPermission('biz:application-material:update')")
+    //@PreAuthorize("@ss.hasPermission('biz:application-material:update')")
     public CommonResult<Boolean> updateApplicationMaterial(@Valid @RequestBody ApplicationMaterialSaveReqVO updateReqVO) {
         applicationMaterialService.updateApplicationMaterial(updateReqVO);
         return success(true);
@@ -56,7 +56,7 @@ public class ApplicationMaterialController {
     @DeleteMapping("/delete")
     @Operation(summary = "删除申请资料")
     @Parameter(name = "id", description = "编号", required = true)
-    @PreAuthorize("@ss.hasPermission('biz:application-material:delete')")
+    //@PreAuthorize("@ss.hasPermission('biz:application-material:delete')")
     public CommonResult<Boolean> deleteApplicationMaterial(@RequestParam("id") Long id) {
         applicationMaterialService.deleteApplicationMaterial(id);
         return success(true);
@@ -65,7 +65,7 @@ public class ApplicationMaterialController {
     @DeleteMapping("/delete-list")
     @Parameter(name = "ids", description = "编号", required = true)
     @Operation(summary = "批量删除申请资料")
-                @PreAuthorize("@ss.hasPermission('biz:application-material:delete')")
+                //@PreAuthorize("@ss.hasPermission('biz:application-material:delete')")
     public CommonResult<Boolean> deleteApplicationMaterialList(@RequestParam("ids") List<Long> ids) {
         applicationMaterialService.deleteApplicationMaterialListByIds(ids);
         return success(true);
@@ -74,7 +74,7 @@ public class ApplicationMaterialController {
     @GetMapping("/get")
     @Operation(summary = "获得申请资料")
     @Parameter(name = "id", description = "编号", required = true, example = "1024")
-    @PreAuthorize("@ss.hasPermission('biz:application-material:query')")
+    //@PreAuthorize("@ss.hasPermission('biz:application-material:query')")
     public CommonResult<ApplicationMaterialRespVO> getApplicationMaterial(@RequestParam("id") Long id) {
         ApplicationMaterialDO applicationMaterial = applicationMaterialService.getApplicationMaterial(id);
         return success(BeanUtils.toBean(applicationMaterial, ApplicationMaterialRespVO.class));
@@ -82,7 +82,7 @@ public class ApplicationMaterialController {
 
     @GetMapping("/page")
     @Operation(summary = "获得申请资料分页")
-    @PreAuthorize("@ss.hasPermission('biz:application-material:query')")
+    //@PreAuthorize("@ss.hasPermission('biz:application-material:query')")
     public CommonResult<PageResult<ApplicationMaterialRespVO>> getApplicationMaterialPage(@Valid ApplicationMaterialPageReqVO pageReqVO) {
         PageResult<ApplicationMaterialDO> pageResult = applicationMaterialService.getApplicationMaterialPage(pageReqVO);
         return success(BeanUtils.toBean(pageResult, ApplicationMaterialRespVO.class));
@@ -90,7 +90,7 @@ public class ApplicationMaterialController {
 
     @GetMapping("/export-excel")
     @Operation(summary = "导出申请资料 Excel")
-    @PreAuthorize("@ss.hasPermission('biz:application-material:export')")
+    //@PreAuthorize("@ss.hasPermission('biz:application-material:export')")
     @ApiAccessLog(operateType = EXPORT)
     public void exportApplicationMaterialExcel(@Valid ApplicationMaterialPageReqVO pageReqVO,
               HttpServletResponse response) throws IOException {

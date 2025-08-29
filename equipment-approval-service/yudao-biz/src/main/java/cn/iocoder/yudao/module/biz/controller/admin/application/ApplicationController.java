@@ -50,14 +50,14 @@ public class ApplicationController {
 
     @PostMapping("/create")
     @Operation(summary = "创建申请")
-    @PreAuthorize("@ss.hasPermission('biz:application:create')")
+    //@PreAuthorize("@ss.hasPermission('biz:application:create')")
     public CommonResult<Long> createApplication(@Valid @RequestBody ApplicationSaveReqVO createReqVO) {
         return success(applicationService.createApplication(createReqVO));
     }
 
     @PutMapping("/update")
     @Operation(summary = "更新申请")
-    @PreAuthorize("@ss.hasPermission('biz:application:update')")
+    //@PreAuthorize("@ss.hasPermission('biz:application:update')")
     public CommonResult<Boolean> updateApplication(@Valid @RequestBody ApplicationSaveReqVO updateReqVO) {
         applicationService.updateApplication(updateReqVO);
         return success(true);
@@ -66,7 +66,7 @@ public class ApplicationController {
     @DeleteMapping("/delete")
     @Operation(summary = "删除申请")
     @Parameter(name = "id", description = "编号", required = true)
-    @PreAuthorize("@ss.hasPermission('biz:application:delete')")
+    //@PreAuthorize("@ss.hasPermission('biz:application:delete')")
     public CommonResult<Boolean> deleteApplication(@RequestParam("id") Long id) {
         applicationService.deleteApplication(id);
         return success(true);
@@ -75,7 +75,7 @@ public class ApplicationController {
     @DeleteMapping("/delete-list")
     @Parameter(name = "ids", description = "编号", required = true)
     @Operation(summary = "批量删除申请")
-                @PreAuthorize("@ss.hasPermission('biz:application:delete')")
+                //@PreAuthorize("@ss.hasPermission('biz:application:delete')")
     public CommonResult<Boolean> deleteApplicationList(@RequestParam("ids") List<Long> ids) {
         applicationService.deleteApplicationListByIds(ids);
         return success(true);
@@ -84,7 +84,7 @@ public class ApplicationController {
     @GetMapping("/get")
     @Operation(summary = "获得申请")
     @Parameter(name = "id", description = "编号", required = true, example = "1024")
-    @PreAuthorize("@ss.hasPermission('biz:application:query')")
+    //@PreAuthorize("@ss.hasPermission('biz:application:query')")
     public CommonResult<ApplicationRespVO> getApplication(@RequestParam("id") Long id) {
         ApplicationDO application = applicationService.getApplication(id);
         return success(BeanUtils.toBean(application, ApplicationRespVO.class));
@@ -92,14 +92,14 @@ public class ApplicationController {
 
     @GetMapping("/page")
     @Operation(summary = "获得申请分页")
-    @PreAuthorize("@ss.hasPermission('biz:application:query')")
+    //@PreAuthorize("@ss.hasPermission('biz:application:query')")
     public CommonResult<PageResult<ApplicationPageRespVO>> getApplicationPage(@Valid ApplicationPageReqVO pageReqVO) {
         return success(applicationService.getApplicationPage(pageReqVO));
     }
 
     @GetMapping("/export-excel")
     @Operation(summary = "导出申请 Excel")
-    @PreAuthorize("@ss.hasPermission('biz:application:export')")
+    //@PreAuthorize("@ss.hasPermission('biz:application:export')")
     @ApiAccessLog(operateType = EXPORT)
     public void exportApplicationExcel(@Valid ApplicationPageReqVO pageReqVO,
               HttpServletResponse response) throws IOException {
