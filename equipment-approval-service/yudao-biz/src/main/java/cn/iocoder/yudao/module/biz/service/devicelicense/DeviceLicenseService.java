@@ -1,8 +1,8 @@
-package cn.iocoder.yudao.module.biz.service.license;
+package cn.iocoder.yudao.module.biz.service.devicelicense;
 
 import cn.iocoder.yudao.framework.common.exception.ServiceException;
-import cn.iocoder.yudao.module.biz.dal.dataobject.license.DeviceLicenseDO;
-import cn.iocoder.yudao.module.biz.dal.mysql.license.DeviceLicenseMapper;
+import cn.iocoder.yudao.module.biz.dal.dataobject.devicelicense.DeviceLicenseDO;
+import cn.iocoder.yudao.module.biz.dal.mysql.devicelicense.DeviceLicenseMapper;
 import jakarta.annotation.Resource;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -23,14 +23,10 @@ public class DeviceLicenseService {
             String deviceClass,           // "甲" or "乙"
             String provinceName,          // 如"北京市"
             String categoryName,          // 如"质子放射治疗系统"
-            String stepType,              // "0", "1", "2", "3"
-            String manufacturer           // 生产厂家名称
+            String stepType             // "0", "1", "2", "3"
     ) {
 
         // 1. 参数校验
-        if (!"甲".equals(deviceClass) && !"乙".equals(deviceClass)) {
-            throw new ServiceException(1111, "设备类别必须是'甲'或'乙'");
-        }
         if (stepType == null ) {
             throw new ServiceException(1111, "阶梯分型不能为空");
         }
@@ -38,17 +34,10 @@ public class DeviceLicenseService {
         if (stepCode == null) {
             throw new ServiceException(1111, "不支持的阶梯分型: " + stepType);
         }
-        String provCode = PROVINCE_MAP.get(provinceName);
-        if (provCode == null) {
-            throw new ServiceException(1111, "不支持的省份: " + provinceName);
-        }
+        String provCode = PROVINCE_MAP.get("陕西省");
 
-        String categoryCode;
-        if ("甲".equals(deviceClass)) {
-            categoryCode = CATEGORY_CODE_JIA.get(categoryName);
-        } else {
-            categoryCode = CATEGORY_CODE_YI.get(categoryName);
-        }
+        String categoryCode = CATEGORY_CODE_YI.get(categoryName);
+
         if (categoryCode == null) {
             throw new ServiceException(1111, "不支持的设备类型: " + categoryName);
         }
@@ -61,7 +50,7 @@ public class DeviceLicenseService {
             // 取最早生成的那个（最小 ID）
             licenseToUse = reusable.get(0);
             // 更新厂家（可能不同请求厂家不同，按最新）
-            licenseToUse.setManufacturer(manufacturer);
+//            licenseToUse.setManufacturer(manufacturer);
             // 状态仍为 GENERATED，等待业务后续改为 USED
         }
 
@@ -76,14 +65,13 @@ public class DeviceLicenseService {
 
         //  查询该厂家已配置数量
         int manufacturerCount = deviceLicenseMapper.countByProvinceAndCategoryAndStepAndManufacturer(
-                provinceName, categoryName, stepType, manufacturer);
+                provinceName, categoryName, stepType);
 
         if (manufacturerCount >= 3) {
             throw new ServiceException(1111,"该厂家在本地区此类设备已达上限（3台），无法继续申请。");
         }
         if (licenseToUse != null) {
             // 复用已有编号
-            licenseToUse.setManufacturer(manufacturer);
             deviceLicenseMapper.insertOrUpdate(licenseToUse); // 更新厂家
             return licenseToUse.getLicenseNumber();
         }
@@ -102,7 +90,6 @@ public class DeviceLicenseService {
         license.setCategoryCode(categoryName);
         license.setStepType(stepType);
         license.setDeviceClass(deviceClass);
-        license.setManufacturer(manufacturer);
 
         deviceLicenseMapper.insert(license);
 

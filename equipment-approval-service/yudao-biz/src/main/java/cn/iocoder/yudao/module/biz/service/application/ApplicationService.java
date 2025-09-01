@@ -1,6 +1,8 @@
 package cn.iocoder.yudao.module.biz.service.application;
 
 import java.util.*;
+
+import cn.iocoder.yudao.module.biz.controller.app.application.vo.AppApplicationSaveReqVO;
 import jakarta.validation.*;
 import cn.iocoder.yudao.module.biz.controller.admin.application.vo.*;
 import cn.iocoder.yudao.module.biz.dal.dataobject.application.ApplicationDO;
@@ -14,6 +16,22 @@ import org.apache.ibatis.annotations.Param;
  * @author listen
  */
 public interface ApplicationService {
+
+
+    /**
+     * 创建申请
+     *
+     * @param createReqVO 创建信息
+     * @return 编号
+     */
+    Long createApplication(@Valid AppApplicationSaveReqVO createReqVO);
+
+    /**
+     * 更新申请
+     *
+     * @param updateReqVO 更新信息
+     */
+    void updateApplication(@Valid AppApplicationSaveReqVO updateReqVO);
 
     /**
      * 创建申请
@@ -67,4 +85,6 @@ public interface ApplicationService {
     void approval(ApplicationReviewVO reviewVO);
 
     String getLicenseNumber(Long id);
+
+    ApprovalDetailsVO approvalDetails( Long id);
 }

@@ -21,7 +21,7 @@ import org.apache.ibatis.annotations.Select;
 @Mapper
 public interface ExpertExtMapper extends BaseMapperX<ExpertExtDO> {
 
-    IPage<ExpertExtRespVO> page(IPage<ExpertExtRespVO> page, @Param("reqVO") ExpertExtPageReqVO reqVO);
+    IPage<ExpertExtRespVO> page(IPage<ExpertExtRespVO> page,@Param("reqVO") ExpertExtPageReqVO reqVO);
 
     List<ExpertExtRespVO> list(@Param("keyword")String keywords, @Param("specialty") String specialty);
 

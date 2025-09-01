@@ -17,6 +17,7 @@
         ba.create_time,
         ba.app_status,
         ba.deadline,
+        ba.app_type,
         GREATEST(DATEDIFF(ba.deadline, NOW()), 0) AS remaining_days
         FROM
         biz_application ba
@@ -54,10 +55,11 @@
             contact_phone,
             ownership_nature,
             ba.create_time,
-            detailed_address
+            detailed_address,
+            region
         FROM
             biz_application ba
-                JOIN biz_institution_ext bie
+                JOIN biz_institution_ext bie on ba.institution_id = bie.dept_id
         WHERE
             ba.id = #{id} and ba.deleted = 0
     </select>
@@ -77,5 +79,21 @@
             biz_application ba
                 JOIN biz_class_a_equipment bce ON ba.equipment_id = bce.id
         where ba.deleted = 0 and ba.id = #{id}
+    </select>
+
+    <select id="approvalDetails" resultType="cn.iocoder.yudao.module.biz.controller.admin.application.vo.ApprovalDetailsVO">
+        SELECT
+            initial_review_result,
+            initial_review_opinion,
+            expert_review_result,
+            expert_review_opinion,
+            expert_id,
+            license_no,
+            expert_attachments,
+            license_generate_date
+
+        FROM
+            biz_application
+        where id = #{id}
     </select>
 </mapper>

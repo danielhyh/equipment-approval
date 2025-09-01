@@ -30,6 +30,12 @@
             ON
                 FIND_IN_SET(a.id, b.expert_id) > 0
         where a.deleted = 0
+        <if test="reqVO.specialty != null and reqVO.specialty != ''">
+            and specialty = #{reqVO.specialty}
+        </if>
+        <if test="reqVO.keywords != null and reqVO.keywords != ''">
+            and (a.name like concat('%', #{reqVO.keywords}, '%') or a.unit like concat('%', #{reqVO.keywords}, '%'))
+        </if>
         GROUP BY
             a.id, a.name, a.gender, a.unit, a.title, a.position, a.specialty, a.phone, a.create_time
     </select>

@@ -63,4 +63,6 @@ public class ApplicationBasicInformationVO {
      * 详细地址
      */
     private String detailedAddress;
+
+    private String region;
 }
