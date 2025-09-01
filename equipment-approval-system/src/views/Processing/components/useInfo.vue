@@ -112,7 +112,7 @@ const getInfoList = async () => {
     obj.fileType = getFileType(item.materialName)
     obj.size = bytesToMB(item.fileSize)
     obj.url = item.filePath
-    obj.uploadTime = item.uploadTime?.toString()
+    obj.uploadTime = new Date(item.uploadTime).toLocaleString()
     filesData.value.push(obj)
   })
 }

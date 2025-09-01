@@ -2,7 +2,7 @@
   <div class="content-msg-page" ref="contentMsgPageRef">
     <el-form :model="basicData" label-position="top" inline>
       <el-form-item v-for="(item, i) in basicMsg" :key="i" :label="item.label" :prop="item.key">
-        <el-input v-model="item.value" placeholder="请输入" disabled />
+        <el-input v-model="basicData[item.key]" placeholder="请输入" disabled />
       </el-form-item>
     </el-form>
     <License v-bind="licenseProps" ref="licenseRef" />
@@ -11,6 +11,8 @@
 
 <script setup lang="ts" name="Copy">
 import License from '@/views/Processing/components/license.vue'
+import type { licenseProfileType, copyProfile } from './licenseProfile'
+import { dayTimeFormate } from './licenseProfile'
 // 基本信息
 let props = defineProps({
   list: {
@@ -20,25 +22,47 @@ let props = defineProps({
 })
 let basicMsg = ref([
   // 生产企业
-  { label: '生产企业', value: '', key: 'productionCompany' },
+  { label: '生产企业', value: '', key: 'productionEnterprise' },
   // 具体型号
-  { label: '具体型号', value: '', key: 'modelName' },
+  { label: '具体型号', value: '', key: 'specificModel' },
   // 产品序列号
-  { label: '产品序列号', value: '', key: 'productSerialNumber' },
+  { label: '产品序列号', value: '', key: 'productSerialNo' },
   // 装机日期
   { label: '装机日期', value: '', key: 'installationDate' },
   // 信息报送日期
-  { label: '信息报送日期', value: '', key: 'informationReportDate' },
+  { label: '信息报送日期', value: '', key: 'infoSubmitDate' },
   // 副本发证机关
-  { label: '副本发证机关', value: '', key: 'issuingAuthority' },
+  { label: '副本发证机关', value: '', key: 'duplicateIssuingAuthority' },
   // 副本发证日期
-  { label: '副本发证日期', value: '', key: 'issuingDate' },
+  { label: '副本发证日期', value: '', key: 'duplicateIssueDate' },
   // 备注
   { label: '备注信息', value: '', key: 'remark' }
 ])
 let basicData = ref({}) // 基本信息
 
-let licenseProps = ref({ licenceSubtitle: 'B' })
+let licenseProps = ref<licenseProfileType>({
+  licenceType: 'B',
+  licenceSubtitle: 'B'
+})
+const formateDialogLicense = (data: copyProfile) => {
+  let arr: any[] = []
+  arr.push(data.configUnitName)
+  arr.push(data.productionEnterprise)
+  arr.push(data.legalPerson)
+  arr.push(data.specificModel)
+  arr.push(data.ownershipNature)
+  arr.push(data.productSerialNo)
+  arr.push(data.equipmentConfigAddress)
+  arr.push(dayTimeFormate(data.installationDate))
+  arr.push(data.unifiedSocialCreditCode)
+  arr.push(dayTimeFormate(data.infoSubmitDate))
+  arr.push(data.licenseDeviceName)
+  arr.push(data.remark)
+  arr.push(data.ladderConfigModel)
+  licenseProps.value.code = data.code
+  licenseProps.value.stampUit = data.duplicateIssuingAuthority
+  licenseProps.value.stampDate = data.duplicateIssueDate
+}
 let contentMsgPageRef = ref<HTMLDivElement | null>(null)
 let licenseRef = ref<InstanceType<typeof License> | null>(null)
 const licenseDomResize = () => {
@@ -56,6 +80,7 @@ onMounted(() => {
       item.value = props.list[item.key]
       basicData.value[item.key] = props.list[item.key]
     })
+    formateDialogLicense(props.list)
   }
 
   window.addEventListener('resize', licenseDomResize)

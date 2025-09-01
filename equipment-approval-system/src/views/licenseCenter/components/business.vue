@@ -28,6 +28,8 @@
 </template>
 
 <script setup lang="ts" name="Business">
+import { ApplicationApi } from '@/api/biz/application'
+import { useRoute } from 'vue-router'
 // 业务信息
 let props = defineProps({
   list: {
@@ -35,25 +37,30 @@ let props = defineProps({
     default: () => {}
   }
 })
+const route = useRoute()
+const { id } = route.query
 let basicMsg = ref([
-  { label: '许可设备名称', key: 'equipmentName', value: '' },
-  { label: '阶梯配置机型', key: 'ladderModelName', value: '' },
-  { label: '设备配置地址', key: 'deviceAddress', value: '' },
-  { label: '生产企业', key: 'productionCompany', value: '' },
+  { label: '许可设备名称', key: 'licenseDeviceName', value: '' },
+  { label: '阶梯配置机型', key: 'ladderConfigModel', value: '' },
+  { label: '设备配置地址', key: 'equipmentConfigAddress', value: '' },
+  { label: '生产企业', key: 'productionEnterprise', value: '' },
   { label: '具体型号', key: 'specificModel', value: '' },
   { label: '产品序列号', key: 'serialNumber', value: '' },
   { label: '装机日期', key: 'installationDate', value: '' },
   { label: '采购价格', key: 'purchasePrice', value: '' },
-  { label: '设备特殊说明', key: 'specialInstructions', value: '' }
+  { label: '设备特殊说明', key: 'specialDescription', value: '' }
 ])
 let basicData = ref({})
+
+const getBizInfo = async () => {
+  var res = await ApplicationApi.bizInfo(id)
+  basicData.value = res
+  basicMsg.value.forEach((item) => {
+    item.value = res[item.key]
+  })
+}
 onMounted(() => {
-  if (!!props.list) {
-    basicMsg.value.forEach((item) => {
-      item.value = props.list[item.key]
-      basicData.value[item.key] = props.list[item.key]
-    })
-  }
+  getBizInfo()
 })
 </script>
 

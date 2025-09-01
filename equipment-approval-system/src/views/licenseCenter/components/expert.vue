@@ -13,17 +13,17 @@
         </el-tag>
       </div>
       <!-- 审核内容 -->
-      <div class="remark-row">{{ msgValue.remark }}</div>
+      <div class="remark-row">{{ getReviewDetails.expertReviewOpinion }}</div>
       <!-- 审核人 -->
       <div class="approver-row">
         <div class="col">
           <span>审核时间：</span>
-          <span>{{ msgValue.approveTime || '--' }}</span>
+          <span>{{ getReviewDetails.expertReviewTime || '--' }}</span>
         </div>
         <div class="line"></div>
         <div class="col">
           <span>审核人：</span>
-          <span>{{ msgValue.approveUsers || '--' }}</span>
+          <span>{{ getReviewDetails.expertList || '--' }}</span>
         </div>
       </div>
     </div>
@@ -34,12 +34,12 @@
     </div>
 
     <div class="license__form_box">
-      <el-form disabled :model="msgValue" label-position="top">
+      <el-form disabled :model="getReviewDetails" label-position="top">
         <el-form-item label="许可证编号" prop="licenseCode">
-          <el-input v-model="msgValue.licenseCode" placeholder="请输入许可证编号" />
+          <el-input v-model="getReviewDetails.licenseNo" placeholder="请输入许可证编号" />
         </el-form-item>
         <el-form-item label="生成日期" prop="generateTime">
-          <el-input v-model="msgValue.generateTime" placeholder="请输入生成日期" />
+          <el-input v-model="getReviewDetails.licenseGenerateDate" placeholder="请输入生成日期" />
         </el-form-item>
       </el-form>
     </div>
@@ -49,28 +49,19 @@
 <script setup lang="ts">
 import { getDictOptions } from '@/utils/dict'
 import type { DictDataType } from '@/utils/dict'
-let props = defineProps({
-  data: {
-    type: Object,
-    default: () => {
-      return {
-        status: '1',
-        remark: '审核通过',
-        approveTime: '2023-08-01 10:00:00',
-        approveUsers: '张三、李四、王五',
-        licenseCode: '甲2320348574',
-        // 生成日期
-        generateTime: '2023-07-01 10:00'
-      }
-    }
-  }
+import { useApplicationDataStore } from '@/store/applicationData'
+
+const useAppData = useApplicationDataStore()
+const getReviewDetails = computed(() => {
+  return useAppData.getReviewDetails
 })
 
-let msgValue = computed(() => props.data)
 let statusOptions = computed<DictDataType[]>(() => getDictOptions('biz_review_result'))
 let statusValue = computed(() => {
   return (
-    statusOptions.value.find((item) => item.value === msgValue.value.status) || {
+    statusOptions.value.find(
+      (item) => item.value === getReviewDetails.value.expertReviewResult
+    ) || {
       label: '未知',
       value: '3',
       colorType: 'primary'

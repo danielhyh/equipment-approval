@@ -23,7 +23,11 @@ export const useApplicationDataStore = defineStore('appDataStore', {
       expertId: '', // 专家ID
       expertAttachments: '', //专家审核附件
       licenseNo: '', // 许可证编号
-      licenseGenerateDate: '' // 许可证生成日期
+      licenseGenerateDate: '', // 许可证生成日期
+      initialReviewer: '', //  初审人
+      initialReviewTime: '', //初审日期
+      expertList: [], //专家列表，
+      expertReviewTime: '' //专家审核日期
     }
   }),
   getters: {
@@ -32,7 +36,7 @@ export const useApplicationDataStore = defineStore('appDataStore', {
   },
   actions: {
     updateApplicationData(newData: Partial<typeof this.basicInfo>) {
-      this.basicInfo = { ...this.basicInfo, ...newData }
+      this.basicInfo = Object.assign(this.basicInfo, newData)
     },
     updateReviewDetails(newData: Partial<typeof this.reviewDetails>) {
       if (!newData) {

@@ -43,6 +43,7 @@
 </template>
 
 <script setup lang="ts" name="OtherMsg">
+import { onMounted, onBeforeUnmount } from 'vue'
 import License from '@/views/Processing/components/license.vue'
 // 设备使用人员
 let devUsePersonColumns = ref([
@@ -99,7 +100,7 @@ const licenseDomResize = () => {
 onMounted(() => {
   window.addEventListener('resize', licenseDomResize)
 })
-onUnmounted(() => {
+onBeforeUnmount(() => {
   window.removeEventListener('resize', licenseDomResize)
 })
 </script>

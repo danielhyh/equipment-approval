@@ -9,13 +9,13 @@
         :prop="item.key"
       >
         <el-input
-          v-model="item.value"
+          v-model="basicData[item.key]"
           placeholder="请输入"
           disabled
           v-if="item.key !== 'address'"
         />
         <el-input
-          v-model="item.value"
+          v-model="basicData[item.key]"
           :rows="3"
           type="textarea"
           placeholder="请输入"
@@ -29,7 +29,6 @@
 
 <script setup lang="ts" name="Basis">
 // 基本信息
-import { ref, onMounted, watch } from 'vue'
 import { useApplicationDataStore } from '@/store/applicationData'
 const appData = useApplicationDataStore()
 
@@ -59,6 +58,10 @@ watch(
       item.value = appData.basicInfo[item.key]
       basicData.value[item.key] = appData.basicInfo[item.key]
     })
+  },
+  {
+    immediate: true,
+    deep: true
   }
 )
 </script>

@@ -62,9 +62,8 @@ const getBizInfo = async () => {
     item.value = res[item.key]
   })
 }
-onMounted(
-  getBizInfo(),
-  () => {
+onMounted(() => {
+  getBizInfo()
   // if (!!props.list) {
   //   basicMsg.value.forEach((item) => {
   //     item.value = props.list[item.key]

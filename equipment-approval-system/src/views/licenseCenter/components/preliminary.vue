@@ -13,17 +13,17 @@
         </el-tag>
       </div>
       <!-- 初步审核内容 -->
-      <div class="remark-row">{{ msgValue.remark }}</div>
+      <div class="remark-row">{{ getReviewDetails.initialReviewOpinion }}</div>
       <!-- 审核人 -->
       <div class="approver-row">
         <div class="col">
           <span>审核时间：</span>
-          <span>2023-08-01</span>
+          <span>{{ getReviewDetails.initialReviewTime || '--' }}</span>
         </div>
         <div class="line"></div>
         <div class="col">
           <span>审核人：</span>
-          <span>张三</span>
+          <span>{{ getReviewDetails.initialReviewer || '--' }}</span>
         </div>
       </div>
     </div>
@@ -33,25 +33,19 @@
 <script setup lang="ts">
 import { getDictOptions } from '@/utils/dict'
 import type { DictDataType } from '@/utils/dict'
-let props = defineProps({
-  data: {
-    type: Object,
-    default: () => {
-      return {
-        status: '1',
-        remark: '审核通过',
-        approveTime: '2023-08-01 10:00:00',
-        approveUser: '张三'
-      }
-    }
-  }
+import { useApplicationDataStore } from '@/store/applicationData'
+
+const useAppData = useApplicationDataStore()
+const getReviewDetails = computed(() => {
+  return useAppData.getReviewDetails
 })
 
-let msgValue = computed(() => props.data)
 let statusOptions = computed<DictDataType[]>(() => getDictOptions('biz_review_result'))
 let statusValue = computed(() => {
   return (
-    statusOptions.value.find((item) => item.value === msgValue.value.status) || {
+    statusOptions.value.find(
+      (item) => item.value === getReviewDetails.value.initialReviewResult
+    ) || {
       label: '未知',
       value: '3',
       colorType: 'primary'

@@ -53,9 +53,9 @@
             />
           </el-form-item>
           <el-form-item>
-            <el-button @click="handleQuery"
-              ><Icon icon="ep:search" class="mr-5px" /> 搜索</el-button
-            >
+            <el-button type="primary" @click="handleQuery">
+              <Icon icon="ep:search" class="mr-5px" /> 搜索
+            </el-button>
             <el-button @click="resetQuery"
               ><Icon icon="ep:refresh" class="mr-5px" /> 重置</el-button
             >
@@ -326,11 +326,7 @@ let page = ref<PageParam>({
 const changeIndex = (index: number) => {
   return page.value.pageSize * (page.value.pageNo - 1) + index + 1
 }
-// const changePagination = (pagination: { page: number; limit: number }) => {
-//   page.value.pageNo = pagination.page
-//   page.value.pageSize = pagination.limit
-//   getTableListFn()
-// }
+
 const resetAllFn = () => {
   page.value.pageNo = 1
   page.value.total = 0

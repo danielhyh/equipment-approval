@@ -178,6 +178,8 @@ import License from '../Processing/components/license.vue'
 import { Search, RefreshRight, Printer, Download } from '@element-plus/icons-vue'
 import { getDictOptions } from '@/utils/dict'
 import type { DictDataType } from '@/utils/dict'
+import type { licenseProfileType, copyProfile } from './components/licenseProfile'
+import { dayTimeFormate } from './components/licenseProfile'
 
 // 许可证类型
 const licenseTypeOptions = computed<DictDataType[]>(() => getDictOptions('license_type'))
@@ -303,43 +305,15 @@ const handleDetail = (row) => {
   router.push({
     path: '/license-detail',
     query: {
-      id: row.id
+      id: row.id,
+      originalId: row.originalId,
+      duplicateId: row.duplicateId,
+      licenseCode: row.licenseNo
     }
   })
 }
 
 // 弹窗
-interface DialogComponentPropsType {
-  licenceType: string
-  licenceSubtitle: string
-  code?: string
-  licenseData?: (string | null | undefined)[]
-  stampUit?: string | null
-  stampDate?: string | null
-  seal?: string
-}
-interface originalType {
-  configUnitName?: string | null
-  unifiedSocialCreditCode?: string | null
-  legalPerson?: string | null
-  licenseDeviceName?: string | null
-  ownershipNature?: string | null
-  ladderConfigModel?: string | null
-  equipmentConfigAddress?: string | null
-  detailedAddress?: string | null
-  issuingAuthority?: string | null
-  issueDate?: string | null
-}
-interface copyType extends originalType {
-  productionEnterprise?: string | null
-  infoSubmitDate?: string | null
-  specificModel?: string | null
-  productSerialNo?: string | null
-  installationDate?: string | null
-  remark?: string | null
-  duplicateIssuingAuthority?: string | null
-  duplicateIssueDate?: string | null
-}
 let dialogVisible = ref(false)
 let dialogBind = reactive({
   title: '许可证-正本',
@@ -349,7 +323,15 @@ let dialogBind = reactive({
   fullscreen: true
 })
 let dialogComponent = ref(markRaw(License))
-let dialogComponentProps = ref<DialogComponentPropsType | {}>({})
+let dialogComponentProps = ref<licenseProfileType>({
+  licenceType: '',
+  licenceSubtitle: '',
+  code: '',
+  licenseData: [],
+  stampUit: '',
+  stampDate: '',
+  seal: ''
+})
 let dialogComponentRef = ref<InstanceType<typeof License> | null>(null)
 let isLicense = ref(true)
 // 打开许可证弹窗
@@ -382,8 +364,7 @@ const openLicense = async (row, type) => {
   }
   loading.value = false
 }
-
-const formateDialogLicense = (data: copyType, type: string) => {
+const formateDialogLicense = (data: copyProfile, type: string) => {
   let arr: (string | null | undefined)[] = []
   if (type === 'A') {
     arr.push(data.configUnitName)
@@ -415,10 +396,6 @@ const formateDialogLicense = (data: copyType, type: string) => {
   return arr
 }
 
-const dayTimeFormate = (time) => {
-  if (!time) return ''
-  return time.replace(/(\d{4})-(\d{2})-(\d{2})/, '$1 年 $2 月 $3 日')
-}
 const printFn = () => {
   if (!dialogComponentRef.value) {
     return

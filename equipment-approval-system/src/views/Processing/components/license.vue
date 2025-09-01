@@ -67,7 +67,7 @@ import { VuePrintNext } from 'vue-print-next'
 let props = defineProps({
   licenceType: { type: String, default: 'A' }, // A:甲类 | B:乙类 控制标题  以及样式
   licenceSubtitle: { type: String, default: 'A' }, // A:正本 | B:副本 控制副标题 以及字段内容 以及样式
-  code: { type: String, default: '甲2703200938' },
+  code: { type: [String, null, undefined], default: '甲2703200938' },
   licenseData: {
     type: Array,
     default: () => {
@@ -82,9 +82,9 @@ let props = defineProps({
       ]
     }
   },
-  stampUit: { type: String, default: '陕西省卫生健康委员会' }, // 签发单位
-  stampDate: { type: String, default: '2023年01月01日' }, // 签发日期
-  seal: { type: String, default: '' } // 盖章
+  stampUit: { type: [String, null, undefined], default: '陕西省卫生健康委员会' }, // 签发单位
+  stampDate: { type: [String, null, undefined], default: '2023年01月01日' }, // 签发日期
+  seal: { type: [String, null, undefined], default: '' } // 盖章
 })
 
 let licenceTitle = computed(() => {
@@ -121,7 +121,18 @@ let licenceContent = computed(() => {
 })
 let stampDateEg = computed(() => {
   if (!props.stampDate) return ['', '', '']
-  return props.stampDate.split('-')
+  // 按 年月日 格式分割
+  if (props.stampDate.includes('年')) {
+    let date = props.stampDate.split('年')
+    let month = date[1].split('月')
+    let day = month[1].split('日')
+    return [date[0], month[0], day[0]]
+  }
+  if (props.stampDate.includes('-')) {
+    let date = props.stampDate.split('-')
+    return date
+  }
+  return ['', '', '']
 })
 let firstColumns = computed(() => {
   return licenceContent.value.filter((_, index) => index % 2 === 0)

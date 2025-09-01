@@ -2,7 +2,7 @@
   <div class="content-msg-page" ref="contentMsgPageRef">
     <el-form :model="basicData" label-position="top" inline>
       <el-form-item v-for="(item, i) in basicMsg" :key="i" :label="item.label" :prop="item.key">
-        <el-input v-model="item.value" placeholder="请输入" disabled />
+        <el-input v-model="basicData[item.key]" placeholder="请输入" disabled />
       </el-form-item>
     </el-form>
     <License v-bind="licenseProps" ref="licenseRef" />
@@ -11,38 +11,52 @@
 
 <script setup lang="ts" name="Original">
 import License from '@/views/Processing/components/license.vue'
+import type { licenseProfileType, originalProfile } from './licenseProfile'
 // 基本信息
 let props = defineProps({
-  list: {
-    type: Object || null,
-    default: () => {}
-  }
+  list: { type: Object || null, default: () => {} }
 })
 let basicMsg = ref([
   // 配置单位名称
   { label: '配置单位名称', value: '', key: 'configUnitName' },
   // 统一社会信用代码
-  { label: '统一社会信用代码', value: '', key: 'creditCode' },
+  { label: '统一社会信用代码', value: '', key: 'unifiedSocialCreditCode' },
   // 法定代表人
   { label: '法定代表人', value: '', key: 'legalPerson' },
   // 许可设备名称
-  { label: '许可设备名称', value: '', key: 'deviceName' },
+  { label: '许可设备名称', value: '', key: 'licenseDeviceName' },
   // 所有制性质
   { label: '所有制性质', value: '', key: 'ownershipNature' },
   // 阶梯配置机型
-  { label: '阶梯配置机型', value: '', key: 'modelName' },
+  { label: '阶梯配置机型', value: '', key: 'ladderConfigModel' },
   // 设备配置地址
-  { label: '设备配置地址', value: '', key: 'deviceAddress' },
+  { label: '设备配置地址', value: '', key: 'equipmentConfigAddress' },
   // 详细地址
-  { label: '详细地址', value: '', key: 'address' },
+  { label: '详细地址', value: '', key: 'detailedAddress' },
   // 发证机关
   { label: '发证机关', value: '', key: 'issuingAuthority' },
   // 发证日期
-  { label: '发证日期', value: '', key: 'issuingDate' }
+  { label: '发证日期', value: '', key: 'issueDate' }
 ])
 let basicData = ref({})
 
-let licenseProps = ref({})
+let licenseProps = ref<licenseProfileType>({
+  licenceType: 'B',
+  licenceSubtitle: 'A'
+})
+const formateDialogLicense = (data: originalProfile) => {
+  let arr: any[] = []
+  arr.push(data.configUnitName)
+  arr.push(data.unifiedSocialCreditCode)
+  arr.push(data.legalPerson)
+  arr.push(data.licenseDeviceName)
+  arr.push(data.ownershipNature)
+  arr.push(data.ladderConfigModel)
+  arr.push(data.equipmentConfigAddress)
+  licenseProps.value.code = data.code
+  licenseProps.value.stampUit = data.issuingAuthority
+  licenseProps.value.stampDate = data.issueDate
+}
 let contentMsgPageRef = ref<HTMLDivElement | null>(null)
 let licenseRef = ref<InstanceType<typeof License> | null>(null)
 const licenseDomResize = () => {
@@ -60,6 +74,7 @@ onMounted(() => {
       item.value = props.list[item.key]
       basicData.value[item.key] = props.list[item.key]
     })
+    formateDialogLicense(props.list)
   }
 
   window.addEventListener('resize', licenseDomResize)

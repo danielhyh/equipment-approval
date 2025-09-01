@@ -1,5 +1,5 @@
 <template>
-  <div class="license-detail-box">
+  <div class="license-detail-box" v-loading="loading">
     <div class="header-row">
       <div class="left">
         <el-icon><Monitor /></el-icon>
@@ -45,7 +45,12 @@
           <div class="type-content-page">
             <transition name="fade" mode="out-in">
               <KeepAlive>
-                <component ref="typeRef" :is="typeActive.component" :key="typeActive.value" />
+                <component
+                  ref="typeRef"
+                  :list="allLicenseData"
+                  :is="typeActive.component"
+                  :key="typeActive.value"
+                />
               </KeepAlive>
             </transition>
           </div>
@@ -56,6 +61,9 @@
 </template>
 
 <script setup lang="ts" name="LicenseCenterDetail">
+import { onMounted } from 'vue'
+import { ApplicationApi } from '@/api/biz/application'
+import { LicenseApi } from '@/api/biz/license'
 import { Back, Monitor, Management } from '@element-plus/icons-vue'
 import BasicInfo from './components/basis.vue'
 import Business from './components/business.vue'
@@ -66,12 +74,17 @@ import Original from './components/original.vue'
 import Copy from './components/copy.vue'
 import OtherMsg from './components/otherMsg.vue'
 import history from './components/history.vue'
+import { useApplicationDataStore } from '@/store/applicationData'
 const router = useRouter()
 const route = useRoute()
 const goBack = () => {
   router.back()
 }
-let licenseId = computed(() => route.query.id)
+let licenseId = route.query.id
+const licenseCode = route.query.licenseCode
+const originalId = route.query.originalId
+const duplicateId = route.query.duplicateId
+let loading = ref(false)
 provide('licenseId', licenseId)
 let title = ref('陕西省大型医用设备在线审批归档系统')
 // 基础数据
@@ -146,10 +159,37 @@ let typeList = ref([
 ])
 let typeActive = ref({ value: 'basicInfo', component: markRaw(BasicInfo) })
 const handlerType = (item) => {
-  typeActive.value.value = item.value
   if (!item.component) return
+  typeActive.value.value = item.value
   typeActive.value.component = item.component
 }
+let applictionStore = useApplicationDataStore()
+let allLicenseData = ref({})
+const getBasisInfo = async () => {
+  try {
+    loading.value = true
+    let response = await ApplicationApi.basicInfo(licenseId)
+    basice.title = response.institutionName
+    basice.code = response.appNo
+    basice.deviceName = response.licenseDeviceName
+
+    applictionStore.updateApplicationData(response)
+    let response2 = await ApplicationApi.reviewDetail(licenseId)
+    applictionStore.updateReviewDetails(response2)
+
+    let responseAll = await Promise.all([
+      LicenseApi.getLicenseOriginal({ id: Number(originalId) }),
+      LicenseApi.getLicenseCopy({ id: Number(duplicateId) })
+    ])
+    allLicenseData.value = { ...responseAll[0], ...responseAll[1], code: licenseCode }
+    loading.value = false
+  } catch (err) {
+    loading.value = false
+  }
+}
+onMounted(() => {
+  getBasisInfo()
+})
 </script>
 
 <style lang="scss" scoped>

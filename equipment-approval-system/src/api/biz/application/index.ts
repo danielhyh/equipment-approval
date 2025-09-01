@@ -73,7 +73,7 @@ export const ApplicationApi = {
     return await request.get({ url: `/biz/application/generateLicense/${id}` })
   },
   // 审核详情
-  reviewDetail: async (id: string | null) => {
+  reviewDetail: async (id) => {
     if (id === null) {
       console.log(`id不能为空`)
       return
