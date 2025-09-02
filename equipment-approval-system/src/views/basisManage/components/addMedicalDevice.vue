@@ -1,12 +1,12 @@
 <template>
-  <div class="dialog-content-page">
+  <div class="dialog-content-page" v-loading="loading">
     <el-form
       class="grid-form-style"
       :model="formData"
       :rules="rules"
       ref="formRef"
       label-position="top"
-      :disabled="isView"
+      :disabled="isView || loading"
     >
       <el-form-item label="配置单位名称" prop="unitName">
         <el-input v-model="formData.unitName" placeholder="请输入配置单位名称" />
@@ -118,6 +118,7 @@
 <script setup lang="ts" name="AddMedicalDevice">
 import { ElMessageBox } from 'element-plus'
 import { CirclePlus } from '@element-plus/icons-vue'
+import type { FormInstance } from 'element-plus'
 import AddUsePerson from './addUsePerson.vue'
 
 let props = defineProps({
@@ -129,6 +130,7 @@ let props = defineProps({
 })
 let isView = computed(() => props.type === 'view')
 let isEdit = computed(() => props.type === 'edit')
+let loading = ref(false)
 // 使用人员
 interface UsePersonType {
   id?: string
@@ -168,7 +170,6 @@ interface TableDataType {
   remark: string
   usePersonList: UsePersonType[]
 }
-
 let formData = reactive<TableDataType>({
   unitName: '',
   creditCode: '',
@@ -195,10 +196,18 @@ let formData = reactive<TableDataType>({
     }
   ]
 })
-
 let rules = ref({
   unitName: [{ required: true, message: '请输入配置单位名称', trigger: 'blur' }]
 })
+let formRef = ref<FormInstance | null>(null)
+let submitFormFn = async () => {
+  await formRef.value?.validate()
+  loading.value = true
+  setTimeout(() => {
+    // 发送数据
+    loading.value = false
+  }, 3000)
+}
 
 let dialogVisible = ref(false)
 let dialogBind = reactive({
@@ -252,6 +261,10 @@ onMounted(() => {
   if (isView || isEdit) {
     formData = Object.assign(formData, props.row)
   }
+})
+defineExpose({
+  submitFormFn,
+  loading
 })
 </script>
 

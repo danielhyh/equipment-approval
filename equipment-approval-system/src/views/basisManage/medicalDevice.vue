@@ -6,9 +6,9 @@
         <span class="title">甲类大型医用设备录入</span>
       </div>
       <div class="right">
-        <el-button type="primary" :icon="CirclePlusFilled" @click.stop="addFn"
-          >医用设备录入</el-button
-        >
+        <el-button type="primary" :icon="CirclePlusFilled" @click.stop="addFn">
+          医用设备录入
+        </el-button>
       </div>
     </div>
     <div class="seach-row">
@@ -64,7 +64,15 @@
 
     <!-- 弹窗 -->
     <Dialog v-model="dialogVisible" v-bind="dialogBind">
-      <AddMedicalDevice v-bind="dialogComponentProps" />
+      <AddMedicalDevice ref="addMedicalDeviceRef" v-bind="dialogComponentProps" />
+      <template #footer v-if="dialogComponentProps.type !== 'view'">
+        <el-button type="primary" @click="submitFormFn" :loading="addMedicalDeviceLoading">
+          提交
+        </el-button>
+        <el-button type="info" :disabled="addMedicalDeviceLoading" @click="dialogVisible = false">
+          取消
+        </el-button>
+      </template>
     </Dialog>
   </div>
 </template>
@@ -171,7 +179,8 @@ let dialogBind = reactive({
   width: '940px',
   maxHeight: '600px',
   scroll: true,
-  fullscreen: true
+  fullscreen: true,
+  center: true
 })
 let dialogComponentProps = reactive({
   row: {},
@@ -195,6 +204,14 @@ const viewFn = (row) => {
   dialogComponentProps.row = row
   dialogComponentProps.type = 'view'
   dialogVisible.value = true
+}
+const addMedicalDeviceRef = ref<InstanceType<typeof AddMedicalDevice> | null>(null)
+let addMedicalDeviceLoading = computed(() => {
+  return addMedicalDeviceRef.value?.loading || false
+})
+const submitFormFn = () => {
+  // dialogVisible.value = false
+  addMedicalDeviceRef.value?.submitFormFn()
 }
 onMounted(() => {
   getList()
