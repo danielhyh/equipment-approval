@@ -9,6 +9,7 @@ public class ApplicationReviewVO {
 
     private Long id;
 
+    //1通过 0未通过
     private Integer reviewResult;
 
     private String reviewOpinion;
