@@ -131,7 +131,7 @@
     <Dialog v-model="dialogVisible" v-bind="dialogBind">
       <addMedicalAgency ref="dialogComponentRef" v-bind="dialogComponentProps" />
       <template #footer v-if="dialogComponentProps.type !== 'view'">
-        <el-button type="primary"> 提交 </el-button>
+        <el-button type="primary" @click="submitFormFn"> 提交 </el-button>
         <el-button type="info" @click="dialogVisible = false"> 取消 </el-button>
       </template>
     </Dialog>
@@ -254,7 +254,7 @@ let dialogComponentProps = reactive({
   row: {},
   type: 'view'
 })
-let dialogComponentRef = ref(null)
+let dialogComponentRef = ref<InstanceType<typeof addMedicalAgency> | null>(null)
 
 const addFn = () => {
   dialogBind.title = '新增医疗机构'
@@ -275,7 +275,7 @@ const viewFn = (row) => {
   dialogVisible.value = true
 }
 const delFn = (row) => {
-  ElMessageBox.confirm('确定删除 ' + row.companyName + ' 吗？', '提示', {
+  ElMessageBox.confirm('确定删除 ' + row.orgName + ' 吗？', '提示', {
     confirmButtonText: '确定',
     cancelButtonText: '取消',
     type: 'warning'
@@ -288,7 +288,9 @@ const delFn = (row) => {
       getList()
     })
 }
-
+const submitFormFn = () => {
+  dialogComponentRef.value?.submitFormFn()
+}
 onMounted(() => {
   getList()
 })
