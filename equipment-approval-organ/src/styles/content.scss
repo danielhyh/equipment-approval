@@ -1,0 +1,182 @@
+// 内容样式 公共部分
+.public-content-box {
+    border-radius: 16px;
+    padding: 24px 20px;
+    min-height: 450px;
+}
+@keyframes run {
+    0% {
+        background-position-x: 0;
+    }
+    100% {
+        background-position-x: 100%;
+    }
+}
+// 异形边框样式
+.butterfly_background {
+    --radius-size: 4px;
+    position: relative;
+    overflow: hidden;
+    &.has_bg {
+        padding-top: 80px !important;
+        &::after,
+        &::before {
+            background-image: url("../assets/images/img_continuous.png");
+            background-size: auto 130px;
+            background-repeat: repeat-x;
+            background-position: 0 top;
+            animation: run 150s linear infinite;
+            animation-play-state: paused;
+        }
+        &::after {
+            background-position-y: calc(var(--radius-size) * -1);
+        }
+        &:hover {
+            &::after,
+            &::before {
+                animation-play-state: running;
+            }
+        }
+    }
+    &::after,
+    &::before {
+        content: "";
+        position: absolute;
+        border-radius: var(--radius-size);
+        background-color: #fff;
+        z-index: -1;
+    }
+    &::before {
+        width: calc(100% - (var(--radius-size) * 2));
+        height: 100%;
+        left: 0;
+        right: 0;
+        top: 0;
+        margin: 0 auto;
+    }
+    &::after {
+        height: calc(100% - (var(--radius-size) * 2));
+        width: 100%;
+        top: 0;
+        bottom: 0;
+        left: 0;
+        margin: auto 0;
+    }
+    .el-loading-mask {
+        border-radius: calc(var(--radius-size) * 4);
+    }
+}
+// 异形边框描边
+.butterfly_border {
+    --radius-width: 4px;
+    --border-width: 1px;
+    --border-color: #d1dfff;
+    --content-background: #fff;
+    position: relative;
+    overflow: hidden;
+    &::before,
+    &::after {
+        content: "";
+        display: block;
+        background-color: var(--border-color);
+        z-index: 1;
+    }
+    &::before,
+    &::after,
+    .horizontal,
+    .vertical {
+        display: block;
+        position: absolute;
+        border-radius: var(--radius-width);
+        transition: all 0.32s ease-in-out;
+    }
+    &::before {
+        height: 100%;
+        top: 0;
+        left: 0px;
+        right: 0px;
+        margin: 0 auto;
+    }
+    &::after {
+        width: 100%;
+        top: 0;
+        left: 0px;
+        bottom: 0px;
+        margin: auto 0;
+    }
+    .horizontal,
+    .vertical {
+        z-index: 2;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: var(--content-background);
+        margin: auto;
+    }
+    &::before {
+        width: calc(100% - var(--radius-width) * 2);
+    }
+    .horizontal {
+        width: calc(100% - var(--radius-width) * 2 - var(--border-width) * 2);
+        height: calc(100% - var(--border-width) * 2);
+    }
+    &::after {
+        height: calc(100% - var(--radius-width) * 2);
+    }
+    .vertical {
+        height: calc(100% - var(--radius-width) * 2 - var(--border-width) * 2);
+        width: calc(100% - var(--border-width) * 2);
+    }
+    &:active {
+        transform-origin: center center;
+        transform: scale(0.96);
+    }
+    .text-content {
+        position: relative;
+        z-index: 3;
+        height: calc(100% - (var(--radius-width) + var(--border-width)) * 2);
+        width: calc(100% - (var(--radius-width) + var(--border-width)) * 2);
+        margin: calc((var(--radius-width) + var(--border-width)));
+        text-align: center;
+        box-sizing: border-box;
+        cursor: default;
+    }
+}
+// 角标边框样式
+.corner_border {
+    position: relative;
+    border-radius: 6px;
+    border: 1px solid #d9e2ef;
+    box-shadow:
+        1px 0 0 #fff inset,
+        0 1px 0 #fff inset,
+        -1px 0 0 #fff inset,
+        0 -1px 0 #fff inset;
+    box-sizing: border-box;
+    .icon-horn {
+        position: absolute;
+        font-size: 12px;
+        color: #78b0e5;
+        transform-origin: center center;
+        &.t-l {
+            top: 0;
+            left: 0;
+        }
+        &.t-r {
+            top: 0px;
+            right: 0px;
+            transform: rotate(90deg);
+        }
+        &.b-l {
+            bottom: 0;
+            left: 0;
+            transform: rotate(-90deg);
+        }
+        &.b-r {
+            bottom: 0;
+            right: 0;
+            transform: rotate(180deg);
+        }
+    }
+}
