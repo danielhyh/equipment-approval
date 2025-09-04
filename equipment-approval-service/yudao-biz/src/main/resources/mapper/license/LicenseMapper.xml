@@ -75,4 +75,59 @@
             biz_license_duplicate
         where id = #{id}
     </select>
+    <select id="licensePage"
+            resultType="cn.iocoder.yudao.module.biz.controller.app.license.vo.AppLicensePageRespVO">
+        select application_id,
+               a.id as original_id,
+               b.id as duplicate_id,
+               a.license_no,
+               a.issue_date,
+               a.license_device_name,
+               a.ladder_config_model,
+               a.equipment_config_address,
+               c.production_enterprise,
+               c.specific_model,
+               c.installation_date
+        from biz_license_original a
+        left join biz_license_duplicate b on a.id = b.original_id
+        left join biz_application d on d.id = a.application_id
+        left join biz_class_a_equipment c on d.equipment_id = c.id
+        <where>
+            and d.creator = #{userId}
+            <if test="type != null and type != ''">
+                and a.license_device_name = #{type}
+            </if>
+        </where>
+    </select>
+
+    <insert id="insertDuplicateLicense"
+            parameterType="cn.iocoder.yudao.module.biz.controller.app.license.vo.AppDuplicateSubmitRequest"
+           >
+        INSERT INTO biz_license_duplicate (
+            original_id,
+            production_enterprise,
+            info_submit_date,
+            specific_model,
+            duplicate_issuing_authority,
+            product_serial_no,
+            duplicate_issue_date,
+            installation_date,
+            remark,
+            status,
+            creator
+        ) VALUES (
+                        #{vo.originalId},
+                        #{vo.productionEnterprise},
+                        #{vo.infoSubmitDate},
+                        #{vo.specificModel},
+                        #{vo.duplicateIssuingAuthority},
+                        #{vo.productSerialNo},
+                        #{vo.duplicateIssueDate},
+                        #{vo.installationDate},
+                        #{vo.remark},
+                        1,
+                        #{creator}
+
+                 )
+    </insert>
 </mapper>

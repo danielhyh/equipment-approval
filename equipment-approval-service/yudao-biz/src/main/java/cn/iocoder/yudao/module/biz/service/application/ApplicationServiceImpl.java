@@ -16,6 +16,7 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.google.common.base.CaseFormat;
 import com.google.common.collect.Lists;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.jdbc.core.simple.JdbcClient;
 import org.springframework.scheduling.annotation.Async;
@@ -28,6 +29,7 @@ import java.sql.SQLException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 
 import cn.iocoder.yudao.module.biz.controller.admin.application.vo.*;
@@ -47,6 +49,7 @@ import static cn.iocoder.yudao.module.biz.enums.ErrorCodeConstants.*;
  */
 @Service
 @Validated
+@Slf4j
 public class ApplicationServiceImpl implements ApplicationService {
 
     @Resource
@@ -60,6 +63,9 @@ public class ApplicationServiceImpl implements ApplicationService {
 
     @Resource
     private OperationLogService operationService;
+
+    @Resource(name = "bizExecutor")
+    private Executor bizExecutor;
 
     private final DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("yyyyMMddHHmmss");
 
@@ -134,6 +140,8 @@ public class ApplicationServiceImpl implements ApplicationService {
 
     @Override
     public PageResult<ApplicationPageRespVO> getApplicationPage(ApplicationPageReqVO pageReqVO) {
+        Long loginUserId = SecurityFrameworkUtils.getLoginUserId();
+        pageReqVO.setUserId(loginUserId);
         // 必须使用 MyBatis Plus 的分页对象
         IPage<ApplicationPageRespVO> page = new Page<>(pageReqVO.getPageNo(), pageReqVO.getPageSize());
         applicationMapper.page(page, pageReqVO);
@@ -168,7 +176,7 @@ public class ApplicationServiceImpl implements ApplicationService {
             update.setInitialReviewTime(LocalDateTime.now());
             update.setInitialReviewerId(loginUserId);
             update.setInitialReviewOpinion(opinion);
-            update.setAppStatus(result == 1 ? 4 : 3);
+            update.setAppStatus(result == 1 ? 3 : 2);
             operationService.log(reviewVO.getId(), loginUserId, loginUserNickname, result ==1 ? "初步审核已通过,待专家审核": "初步审核未通过");
         } else if ("EXPERT".equals(reviewType)) {
             update.setExpertReviewResult(result);
@@ -181,12 +189,17 @@ public class ApplicationServiceImpl implements ApplicationService {
             if (StringUtils.isNotBlank(expertAttachments)) {
                 update.setExpertAttachments(Lists.newArrayList(StringUtils.split(expertAttachments, ",")));
             }
-            update.setAppStatus(result == 1 ? 5 : 6);
+            update.setAppStatus(result == 1 ? 5 : 4);
             if (result == 1) {
                 update.setLicenseNo(reviewVO.getLicenseCode());
                 update.setLicenseGenerateDate(reviewVO.getLicenseGenerateDate());
                 //专家审核通过后异步执行创建正本，同事修改许可证序列号表状态为已使用
-                generateOriginal(reviewVO);
+                CompletableFuture.runAsync(() -> generateOriginal(reviewVO), bizExecutor)
+                        .exceptionally(throwable -> {
+                            log.error("生成正本失败,reviewVO:{}", JSON.toJSONString(reviewVO), throwable);
+                            return null;
+                        });
+
             }
             operationService.log(reviewVO.getId(), loginUserId, loginUserNickname, result ==1 ? "专家审核通过": "专家审核未通过", null,"expertIdList", JSON.toJSONString(expertIdList));
         } else {
@@ -196,7 +209,7 @@ public class ApplicationServiceImpl implements ApplicationService {
         applicationMapper.updateById(update);
     }
 
-    @Async("bizExecutor")
+
     public void generateOriginal(ApplicationReviewVO reviewVO) {
         Long id = reviewVO.getId();
         ApplicationBasicInformationVO vo = applicationMapper.selectBasicInfo(id);
@@ -249,7 +262,17 @@ public class ApplicationServiceImpl implements ApplicationService {
 
     @Override
     public ApprovalDetailsVO approvalDetails(Long id) {
-        return applicationMapper.approvalDetails(id);
+        ApprovalDetailsVO vo = applicationMapper.approvalDetails(id);
+        String expertId = vo.getExpertId();
+        if (StringUtils.isNotBlank(expertId)) {
+            String[] split = expertId.split(",");
+            List<String> nameList = jdbcClient.sql("select nickname from system_users where id in (:ids)")
+                    .param("ids", Arrays.asList(split))
+                    .query(String.class)
+                    .list();
+            vo.setExpertList(nameList);
+        }
+        return vo;
     }
 
     private Map<String, String> resultSetToMap(ResultSet rs, int rowNum) throws SQLException {

@@ -37,4 +37,7 @@ public class ApplicationPageReqVO extends PageParam {
 
     @Schema(description = "申请单位或者设备名称")
     private String deptOrDeviceName;
+
+    @Schema(description = "用户id")
+    private Long userId;
 }

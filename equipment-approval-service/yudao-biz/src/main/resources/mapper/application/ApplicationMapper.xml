@@ -25,6 +25,9 @@
         biz_institution_ext bie ON ba.institution_id = bie.dept_id
         <where>
              and ba.deleted = 0
+            <if test="reqVO.userId != null and reqVO.userId != ''">
+                and ba.creator = #{reqVO.userId}
+            </if>
             <if test="reqVO.appType != null and reqVO.appType != ''">
                 and app_type = #{reqVO.appType}
             </if>
@@ -85,15 +88,19 @@
         SELECT
             initial_review_result,
             initial_review_opinion,
+            b.nickname as initial_reviewer,
+            initial_review_time,
             expert_review_result,
             expert_review_opinion,
+            expert_review_time,
             expert_id,
             license_no,
             expert_attachments,
             license_generate_date
 
         FROM
-            biz_application
-        where id = #{id}
+            biz_application a
+        left join system_users b on a.initial_reviewer_id = b.id
+        where a.id = #{id}
     </select>
 </mapper>
