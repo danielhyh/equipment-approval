@@ -1,6 +1,6 @@
 import axios from "axios";
 import router from "../router/index.js";
-// import { useUserStore } from '../store/modules/user.js';
+import { useUserStore } from "../store/modules/user.js";
 import { ElMessage } from "element-plus";
 // 创建请求实例
 const instance = axios.create({
@@ -78,17 +78,21 @@ instance.interceptors.response.use(
      * 根据你的项目实际情况来对 response 和 error 做处理
      * 这里对 response 和 error 不做任何处理，直接返回
      */
-    // let store = useUserStore()
+    let store = useUserStore();
+    let responseCode = response.data.code;
+    let responseMsg = response.data.msg;
+    let responseData = response.data.data;
 
-    if (!response.data.code && response.data) {
+    if (responseCode === 200 && response.data) {
       // 图书资源返回
-      return response.data;
+      return responseData;
     }
+
     if (response.data.code !== 200) {
       if (response.data.code === 401) {
-        // store.setToken({ token: '' })
+        store.setToken({ token: "" });
         ElMessage({ type: "warning", message: "登录信息过期\n请重新登录" });
-        // router.push("/login");
+        router.push("/login");
       }
       ElMessage({ type: "warning", message: response.data.msg || "请求异常" });
       return Promise.reject(response.data);

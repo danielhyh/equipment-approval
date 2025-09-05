@@ -1,5 +1,6 @@
 import { createRouter, createWebHashHistory } from "vue-router";
 import page from "./pageRouter.js";
+import { beforeEach, afterEach } from "./permission.js";
 
 const routers = [...page];
 
@@ -29,8 +30,7 @@ const router = createRouter({
 });
 
 // 路由拦截
-router.beforeEach(async (to, from, next) => {
-  next();
-});
+router.beforeEach(beforeEach);
+router.afterEach(afterEach);
 
 export default router;

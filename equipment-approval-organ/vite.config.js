@@ -10,7 +10,7 @@ import { ElementPlusResolver } from "unplugin-vue-components/resolvers";
 import viteCompression from "vite-plugin-compression";
 // 引入 svg 精灵图 配置
 import { createSvgIconsPlugin } from "vite-plugin-svg-icons";
-// 引入 @vue/compat 插件（如果需要）
+// 引入 @vue/compat 插件（如果需要 vue2 兼容处理）
 // import vueCompat from "@vue/compat";
 
 import path from "path";

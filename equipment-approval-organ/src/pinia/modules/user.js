@@ -2,7 +2,7 @@ import { defineStore } from "pinia";
 import { getStorage, setStorage, removeStorage } from "../../utils/storage";
 export const useUserStore = defineStore("user", {
   state: () => ({
-    user: null || getStorage("user"),
+    user: null || getStorage("user") || { name: "张三", phone: "13209483241", dept: "陕西省卫生健康委" },
     token: null || getStorage("token"),
     vaildLogin: false,
   }),
@@ -18,7 +18,7 @@ export const useUserStore = defineStore("user", {
     },
     getVaildLogin(state) {
       return state.vaildLogin;
-    }
+    },
   },
   actions: {
     setUser(user) {

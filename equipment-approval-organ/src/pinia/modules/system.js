@@ -1,12 +1,17 @@
 import { defineStore } from "pinia";
+import config from "@/config.js";
 export const useSystemStore = defineStore("system", {
   state: () => ({
     // 系统名称
-    sysName: "",
+    sysName: "" || config.systemName,
     // 系统水印
     sysWatermark: "",
     // 系统版权信息
-    sysCopyright: "",
+    sysCopyright: "" || config.copyright,
+    // 系统基础信息
+    sysBasisInfo: {
+      
+    },
   }),
   getters: {
     getSysName(state) {
@@ -18,6 +23,9 @@ export const useSystemStore = defineStore("system", {
     getSysCopyright(state) {
       return state.sysCopyright;
     },
+    getSysBasisInfo(state) {
+      return state.sysBasisInfo;
+    },
   },
   actions: {
     setSysName(name) {
@@ -28,6 +36,9 @@ export const useSystemStore = defineStore("system", {
     },
     setSysCopyright(copyright) {
       this.sysCopyright = copyright;
+    },
+    setSysBasisInfo(basisInfo) {
+      this.sysBasisInfo = basisInfo;
     },
   },
 });

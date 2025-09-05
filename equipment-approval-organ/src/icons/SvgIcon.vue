@@ -19,14 +19,14 @@ const props = defineProps({
     default: "",
   },
   size: {
-    type: Number,
+    type: [Number, String],
     default: 24,
   },
 });
 const islocalName = computed(() => {
   return props.name.startsWith("svg-icon:");
 });
-const iconName = computed(() => `#icon-${props.name}`);
+const iconName = computed(() => (islocalName ? `#icon-${props.name.split(":")[1]}` : props.name));
 const svgClass = computed(() => {
   if (props.name) return `svg-icon icon-${props.name}`;
   return "svg-icon";

@@ -12,7 +12,7 @@
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 
-  --nav-height: 70px;
+  --nav-height: 60px;
   --footer-height: 45px;
   --content-width: 1280px;
 }
@@ -43,7 +43,9 @@
 * {
   scrollbar-width: thin;
   scrollbar-color: #888 #f1f1f1;
-  font-family: "miSans";
+  box-sizing: border-box;
+  padding: 0;
+  margin: 0;
 }
 a {
   font-weight: 500;
@@ -105,6 +107,6 @@ button:hover {
 .p-20 {
   padding: 20px;
 }
-.p-10{
+.p-10 {
   padding: 10px;
 }
