@@ -89,7 +89,7 @@ export default defineConfig(({ command, mode }) => {
     },
     plugins: [
       vue(),
-      // vueCompat(), // 引入 @vue/compat 插件
+      // vueCompat(), // 引入 @vue/compat 插件 提供可配置的Vue 2兼容行为
       AutoImport({
         // imports: ["vue", "vue-router", "pinia", "axios"],
         resolvers: [

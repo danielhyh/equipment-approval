@@ -13,14 +13,6 @@ import { onMounted, computed } from "vue";
 const language = computed(() => zhCn);
 
 onMounted(() => {
-  function isJsonString(str) {
-    try {
-      JSON.parse(str);
-      return true;
-    } catch (e) {
-      return false;
-    }
-  }
 });
 // import gsap from "gsap"
 // const target = ref(null);

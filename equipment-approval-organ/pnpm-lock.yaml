@@ -24,6 +24,12 @@ importers:
       '@iconify-json/ep':
         specifier: ^1.2.2
         version: 1.2.3
+      '@iconify/json':
+        specifier: ^2.2.381
+        version: 2.2.381
+      '@iconify/vue':
+        specifier: ^5.0.0
+        version: 5.0.0(vue@3.4.38)
       '@vitejs/plugin-vue':
         specifier: ^5.2.1
         version: 5.2.4(vite@4.5.14(@types/node@24.3.0)(sass@1.92.0)(terser@5.44.0))(vue@3.4.38)
@@ -262,11 +268,19 @@ packages:
   '@iconify-json/ep@1.2.3':
     resolution: {integrity: sha512-bESiKz5aTcbT4chTVSKjR5P+Nk81ibRtWgR7Gng5JPdF1Az+91+bIOof/OCUKThFRWqWsQ9A4XmSSrakvjuJDQ==}
 
+  '@iconify/json@2.2.381':
+    resolution: {integrity: sha512-YXGLVTau1yq44krZmG4hfI4rIBzL2wXg9Yr6WQRoXBZ6ScB6bdoANEoLYKARGNAFyxoNsc1FtTkcHIlBdJc9uQ==}
+
   '@iconify/types@2.0.0':
     resolution: {integrity: sha512-+wluvCrRhXrhyOmRDJ3q8mux9JkKy5SJ/v8ol2tu4FVjyYvtEzkc/3pK15ET6RKg4b4w4BmTk1+gsCUhf21Ykg==}
 
   '@iconify/utils@2.3.0':
     resolution: {integrity: sha512-GmQ78prtwYW6EtzXRU1rY+KwOKfz32PD7iJh6Iyqw68GiKuoZ2A6pRtzWONz5VQJbp50mEjXh/7NkumtrAgRKA==}
+
+  '@iconify/vue@5.0.0':
+    resolution: {integrity: sha512-C+KuEWIF5nSBrobFJhT//JS87OZ++QDORB6f2q2Wm6fl2mueSTpFBeBsveK0KW9hWiZ4mNiPjsh6Zs4jjdROSg==}
+    peerDependencies:
+      vue: '>=3'
 
   '@jridgewell/gen-mapping@0.3.13':
     resolution: {integrity: sha512-2kkt/7niJ6MgEPxF0bYdQ6etZaA+fQvDcLKckhy1yIQOzaoKjBBjSj63/aLVjYE3qhRt5dvM+uUyfCg6UKCBbA==}
@@ -1386,6 +1400,9 @@ packages:
   pathe@0.2.0:
     resolution: {integrity: sha512-sTitTPYnn23esFR3RlqYBWn4c45WGeLcsKzQiUpXJAyfcWkolvlYpV8FLo7JishK946oQwMFUCHXQ9AjGPKExw==}
 
+  pathe@1.1.2:
+    resolution: {integrity: sha512-whLdWMYL2TwI08hn8/ZqAbrVemu0LNaNNJZX73O6qaIdCTfXutsLhMkjdENX0qhsQ9uIimo4/aQOmXkoon2nDQ==}
+
   pathe@2.0.3:
     resolution: {integrity: sha512-WUjGcAqP1gQacoQe+OBJsFA7Ld4DyXuUIjZ5cc75cLHvJ7dtNsTugphxIADwspS+AraAUePCKrSVtPLFj/F88w==}
 
@@ -2043,6 +2060,11 @@ snapshots:
     dependencies:
       '@iconify/types': 2.0.0
 
+  '@iconify/json@2.2.381':
+    dependencies:
+      '@iconify/types': 2.0.0
+      pathe: 1.1.2
+
   '@iconify/types@2.0.0': {}
 
   '@iconify/utils@2.3.0':
@@ -2057,6 +2079,11 @@ snapshots:
       mlly: 1.8.0
     transitivePeerDependencies:
       - supports-color
+
+  '@iconify/vue@5.0.0(vue@3.4.38)':
+    dependencies:
+      '@iconify/types': 2.0.0
+      vue: 3.4.38
 
   '@jridgewell/gen-mapping@0.3.13':
     dependencies:
@@ -3320,6 +3347,8 @@ snapshots:
   pascalcase@0.1.1: {}
 
   pathe@0.2.0: {}
+
+  pathe@1.1.2: {}
 
   pathe@2.0.3: {}
 
