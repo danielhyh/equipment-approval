@@ -1,15 +1,271 @@
 <template>
   <div class="home-container">
-    页面内容
+    <Card>
+      <template #header>
+        <svg-icon name="bxs:file" size="24" style="margin-right: 2px" color="#237efd" />
+        <span>证件办理</span>
+      </template>
+      <div class="card-container">
+        <!-- 通过v-for循环渲染卡片 -->
+        <div v-for="card in cardList" :key="card.id" min-height="200px" :class="['card-item']">
+          <div class="card-header">
+            <div :class="['card-icon', `card-icon-${card.iconType}`]">
+              <svg-icon :name="card.iconName" size="24" color="#fff" />
+            </div>
+            <h3 class="card-title">{{ card.title }}</h3>
+          </div>
+          <p class="card-description">
+            {{ card.description }}
+          </p>
+          <div class="card-actions">
+            <button class="btn-primary" @click="handleOnlineApply(card.onlineProcess)">
+              <svg-icon name="svg-icon:print" size="16" class="mr-1" />
+              在线办理
+            </button>
+            <button class="btn-secondary" @click="handleGuide(card.guideProcess)">
+              <svg-icon name="svg-icon:book" size="16" class="mr-1" />
+              办事指南
+            </button>
+          </div>
+        </div>
+      </div>
+      <!-- 办理列表 -->
+      <div class="todo-list" v-if="toDoList.length">
+        <h3>办理列表</h3>
+        <el-table class="table_style" :data="toDoList" style="width: 100%" size="small">
+          <!-- 序号列 -->
+          <el-table-column type="index" label="序号" width="50" fixed="left" align="center" />
+          <!-- 办件类型 -->
+          <el-table-column prop="title" label="办件类型" width="180" align="center" />
+          <!-- 创建日期 -->
+          <el-table-column prop="description" label="创建日期" width="120" align="center" />
+          <!-- 许可设备名称 -->
+          <el-table-column prop="deviceName" label="许可设备名称" width="180" align="center" />
+          <!-- 阶梯配置机型 -->
+          <el-table-column prop="modelName" label="阶梯配置机型" width="180" align="center" />
+          <!-- 进度占比 -->
+          <el-table-column prop="progressRatio" label="进度占比" width="180" align="center">
+            <template #default="scope">
+              <el-progress :percentage="scope.row.progressRatio" :text-inside="false" :show-text="true" />
+            </template>
+          </el-table-column>
+          <!-- 进度状态 -->
+          <el-table-column prop="progressStatus" label="进度状态" align="center" />
+
+          <el-table-column prop="guideProcess" label="操作" width="180" fixed="right" align="center">
+            <template #default="scope">
+              <el-button type="primary" size="small" @click.stop="handleDetail(scope.row)">详情</el-button>
+              <el-button type="warning" size="small" @click.stop="handleEdit(scope.row)">修改</el-button>
+            </template>
+          </el-table-column>
+          <template #empty>
+            <el-empty description="暂无数据" image-size="80"></el-empty>
+          </template>
+        </el-table>
+      </div>
+    </Card>
+
+    <!-- 证书列表 -->
+    <Card style="margin-top: 20px">
+      <template #header>
+        <svg-icon name="fa7-solid:certificate" size="24" style="margin-right: 2px" color="#237efd" />
+        <span>证书列表</span>
+      </template>
+      <LicenseList />
+    </Card>
   </div>
 </template>
 
 <script setup>
-// Vue 3 的 setup 语法糖
+import LicenseList from "./license.vue";
+
+// 创建卡片数据数组
+const cardList = [
+  {
+    id: "issue",
+    title: "核发",
+    description:
+      "乙类大型医用设备配置许可证核发适用于首次申请大型医用设备配置许可证的医疗机构， 需要提供完整的申请材料和技术论证报告。",
+    iconName: "svg-icon:coll",
+    iconType: "green",
+    iconColor: "#fff",
+    onlineProcess: "",
+    guideProcess: "",
+  },
+  {
+    id: "reissue",
+    title: "补办",
+    description: "乙类大型医用设备配置许可证补办适用于许可证遗失、损毁等情况需要重新补发证书的医疗机构，需要提供相关证明材料。",
+    iconName: "svg-icon:rollback",
+    iconType: "orange",
+    onlineProcess: "",
+    guideProcess: "",
+  },
+  {
+    id: "change",
+    title: "变更",
+    description: "乙类大型医用设备配置许可证信息变更适用于机构名称、地址、设备型号等关键信息发生变化需要变更许可证信息的情况。",
+    iconName: "svg-icon:arrow-right",
+    iconType: "blue",
+    onlineProcess: "",
+    guideProcess: "",
+  },
+];
+// 处理按钮点击事件的函数
+const handleOnlineApply = (type) => {
+  console.log(`点击了${type}的在线办理按钮`);
+  // 实际应用中可能需要跳转到对应的办理页面
+};
+
+const handleGuide = (type) => {
+  console.log(`点击了${type}的办事指南按钮`);
+  // 实际应用中可能需要打开对应的指南文档
+};
+
+// 代办列表
+const toDoList = ref([]);
+const statusDict = [];
+toDoList.value = [
+  {
+    title: "核发",
+    description: "2023-01-01",
+    deviceName: "设备1",
+    modelName: "型号1",
+    progressRatio: 50,
+    progressStatus: "进行中",
+    guideProcess: "操作",
+  },
+];
+// 办理列表 详情
+const handleDetail = (row) => {
+  console.log(row);
+};
+// 办理列表 编辑
+const handleEdit = (row) => {
+  console.log(row);
+};
+
+let paramsValue = reactive({
+  pageNum: 1,
+  pageSize: 10,
+  total: 0,
+});
+const handleChange = (v) => {
+  console.log(v);
+};
 </script>
 
 <style lang="scss" scoped>
 .home-container {
-  /* SCSS 样式 */
+  .card-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 20px;
+    margin-bottom: 32px;
+  }
+  .card-item {
+    background: white;
+    border-radius: 8px;
+    padding: 24px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    border: 1px solid #e5e7eb;
+    transition: all 0.3s ease;
+
+    &:hover {
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      border: 1px solid #3b82f6;
+      transform: translateY(-2px);
+    }
+    .card-header {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 16px;
+
+      .card-icon {
+        width: 48px;
+        height: 48px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white !important;
+        margin-bottom: 10px;
+        &.card-icon-green {
+          background-color: #10b981;
+        }
+
+        &.card-icon-orange {
+          background-color: #f59e0b;
+        }
+
+        &.card-icon-blue {
+          background-color: #3b82f6;
+        }
+      }
+
+      .card-title {
+        font-size: 18px;
+        font-weight: 600;
+        color: #1f2937;
+        margin: 0;
+      }
+    }
+
+    .card-description {
+      font-size: 14px;
+      color: #4b5563;
+      line-height: 1.5;
+      margin-bottom: 20px;
+    }
+
+    .card-actions {
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+      .btn-primary {
+        background-color: #3b82f6;
+        color: white;
+        border: none;
+        padding: 8px 16px;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 14px;
+        display: flex;
+        align-items: center;
+        transition: background-color 0.3s ease;
+
+        &:hover {
+          background-color: #2563eb;
+        }
+      }
+
+      .btn-secondary {
+        background-color: #f3f4f6;
+        color: #4b5563;
+        border: 1px solid #e5e7eb;
+        padding: 8px 16px;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 14px;
+        display: flex;
+        align-items: center;
+        transition: all 0.3s ease;
+
+        &:hover {
+          background-color: #e5e7eb;
+        }
+      }
+    }
+  }
+  .todo-list {
+    > h3 {
+      font-weight: bold;
+      font-size: 18px;
+      color: #2563eb;
+      margin-bottom: 14px;
+    }
+  }
 }
 </style>

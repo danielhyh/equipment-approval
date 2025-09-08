@@ -6,7 +6,6 @@
   </div>
 </template>
 <script setup name="Logo">
-import { computed } from "vue";
 import { useSystemStore } from "@/pinia/modules/system";
 const systemStore = useSystemStore();
 const sysName = computed(() => systemStore.getSysName);
@@ -19,7 +18,8 @@ const sysName = computed(() => systemStore.getSysName);
   display: flex;
   align-items: center;
   .logo-text {
-    font-size: 22px;
+    font-size: 18px;
+    font-weight: bold;
     color: #fff;
     margin-left: 12px;
   }

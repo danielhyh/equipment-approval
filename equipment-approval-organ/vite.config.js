@@ -91,6 +91,7 @@ export default defineConfig(({ command, mode }) => {
       vue(),
       // vueCompat(), // 引入 @vue/compat 插件 提供可配置的Vue 2兼容行为
       AutoImport({
+        imports: ["vue", "vue-router"],
         // imports: ["vue", "vue-router", "pinia", "axios"],
         resolvers: [
           ElementPlusResolver(),
@@ -100,6 +101,7 @@ export default defineConfig(({ command, mode }) => {
         ],
       }),
       Components({
+        dirs: ["src/components"], // 自动导入src/components目录下的所有组件
         resolvers: [
           ElementPlusResolver(),
           IconsResolver({

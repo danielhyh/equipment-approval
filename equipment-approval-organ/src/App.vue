@@ -8,7 +8,6 @@
 
 <script setup>
 import zhCn from "element-plus/dist/locale/zh-cn.mjs";
-import { onMounted, computed } from "vue";
 
 const language = computed(() => zhCn);
 

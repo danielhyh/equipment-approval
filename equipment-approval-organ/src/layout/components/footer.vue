@@ -17,14 +17,15 @@ let { copyright } = config;
 <style lang="scss" scoped>
 .footer {
   // 这里可以添加页脚样式
-  background-color: #f5f5f5;
-  text-align: center;
+
   height: var(--footer-height);
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 24px;
-  font-size: 14px;
+  font-size: 12px;
+  text-align: center;
+  color: #f5f5f5;
   background-color: rgba(30, 41, 59, 0.8);
 }
 </style>

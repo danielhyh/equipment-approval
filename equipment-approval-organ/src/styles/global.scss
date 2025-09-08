@@ -24,9 +24,9 @@
   }
 }
 @media (max-width: 960px) {
-  // :root {
-  //   --content-width: 720px;
-  // }
+  :root {
+    --content-width: 100%;
+  }
 }
 @media (prefers-color-scheme: light) {
   :root {
@@ -109,4 +109,15 @@ button:hover {
 }
 .p-10 {
   padding: 10px;
+}
+
+.table_style {
+  &.el-table {
+    border-radius: 8px;
+    box-shadow: 0 0 1px 0px rgb(0, 0, 0, .3);
+    thead th {
+      background-color: #ecf2f7!important;
+      color: #333;
+    }
+  }
 }
