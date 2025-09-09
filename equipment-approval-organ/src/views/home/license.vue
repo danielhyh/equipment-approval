@@ -33,7 +33,7 @@
       <el-table-column label="操作" align="center" width="200" fixed="right" />
 
       <template #empty>
-        <el-empty description="暂无数据" image-size="80"></el-empty>
+        <el-empty description="暂无数据" :image-size="80"></el-empty>
       </template>
     </el-table>
 

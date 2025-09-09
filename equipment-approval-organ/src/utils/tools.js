@@ -3,6 +3,11 @@ export const getImageUrl = (url) => {
   if (!url) return;
   return new URL(`../assets/images/${url}`, import.meta.url).href;
 };
+// 获取 assets doc 下文件
+export const getDocUrl = (url) => {
+  if (!url) return;
+  return new URL(`../assets/doc/${url}`, import.meta.url).href;
+}
 
 // 判断是否是 JSON 字符串
 export function isJsonString(str) {

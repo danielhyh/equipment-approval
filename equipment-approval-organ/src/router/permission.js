@@ -14,19 +14,16 @@ export const beforeEach = async function (to, from, next) {
 
   // 获取token
   const token = useStore.getToken;
-  console.log(token);
 
   // 如果有token，可以继续访问
   if (token) {
     // 如果已经登录且访问的是登录页，则重定向到首页
     if (to.path === "/login") {
-    //   next({ path: "/" });
-    next()
+      next({ path: "/" });
     } else {
       next();
     }
   } else {
-    // 如果没有token
     // 判断访问的路径是否在白名单中
     if (whiteList.includes(to.path)) {
       // 在白名单中，直接访问

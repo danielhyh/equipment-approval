@@ -18,11 +18,11 @@
             {{ card.description }}
           </p>
           <div class="card-actions">
-            <button class="btn-primary" @click="handleOnlineApply(card.onlineProcess)">
+            <button class="btn-primary" @click="handleOnlineApply(card)">
               <svg-icon name="svg-icon:print" size="16" class="mr-1" />
               在线办理
             </button>
-            <button class="btn-secondary" @click="handleGuide(card.guideProcess)">
+            <button class="btn-secondary" @click="handleGuide(card)">
               <svg-icon name="svg-icon:book" size="16" class="mr-1" />
               办事指南
             </button>
@@ -59,7 +59,7 @@
             </template>
           </el-table-column>
           <template #empty>
-            <el-empty description="暂无数据" image-size="80"></el-empty>
+            <el-empty description="暂无数据" :image-size="80"></el-empty>
           </template>
         </el-table>
       </div>
@@ -78,47 +78,26 @@
 
 <script setup>
 import LicenseList from "./license.vue";
+import { useBasisStore } from "@/pinia/modules/basis";
+import { computed } from "vue";
+const basisStore = useBasisStore();
 
+const router = useRouter();
 // 创建卡片数据数组
-const cardList = [
-  {
-    id: "issue",
-    title: "核发",
-    description:
-      "乙类大型医用设备配置许可证核发适用于首次申请大型医用设备配置许可证的医疗机构， 需要提供完整的申请材料和技术论证报告。",
-    iconName: "svg-icon:coll",
-    iconType: "green",
-    iconColor: "#fff",
-    onlineProcess: "",
-    guideProcess: "",
-  },
-  {
-    id: "reissue",
-    title: "补办",
-    description: "乙类大型医用设备配置许可证补办适用于许可证遗失、损毁等情况需要重新补发证书的医疗机构，需要提供相关证明材料。",
-    iconName: "svg-icon:rollback",
-    iconType: "orange",
-    onlineProcess: "",
-    guideProcess: "",
-  },
-  {
-    id: "change",
-    title: "变更",
-    description: "乙类大型医用设备配置许可证信息变更适用于机构名称、地址、设备型号等关键信息发生变化需要变更许可证信息的情况。",
-    iconName: "svg-icon:arrow-right",
-    iconType: "blue",
-    onlineProcess: "",
-    guideProcess: "",
-  },
-];
+const cardList = computed(() => basisStore.getModelList);
 // 处理按钮点击事件的函数
-const handleOnlineApply = (type) => {
-  console.log(`点击了${type}的在线办理按钮`);
-  // 实际应用中可能需要跳转到对应的办理页面
+const handleOnlineApply = (card) => {
+  console.log(`点击了${card.id}的在线办理按钮`);
+  if (card.id) {
+    router.push({
+      path: "/deputy/apply-for",
+      query: { type: card.id },
+    });
+  }
 };
 
-const handleGuide = (type) => {
-  console.log(`点击了${type}的办事指南按钮`);
+const handleGuide = (card) => {
+  console.log(`点击了${card}的办事指南按钮`);
   // 实际应用中可能需要打开对应的指南文档
 };
 

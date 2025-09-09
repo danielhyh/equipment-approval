@@ -19,6 +19,7 @@
   &:deep(.el-card__header) {
     background-image: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
     border-bottom: 2px solid rgba(226, 232, 240, 0.6);
+    padding: 15px 20px;
     font-weight: bold;
     .card-header {
       display: flex;
