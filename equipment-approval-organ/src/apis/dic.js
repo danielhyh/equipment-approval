@@ -9,39 +9,3 @@ export function getSubCategory(parentId, topBanner) {
     },
   });
 }
-// 分类所有子级树
-export function getSubCategoryTree(parentId) {
-  return instance({
-    url: `/web/common/findCategoryTreeByParentId/${parentId}`,
-    method: "get",
-  });
-}
-// 获取所有区域
-export function getArea() {
-  return instance({
-    url: `/web/common/findRegion`,
-    method: "get",
-  });
-}
-// 获取标签树列表
-export function getTagList() {
-  return instance({
-    url: `/web/common/findAllLabels`,
-    method: "get",
-  });
-}
-
-// 获取轮次
-export function getRounds() {
-  return instance({
-    url: `/web/common/findRounds`,
-    method: "get",
-  });
-}
-// 获取系统配置信息
-export function getSysConfig() {
-  return instance({
-    url: `/out/sysConfig/list`,
-    method: "get",
-  });
-}

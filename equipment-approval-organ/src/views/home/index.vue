@@ -87,7 +87,6 @@ const router = useRouter();
 const cardList = computed(() => basisStore.getModelList);
 // 处理按钮点击事件的函数
 const handleOnlineApply = (card) => {
-  console.log(`点击了${card.id}的在线办理按钮`);
   if (card.id) {
     router.push({
       path: "/deputy/apply-for",
@@ -97,8 +96,13 @@ const handleOnlineApply = (card) => {
 };
 
 const handleGuide = (card) => {
-  console.log(`点击了${card}的办事指南按钮`);
   // 实际应用中可能需要打开对应的指南文档
+  if (card.id) {
+    router.push({
+      path: "/deputy/guide",
+      query: { type: card.id },
+    });
+  }
 };
 
 // 代办列表

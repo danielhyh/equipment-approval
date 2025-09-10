@@ -2,12 +2,15 @@
   <div class="apply-for-box">
     <!-- 页面标题区域 -->
     <div class="page-header">
-      <h1 class="page-title">{{ title }}</h1>
+      <h1 class="page-title flex items-center m-r-5">
+        <svg-icon name="f7:doc-text-fill" size="24" color="#165DFF" />
+        {{ title }}(申请单位为{{ deptName }})
+      </h1>
       <p class="page-subtitle">在线办理流程</p>
     </div>
 
     <!-- 步骤器组件 -->
-    <Steps v-model:currentStep="currentStepIndex" :handleStep="4" />
+    <Steps v-model:currentStep="currentStepIndex" :handleStep="maxStep" />
 
     <Card style="margin-top: 24px" class="card-style-page">
       <template #header>
@@ -17,15 +20,18 @@
 
       <div class="content-box">
         <!-- 对应索引 组件 -->
-        <!-- <component :is="currentPage.component" /> -->
-        <Notice />
+        <Transition mode="out-in" appear name="fade-slide">
+          <KeepAlive>
+            <component :is="currentPage.component" ref="pageComponentRef" />
+          </KeepAlive>
+        </Transition>
       </div>
 
       <div class="footer-box" v-if="showFooter">
-        <el-button type="info" :icon="List">暂存</el-button>
-        <el-button class="prev-btn" type="info" :icon="Back">上一步</el-button>
-        <el-button class="next-btn" type="primary" :icon="Right">下一步</el-button>
-        <el-button class="submit-btn" type="primary" :icon="Checked">提交</el-button>
+        <el-button class="prev-btn" type="info" :icon="Back" v-if="currentbtns.prev" @click="prevStepFn">上一步</el-button>
+        <el-button class="next-btn" type="primary" :icon="Right" v-if="currentbtns.next" @click="nextStepFn">下一步</el-button>
+        <el-button type="info" :icon="List" v-if="currentbtns.stagingg" @click="stagingFn">暂存</el-button>
+        <el-button class="submit-btn" type="primary" :icon="Checked" v-if="currentbtns.submit" @click="submitFn">提交</el-button>
       </div>
     </Card>
   </div>
@@ -35,11 +41,20 @@
 import applyForMsg from "./index.js";
 import { Back, Right, Checked, List } from "@element-plus/icons-vue";
 import Notice from "./components/notice.vue";
-import { computed, markRaw } from "vue";
-// 标题
-const title = computed(() => applyForMsg.issue.title);
+import DeclareMsg from "./components/declareMsg.vue";
+import Note from "./components/note.vue";
+import UploadMsg from "./components/uploadMsg.vue";
+const route = useRoute();
+const type = route.query.type; // todo 后续优化传入子组件
+let dept = "shby"; // todo 后续从pinia 取值转化
+// 部门名称
+let deptName = computed(() => applyForMsg.dept[dept]);
+// 标题  优化todo 后续优化可以将这个传入子组件
+const title = computed(() => applyForMsg[type].title);
 // 当前步骤索引（从0开始）
 const currentStepIndex = ref(0);
+let maxStep = ref(0);
+let pageComponentRef = ref(null);
 // 对应索引 组件
 const pageComponents = [
   {
@@ -49,19 +64,19 @@ const pageComponents = [
     btns: { next: true, prev: false, staging: false, submit: false },
   },
   {
-    component: "",
+    component: markRaw(DeclareMsg),
     icon: "fa-solid:edit",
     title: "申报信息",
     btns: { next: true, prev: true, staging: true, submit: false },
   },
   {
-    component: "",
+    component: markRaw(Note),
     icon: "bi:exclamation-triangle-fill",
     title: "注意事项",
     btns: { next: true, prev: true, staging: false, submit: false },
   },
   {
-    component: "",
+    component: markRaw(UploadMsg),
     icon: "garden:upload-fill-12",
     title: "材料上传",
     btns: { next: false, prev: true, staging: false, submit: true },
@@ -88,6 +103,43 @@ const currentbtns = computed(() => {
 const showFooter = computed(() => {
   return currentbtns.value.next || currentbtns.value.prev || currentbtns.value.staging || currentbtns.value.submit;
 });
+
+let formAllData = ref({});
+provide("formAllData", formAllData);
+// 步骤器变化 ++
+const maxStepChange = () => {
+  if (currentStepIndex.value === maxStep.value) {
+    maxStep.value++;
+  }
+  currentStepIndex.value++;
+};
+// 暂存
+const stagingFn = () => {
+  console.log("暂存");
+};
+
+// 上一步
+const prevStepFn = () => {
+  currentStepIndex.value--;
+};
+
+// 下一步
+const nextStepFn = async () => {
+  if (!pageComponentRef.value) return;
+  try {
+    let formData = await pageComponentRef.value.submit();
+    if (!formData) return;
+    formAllData.value = Object.assign(formAllData.value, formData); // formData { } 数据暂存
+    maxStepChange();
+  } catch (err) {
+    console.log(err);
+  }
+};
+
+// 提交
+const submitFn = async () => {
+  // 数据提交
+};
 </script>
 
 <style lang="scss" scoped>
@@ -103,7 +155,7 @@ const showFooter = computed(() => {
   border-radius: 16px;
   margin-bottom: 24px;
   .page-title {
-    font-size: 18px;
+    font-size: 24px;
     font-weight: bold;
     color: #165dff;
     margin: 0 0 8px 0;
@@ -119,7 +171,7 @@ const showFooter = computed(() => {
 .card-style-page {
   .footer-box {
     text-align: center;
-    margin-top: 10px;
+    margin-top: 40px;
     .el-button {
       margin: 0 10px;
       border-radius: 8px;
@@ -145,5 +197,27 @@ const showFooter = computed(() => {
       }
     }
   }
+}
+
+/* 过渡动画样式 */
+.fade-slide-enter-active,
+.fade-slide-leave-active {
+  transition: all 0.5s cubic-bezier(0.55, 0, 0.1, 1);
+}
+
+.fade-slide-enter-from {
+  opacity: 0;
+  transform: translateX(30px);
+}
+
+.fade-slide-leave-to {
+  opacity: 0.3;
+  transform: translateX(-30px);
+}
+
+.fade-slide-enter-to,
+.fade-slide-leave-from {
+  opacity: 1;
+  transform: translateX(0);
 }
 </style>
