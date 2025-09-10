@@ -266,7 +266,7 @@ public class ApplicationServiceImpl implements ApplicationService {
         String expertId = vo.getExpertId();
         if (StringUtils.isNotBlank(expertId)) {
             String[] split = expertId.split(",");
-            List<String> nameList = jdbcClient.sql("select nickname from system_users where id in (:ids)")
+            List<String> nameList = jdbcClient.sql("select name from biz_expert_ext where id in (:ids)")
                     .param("ids", Arrays.asList(split))
                     .query(String.class)
                     .list();
