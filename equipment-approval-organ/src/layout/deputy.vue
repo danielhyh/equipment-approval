@@ -19,8 +19,9 @@
 <script setup>
 import { Back } from "@element-plus/icons-vue";
 import FooterBottom from "./components/footer.vue";
-import { useBasisStore } from "@/pinia/modules/basis";
 import config from "@/config";
+import { useBasisStore } from "@/pinia/modules/basis";
+
 const basisStore = useBasisStore();
 const router = useRouter();
 const route = useRoute();

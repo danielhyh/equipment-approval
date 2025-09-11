@@ -14,7 +14,6 @@
         <em class="c-dc2626" v-if="item.required">【必需材料】</em>
       </li>
     </ul>
-
     <!-- 备注下载 -->
     <div class="m-b-30 m-l-r-20 p-t-b-10 p-l-r-20 bg-c-10b9811a b-solid-1 b-r-10 f-s-14 l-h-1_5 c-059669">
       <svg-icon name="fa-solid:download" size="16" color="#059669" class="c-059669"></svg-icon>
@@ -46,8 +45,8 @@ let entity = computed(() => applyForMsg[type]);
 let pageTitle = computed(() => entity.value?.title);
 // 审批条件
 let condition = computed(() => entity.value?.condition);
-let material = computed(() => entity.value?.material.dept[dept]);
-let mateialRemark = computed(() => entity.value?.material.remark);
+let material = computed(() => entity.value?.material?.dept[dept]);
+let mateialRemark = computed(() => entity.value?.material?.remark);
 
 let checked = ref(false);
 let validError = ref(false);

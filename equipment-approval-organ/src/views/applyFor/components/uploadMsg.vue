@@ -73,7 +73,7 @@
 
 <script setup>
 import applyForMsg from "../index";
-import { ref, computed, onMounted, nextTick } from "vue";
+import { createUploadFile,createApplyMaterial } from "@/apis/applyFor";
 import { genFileId } from "element-plus";
 import { Upload, Delete, Document } from "@element-plus/icons-vue";
 
@@ -161,59 +161,37 @@ const handleExceed = async (files, index, row) => {
     const file = files[0];
     file.uid = genFileId();
     uploadInstance.handleStart(file);
+    uploadInstance.submit()
   }
 };
 
 const handleError = (error, index, row) => {
-  console.log(error);
+  console.log(error,'____');
   row.fileName = "";
   row.fileSize = "";
 };
 const handleSuccess = (response, index, row) => {
-  console.log(response);
+  console.log(response,'00-000');
   // 修改row
 };
 // 自定义上传
 const fileRequestFn = async (file) => {
   const { file: uploadFile, onSuccess, onError } = file;
-  onError({ error: "文件上传失败" });
-  return;
   try {
     // 创建FormData对象
     const formData = new FormData();
     formData.append("file", uploadFile);
+   let response =  await createUploadFile(formData);
     // 显示上传中状态
-    ElMessage({ message: `文件${uploadFile.name}上传中...`, type: "info" });
-
-    // 实际项目中应使用以下代码调用真实的上传API
-    // const response = await instance({
-    //   url: '/api/upload', // 替换为实际的上传接口
-    //   method: 'post',
-    //   data: formData,
-    //   headers: {
-    //     'Content-Type': 'multipart/form-data'
-    //   }
-    // });
-
-    // 模拟上传成功的响应数据
-    const response = {
-      code: 200,
-      data: {
-        fileName: uploadFile.name,
-        fileUrl: `/uploads/${uploadFile.name}`,
-        fileSize: uploadFile.size,
-      },
-    };
+    // ElMessage({ message: `文件${uploadFile.name}上传中...`, type: "info" });
     // 调用上传成功回调
-    onSuccess(response);
+    // onSuccess(response);
     ElMessage.success(`文件${uploadFile.name}上传成功`);
     return response;
   } catch (error) {
-    console.error("文件上传失败:", error);
     // 调用上传失败回调
     onError(error);
-    ElMessage.error(`文件${uploadFile.name}上传失败: ${error.message || "未知错误"}`);
-    throw error;
+    ElMessage.error(`文件${uploadFile.name}上传失败: ${error.msg || "未知错误"}`);
   }
 };
 

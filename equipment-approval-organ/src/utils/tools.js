@@ -7,16 +7,40 @@ export const getImageUrl = (url) => {
 export const getDocUrl = (url) => {
   if (!url) return;
   return new URL(`../assets/doc/${url}`, import.meta.url).href;
-}
+};
 
 // 判断是否是 JSON 字符串
 export function isJsonString(str) {
+  if(typeof str !== 'string') return false;
   try {
     JSON.parse(str);
     return true;
   } catch (e) {
     return false;
   }
+}
+// 判断对象是否为空
+export function isEmptyObject(obj) {
+  return Object.keys(obj).length === 0;
+}
+
+// 时间格式化
+export function formatDate(date, format = "yyyy-MM-dd hh:mm:ss") {
+  if (!date) return "-";
+  let d = new Date(date);
+  let year = d.getFullYear();
+  let month = d.getMonth() + 1;
+  let day = d.getDate();
+  let hour = d.getHours();
+  let minute = d.getMinutes();
+  let second = d.getSeconds();
+  // 补位
+  month = month < 10 ? "0" + month : month;
+  day = day < 10 ? "0" + day : day;
+  hour = hour < 10 ? "0" + hour : hour;
+  minute = minute < 10 ? "0" + minute : minute;
+  second = second < 10 ? "0" + second : second;
+  return format.replace("yyyy", year).replace("MM", month).replace("dd", day).replace("hh", hour).replace("mm", minute).replace("ss", second);
 }
 
 export function textToSpeech(text, callback) {

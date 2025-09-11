@@ -1,24 +1,24 @@
 <template>
   <el-form :model="formData" :rules="rules" ref="formRef" label-width="120px" label-position="top" class="grid-form">
     <!-- 组织机构名称（配置单位名称）* -->
-    <el-form-item label="组织机构名称（配置单位名称）*" prop="orgName" disabled>
-      <el-input v-model="formData.orgName" placeholder="请输入组织机构名称（配置单位名称）" disabled />
+    <el-form-item label="组织机构名称（配置单位名称）*" prop="institutionName" disabled>
+      <el-input v-model="formData.institutionName" placeholder="请输入组织机构名称（配置单位名称）" disabled />
     </el-form-item>
     <!-- 法定代表人（或主要负责人）* -->
     <el-form-item label="法定代表人（或主要负责人）*" prop="legalPerson">
       <el-input v-model="formData.legalPerson" placeholder="请输入法定代表人（或主要负责人）" disabled />
     </el-form-item>
     <!-- 统一社会信用代码* -->
-    <el-form-item label="统一社会信用代码*" prop="creditCode">
-      <el-input v-model="formData.creditCode" placeholder="请输入统一社会信用代码" disabled />
+    <el-form-item label="统一社会信用代码*" prop="unifiedSocialCreditCode">
+      <el-input v-model="formData.unifiedSocialCreditCode" placeholder="请输入统一社会信用代码" disabled />
     </el-form-item>
     <!-- 所有制性质* -->
-    <el-form-item label="所有制性质*" prop="ownershipType">
-      <el-input v-model="formData.ownershipType" placeholder="请输入所有制性质" disabled />
+    <el-form-item label="所有制性质*" prop="ownershipNature">
+      <el-input v-model="formData.ownershipNature" placeholder="请输入所有制性质" disabled />
     </el-form-item>
     <!-- 许可设备名称* -->
-    <el-form-item label="许可设备名称*" prop="deviceType" class="grid-item-l-2">
-      <el-select v-model="formData.deviceType" placeholder="请选择许可设备名称" clearable>
+    <el-form-item label="许可设备名称*" prop="licenseDeviceName" class="grid-item-l-2">
+      <el-select v-model="formData.licenseDeviceName" placeholder="请选择许可设备名称" clearable>
         <el-option
           v-for="item in deviceOptions"
           :key="item.value"
@@ -29,21 +29,21 @@
       </el-select>
     </el-form-item>
     <!-- 阶梯配置机型* -->
-    <el-form-item label="阶梯配置机型*" prop="modelType" class="grid-item-r-2">
-      <el-select v-model="formData.modelType" placeholder="请输入阶梯配置机型" clearable>
+    <el-form-item label="阶梯配置机型*" prop="ladderConfigModel" class="grid-item-r-2">
+      <el-select v-model="formData.ladderConfigModel" placeholder="请输入阶梯配置机型" clearable>
         <el-option v-for="item in modelOptions" :key="item.value" :label="item.label" :value="item.value" />
       </el-select>
     </el-form-item>
     <!-- 设备配置地址* -->
-    <el-form-item label="设备配置地址*" prop="deviceAddress" class="grid-item-row">
+    <el-form-item label="设备配置地址*" prop="detailedAddress" class="grid-item-row">
       <template #label="{ label }">
         <span>{{ label }}</span>
       </template>
-      <el-input v-model="formData.deviceAddress" placeholder="请输入设备配置地址" disabled />
+      <el-input v-model="formData.detailedAddress" placeholder="请输入设备配置地址" disabled />
     </el-form-item>
     <!-- 联系人* -->
-    <el-form-item label="联系人*" prop="contactName" class="grid-item-l-2">
-      <el-input v-model="formData.contactName" placeholder="请输入联系人" disabled />
+    <el-form-item label="联系人*" prop="contactPerson" class="grid-item-l-2">
+      <el-input v-model="formData.contactPerson" placeholder="请输入联系人" disabled />
     </el-form-item>
     <!-- 联系人电话* -->
     <el-form-item label="联系人电话*" prop="contactPhone" class="grid-item-r-2">
@@ -53,74 +53,40 @@
 </template>
 
 <script setup>
+import { useUserStore } from '@/pinia/modules/user';
+import {useDictStore} from '@/pinia/modules/dict';
+import { createApply } from "@/apis/applyFor"
+let userStore = useUserStore();
+let dictStore = useDictStore();
+const appType = inject('applyType'); // 申请类型
 let formRef = ref(null);
 let formData = reactive({
-  orgName: "组织机构名称", // 组织机构名称（配置单位名称）
-  legalPerson: "法定代表人", // 法定代表人（或主要负责人）
-  creditCode: "统一社会信用代码", // 统一社会信用代码
-  ownershipType: "所有制性质", // 所有制性质
-  deviceType: "1", // 许可设备名称
-  modelType: "", // 阶梯配置机型
-  deviceAddress: "设备配置地址", // 设备配置地址
-  contactName: "联系人", // 联系人
-  contactPhone: "联系人电话", // 联系人电话
+  institutionName: "", // 组织机构名称（配置单位名称）
+  legalPerson: "", // 法定代表人（或主要负责人）
+  unifiedSocialCreditCode: "", // 统一社会信用代码
+  ownershipNature: "", // 所有制性质
+  licenseDeviceName: "1", // 许可设备名称
+  ladderConfigModel: "1", // 阶梯配置机型
+  detailedAddress: "", // 设备配置地址
+  contactPerson: "", // 联系人
+  contactPhone: "", // 联系人电话
 });
 let rules = reactive({
-  deviceType: [{ required: true, message: "请选择许可设备名称", trigger: "blur" }],
-  modelType: [{ required: true, message: "请输入阶梯配置机型", trigger: "blur" }],
+  licenseDeviceName: [{ required: true, message: "请选择许可设备名称", trigger: "blur" }],
+  ladderConfigModel: [{ required: true, message: "请输入阶梯配置机型", trigger: "blur" }],
 });
+
+let userInfo = computed(()=>userStore.getUser)
+// 数据初始化
+watch(()=>userInfo.value,(user)=>{
+  Object.keys(formData).forEach((key)=>{
+    formData[key] = user[key]||formData[key]
+  })
+},{immediate:true})
 // 许可设备
-let deviceOptions = [
-  {
-    label: "伽玛射线立体定向放射治疗系统",
-    value: "6",
-    disabled: true,
-  },
-  {
-    label: "直线加速器",
-    value: "5",
-    disabled: true,
-  },
-  {
-    label: "1.5T 及以上磁共振成像系统",
-    value: "4",
-    disabled: true,
-  },
-  {
-    label: "64 排及以上X线计算机断层扫描仪",
-    value: "3",
-    disabled: true,
-  },
-  {
-    label: "X线正电子发射断层扫描仪",
-    value: "2",
-    disabled: true,
-  },
-  {
-    label: "内窥镜手术器械控制系统",
-    value: "1",
-    disabled: false,
-  },
-];
+let deviceOptions = computed(()=>dictStore.getDictTypeList("biz_main_equipment_type"))
 // 阶梯配置机型
-let modelOptions = [
-  {
-    label: "高端型",
-    value: "4",
-  },
-  {
-    label: "基础型",
-    value: "3",
-  },
-  {
-    label: "临床型",
-    value: "2",
-  },
-  {
-    label: "科研型",
-    value: "1",
-  },
-];
+let modelOptions = computed(()=>dictStore.getDictTypeList("biz_ladder_config_model"))
 
 const validor = () => {
   return new Promise((resolve, reject) => {
@@ -137,6 +103,16 @@ const submit = () => {
   return new Promise(async (resolve, reject) => {
     try {
       await validor();
+      let params = {
+        // id:formData.id
+        institutionId: userInfo.value.institutionId,
+        licenseDeviceName:formData.licenseDeviceName, // 这个下一步会用到
+        ladderConfigModel:formData.ladderConfigModel,
+        appType: appType,
+      }
+      // console.log(params)
+      // console.log(userInfo.value)
+      // await createApply(params)
       resolve(JSON.parse(JSON.stringify(formData)));
     } catch (err) {
       reject(err);

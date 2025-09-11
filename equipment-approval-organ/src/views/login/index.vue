@@ -23,7 +23,14 @@
 
       <div class="login-form-container">
         <!-- 手机验证码登录 -->
-        <el-form v-if="activeTab === 'phone'" :model="phoneForm" :rules="phoneRules" ref="phoneFormRef" label-position="top">
+        <el-form
+          v-if="activeTab === 'phone'"
+          :disabled="loading"
+          :model="phoneForm"
+          :rules="phoneRules"
+          ref="phoneFormRef"
+          label-position="top"
+        >
           <el-form-item prop="phone" label="手机号">
             <el-input v-model="phoneForm.phone" placeholder="请输入手机号" :maxlength="11" clearable>
               <template #prefix>
@@ -43,14 +50,14 @@
               </el-button>
             </div>
           </el-form-item>
-          <el-button type="primary" @click="handlePhoneLogin" class="login-button">
+          <el-button type="primary" @click="handlePhoneLogin" class="login-button" :loading="loading">
             <span>登录</span>
             <svg-icon name="svg-icon:arrow-right" size="16" class="login-arrow" />
           </el-button>
         </el-form>
 
         <!-- 账户密码登录 -->
-        <el-form v-else :model="accountForm" :rules="accountRules" ref="accountFormRef" label-position="top">
+        <el-form v-else :model="accountForm" :disabled="loading" :rules="accountRules" ref="accountFormRef" label-position="top">
           <el-form-item prop="username" label="用户名">
             <el-input v-model="accountForm.username" placeholder="请输入用户名" clearable>
               <template #prefix>
@@ -65,7 +72,7 @@
               </template>
             </el-input>
           </el-form-item>
-          <el-button type="primary" @click="handleAccountLogin" class="login-button">
+          <el-button type="primary" @click="handleAccountLogin" class="login-button" :loading="loading">
             <span>登录</span>
             <svg-icon name="svg-icon:arrow-right" size="16" color="#fff" class="login-arrow" />
           </el-button>
@@ -78,11 +85,12 @@
 <script setup>
 import { ref, reactive } from "vue";
 import { ElMessage } from "element-plus";
-import router from "@/router";
 import { useUserStore } from "@/pinia/modules/user";
+import { accountLogin, sendLoginCode, getUserInfo, mobileLogin } from "@/apis/login";
+const router = useRouter();
+const route = useRoute();
 const userStore = useUserStore();
-
-const activeTab = ref("phone");
+const activeTab = ref("account");
 // 登录类型列表
 const loginTypeList = reactive([
   { label: "手机验证码", value: "phone", icon: "ic:outline-phone-iphone" },
@@ -91,7 +99,7 @@ const loginTypeList = reactive([
 const changeLoginType = (v) => {
   activeTab.value = v.value;
 };
-
+let loading = ref(false);
 // 账户登录表单
 const accountForm = reactive({
   username: "",
@@ -110,7 +118,6 @@ const phoneForm = reactive({
   phone: "",
   code: "",
 });
-
 const phoneRules = {
   phone: [
     { required: true, message: "请输入手机号", trigger: "blur" },
@@ -124,14 +131,13 @@ const phoneRules = {
 };
 
 const phoneFormRef = ref(null);
-
 const countdown = ref(0);
 const isCountingDown = ref(false);
-
 // 发送验证码
 const sendCode = () => {
-  phoneFormRef.value.validateField("phone", (pass) => {
+  phoneFormRef.value.validateField("phone", async (pass) => {
     if (pass) {
+      let response = await sendLoginCode(phoneForm.phone);
       // 这里调用发送验证码的API
       ElMessage.success("验证码已发送");
       countdown.value = 60;
@@ -150,18 +156,24 @@ const sendCode = () => {
 
 // 账户登录
 const handleAccountLogin = () => {
+  loading.value = true;
   accountFormRef.value.validate((valid) => {
     if (valid) {
-      // 这里调用账户登录的API
-      // 假设登录成功后返回的token
-      const token = "mock-token-for-account-login"; // 实际项目中应该从API返回中获取
-
-      // 存储token
-      userStore.setToken(token);
-
-      ElMessage.success("登录成功");
-
-      checkRedirect();
+      accountLogin(accountForm)
+        .then((res) => {
+          let {
+            data: { accessToken },
+          } = res;
+          // 存储token
+          userStore.setToken(accessToken);
+          ElMessage.success("登录成功");
+          checkRedirect();
+        })
+        .finally(() => {
+          loading.value = false;
+        });
+    } else {
+      loading.value = false;
     }
   });
 };
@@ -170,16 +182,20 @@ const handleAccountLogin = () => {
 const handlePhoneLogin = () => {
   phoneFormRef.value.validate((valid) => {
     if (valid) {
-      // 这里调用手机验证码登录的API
-      // 假设登录成功后返回的token
-      const token = "mock-token-for-phone-login"; // 实际项目中应该从API返回中获取
-
-      // 存储token
-      userStore.setToken(token);
-
-      ElMessage.success("登录成功");
-
-      checkRedirect();
+      loading.value = true;
+      mobileLogin({ mobile: phoneForm.phone, code: phoneForm.code })
+        .then((res) => {
+          let {
+            data: { accessToken },
+          } = res;
+          // 存储token
+          userStore.setToken(accessToken);
+          ElMessage.success("登录成功");
+          checkRedirect();
+        })
+        .finally(() => {
+          loading.value = false;
+        });
     }
   });
 };
@@ -187,7 +203,7 @@ const handlePhoneLogin = () => {
 // 检查重定向
 const checkRedirect = () => {
   // 检查是否有重定向路径
-  const redirect = router.currentRoute.value.query.redirect;
+  const redirect = route.query.redirect;
   // 使用router进行页面跳转
   if (redirect) {
     router.push(decodeURIComponent(redirect));
@@ -195,6 +211,8 @@ const checkRedirect = () => {
     router.push("/");
   }
 };
+
+
 </script>
 
 <style scoped lang="scss">

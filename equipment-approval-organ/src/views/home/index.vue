@@ -35,22 +35,31 @@
         <el-table class="table_style" :data="toDoList" style="width: 100%" size="small">
           <!-- 序号列 -->
           <el-table-column type="index" label="序号" width="50" fixed="left" align="center" />
-          <!-- 办件类型 -->
-          <el-table-column prop="title" label="办件类型" width="180" align="center" />
-          <!-- 创建日期 -->
-          <el-table-column prop="description" label="创建日期" width="120" align="center" />
-          <!-- 许可设备名称 -->
-          <el-table-column prop="deviceName" label="许可设备名称" width="180" align="center" />
-          <!-- 阶梯配置机型 -->
-          <el-table-column prop="modelName" label="阶梯配置机型" width="180" align="center" />
-          <!-- 进度占比 -->
-          <el-table-column prop="progressRatio" label="进度占比" width="180" align="center">
+          <!-- 申请编号 -->
+          <el-table-column prop="appNo" label="申请编号" width="180" align="center" >
             <template #default="scope">
-              <el-progress :percentage="scope.row.progressRatio" :text-inside="false" :show-text="true" />
+              {{ scope.row.appNo || '-' }}
             </template>
           </el-table-column>
+          <!-- 申请类型 -->
+          <el-table-column prop="appType" label="申请类型" align="center" >
+            <template #default="scope">
+              {{ applyTypeDict.find(item => item.value === scope.row.appType+'')?.label || '-' }}
+            </template>
+          </el-table-column>
+         
+          <!-- 许可设备名称 -->
+          <el-table-column prop="licenseDeviceName" label="许可设备名称"  align="center" />
+          <!-- 阶梯配置机型 -->
+          <el-table-column prop="ladderConfigModel" label="阶梯配置机型" width="180" align="center" />
+           <!-- 创建日期 -->
+           <el-table-column prop="createTime" label="创建日期" width="180" align="center" />
           <!-- 进度状态 -->
-          <el-table-column prop="progressStatus" label="进度状态" align="center" />
+          <el-table-column prop="appStatus" label="进度状态" align="center" >
+            <template #default="scope">
+              {{ statusDict.find(item => item.value === scope.row.appStatus+'')?.label || '-' }}
+            </template>
+          </el-table-column>
 
           <el-table-column prop="guideProcess" label="操作" width="180" fixed="right" align="center">
             <template #default="scope">
@@ -79,7 +88,12 @@
 <script setup>
 import LicenseList from "./license.vue";
 import { useBasisStore } from "@/pinia/modules/basis";
-import { computed } from "vue";
+import { useDictStore } from "@/pinia/modules/dict";
+import { getApplyList } from "@/apis/home";
+import { formatDate } from "@/utils/tools";
+import { onMounted } from "vue";
+
+const dictStore = useDictStore();
 const basisStore = useBasisStore();
 
 const router = useRouter();
@@ -107,18 +121,25 @@ const handleGuide = (card) => {
 
 // 代办列表
 const toDoList = ref([]);
-const statusDict = [];
-toDoList.value = [
-  {
-    title: "核发",
-    description: "2023-01-01",
-    deviceName: "设备1",
-    modelName: "型号1",
-    progressRatio: 50,
-    progressStatus: "进行中",
-    guideProcess: "操作",
-  },
-];
+// 申请类型
+const applyTypeDict = dictStore.getDictTypeList("biz_app_type");
+// 申请状态
+const statusDict = dictStore.getDictTypeList("biz_app_status");
+const getToDoListFn = () => {
+  getApplyList()
+    .then((res) => {
+      let { data:{list}}  = res
+      toDoList.value = (list || []).map(item=>{
+        return {
+          ...item,
+          createTime: formatDate(item.createTime),
+        }
+      })
+    })
+    .catch((err) => {
+      toDoList.value = [];
+    });
+};
 // 办理列表 详情
 const handleDetail = (row) => {
   console.log(row);
@@ -128,14 +149,9 @@ const handleEdit = (row) => {
   console.log(row);
 };
 
-let paramsValue = reactive({
-  pageNum: 1,
-  pageSize: 10,
-  total: 0,
+onMounted(() => {
+  getToDoListFn();
 });
-const handleChange = (v) => {
-  console.log(v);
-};
 </script>
 
 <style lang="scss" scoped>

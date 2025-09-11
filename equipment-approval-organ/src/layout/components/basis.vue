@@ -3,15 +3,15 @@
   <div class="basis-container">
     <div class="basis-item">
       <svg-icon name="fa-solid:hospital" />
-      <div class="value">陕西省人民医院</div>
+      <div class="value">{{ deptName||'--' }}</div>
     </div>
     <div class="basis-item">
       <svg-icon name="fa-solid:user" />
-      <div class="value">张三</div>
+      <div class="value">{{ userName||'--' }}</div>
     </div>
     <div class="basis-item">
       <svg-icon name="fa-solid:phone" />
-      <div class="value">13800000000</div>
+      <div class="value">{{ phone||'--' }}</div>
     </div>
     <div class="basis-item">
       <el-button type="primary" size="small">
@@ -28,12 +28,10 @@
 // 这里可以添加 setup 语法糖下的脚本逻辑
 import { useUserStore } from "@/pinia/modules/user";
 let userStore = useUserStore();
-
 const userData = computed(() => userStore.getUser);
-
-const deptName = computed(() => userData.value.hospital);
-const userName = computed(() => userData.value.name);
-const phone = computed(() => userData.value.phone);
+const deptName = computed(() => userData.value?.institutionName);
+const userName = computed(() => userData.value?.nickname);
+const phone = computed(() => userData.value?.contactPhone);
 </script>
 
 <style lang="scss" scoped>

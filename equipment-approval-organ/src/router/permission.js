@@ -1,5 +1,6 @@
 import config from "@/config.js";
 import { useUserStore } from "@/pinia/modules/user.js";
+import { useDictStore } from "@/pinia/modules/dict.js";
 import nProgress from "nprogress";
 import "nprogress/nprogress.css";
 
@@ -7,20 +8,21 @@ import "nprogress/nprogress.css";
 const whiteList = config.routeWhiteList;
 
 export const beforeEach = async function (to, from, next) {
-  let useStore = useUserStore();
+  let userStore = useUserStore();
+  let dictStore = useDictStore();
   // 设置页面标题
   nProgress.start();
-  document.title = to.meta?.title || "陕西省大型医用设备在线审批归档系统";
-
+  document.title = to.meta?.title ? to.meta?.title + "-" + config.systemName : config.systemName;
   // 获取token
-  const token = useStore.getToken;
-
+  const token = userStore.getToken;
   // 如果有token，可以继续访问
   if (token) {
     // 如果已经登录且访问的是登录页，则重定向到首页
     if (to.path === "/login") {
       next({ path: "/" });
     } else {
+      await userStore.setUser();
+      await dictStore.setDictList();
       next();
     }
   } else {

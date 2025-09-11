@@ -3,17 +3,21 @@ import { getDocUrl } from "@/utils/tools";
 const applyUnitLicense = getDocUrl("申请单位执业许可证.jpg");
 // 事业单位法人证
 const unitLegal = getDocUrl("事业单位法人证.jpg");
+// 营业执照.jpg
+const businessLicense = getDocUrl("营业执照.jpg");
 // 乙类大型医用设备配置许可申请表-空表.docx
 const largeMedical = getDocUrl("乙类大型医用设备配置许可申请表-空表.docx");
 // 乙类大型医用设备配置许可申请表-样表.docx
 const largeMedicalSample = getDocUrl("乙类大型医用设备配置许可申请表-样表.docx");
-// 营业执照.jpg
-const businessLicense = getDocUrl("营业执照.jpg");
+// 乙类大型医用设备配置许可告知承诺书
+const largeMedicalCommitment = getDocUrl("乙类大型医用设备配置许可告知承诺书.docx");
+// 社会办医选择不实行告知承诺制申请书
+const notImplementApplication = getDocUrl("社会办医选择不实行告知承诺制申请书.docx");
 // 与申请配置大型医用设备相应的技术条件、配套设备和专业技术人员资质、能力材料.docx
 const technicalConditions = getDocUrl("与申请配置大型医用设备相应的技术条件、配套设备和专业技术人员资质、能力材料.docx");
-// 中国（陕西）自由贸易试验区社会办医配置乙类大型医用设备备案登记表-空表.docx
+// 空表 中国（陕西）自由贸易试验区社会办医配置乙类大型医用设备备案登记表-空表.docx
 const register = getDocUrl("中国（陕西）自由贸易试验区社会办医配置乙类大型医用设备备案登记表-空表.docx");
-// 中国（陕西）自由贸易试验区社会办医配置乙类大型医用设备备案登记表-样表.docx
+// 样表 中国（陕西）自由贸易试验区社会办医配置乙类大型医用设备备案登记表-样表.docx
 const registerSample = getDocUrl("中国（陕西）自由贸易试验区社会办医配置乙类大型医用设备备案登记表-样表.docx");
 export default {
   dept: {
@@ -86,7 +90,7 @@ export default {
               source: "陕西省卫生健康委财务处", // 来源渠道
               notice: "无", // 填表须知
               sample: "", // 样表
-              empty: "", // 空表
+              empty: largeMedicalCommitment, // 空表
               view: "", // 查看模板
             },
             {
@@ -101,7 +105,7 @@ export default {
               source: "陕西省卫生健康委财务处", // 来源渠道
               notice: "无", // 填表须知
               sample: "", // 样表
-              empty: "", // 空表
+              empty: notImplementApplication, // 空表
               view: "", // 查看模板
             },
             {
@@ -117,7 +121,7 @@ export default {
               notice: "无", // 填表须知
               sample: "", // 样表
               empty: "", // 空表
-              view: "", // 查看模板
+              view: businessLicense, // 查看模板
             },
             {
               text: "申请单位执业许可证",
@@ -132,7 +136,7 @@ export default {
               notice: "无", // 填表须知
               sample: "", // 样表
               empty: "", // 空表
-              view: "", // 查看模板
+              view: applyUnitLicense, // 查看模板
             },
             {
               text: "与申请配置大型医用设备相应的技术条件、配套设备和专业技术人员资质、能力材料",
@@ -146,7 +150,7 @@ export default {
               source: "陕西省卫生健康委财务处", // 来源渠道
               notice: "无", // 填表须知
               sample: "", // 样表
-              empty: "", // 空表
+              empty: technicalConditions, // 空表
               view: "", // 查看模板
             },
           ],

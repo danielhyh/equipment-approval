@@ -1,7 +1,8 @@
 import axios from "axios";
 import router from "../router/index.js";
-import { useUserStore } from "../store/modules/user.js";
+import { useUserStore } from "../pinia/modules/user.js";
 import { ElMessage } from "element-plus";
+
 // 创建请求实例
 const instance = axios.create({
   baseURL: import.meta.env.VITE_API,
@@ -11,12 +12,12 @@ const instance = axios.create({
   withCredentials: false,
 });
 // 白名单接口
-let noNeedTokenReq = ["/noCodeLogin2", "/qr/scan"];
+let noNeedTokenReq = ["/admin-api/system/auth/login"];
 // 前置拦截器（发起请求之前的拦截）
 instance.interceptors.request.use(
   (config) => {
     let { customHeader } = config.headers;
-
+    const userStore = useUserStore();
     /**
      * 在这里一般会携带前台的参数发送给后台，比如下面这段代码：
      * const token = getToken()
@@ -27,7 +28,7 @@ instance.interceptors.request.use(
     if (config.data instanceof FormData) {
       config.headers = {
         "Content-Type": "multipart/form-data",
-        authorization: localStorage.getItem("token"),
+        authorization: "Bearer " + userStore.getToken,
       };
     } else {
       config.data = JSON.stringify(config.data);
@@ -35,9 +36,8 @@ instance.interceptors.request.use(
         "Content-Type": "application/json",
       };
     }
-
     if (!noNeedTokenReq.includes(config.url)) {
-      // config.headers.authorization = localStorage.getItem('token')
+      config.headers.authorization = "Bearer " + userStore.getToken;
     }
     if (customHeader && Object.keys(customHeader).length) {
       config.headers = { ...config.headers, ...customHeader };
@@ -78,23 +78,23 @@ instance.interceptors.response.use(
      * 根据你的项目实际情况来对 response 和 error 做处理
      * 这里对 response 和 error 不做任何处理，直接返回
      */
-    let store = useUserStore();
+    const userStore = useUserStore();
     let responseCode = response.data.code;
     let responseMsg = response.data.msg;
     let responseData = response.data.data;
 
     if (responseCode === 200 && response.data) {
-      // 图书资源返回
       return responseData;
     }
 
-    if (response.data.code !== 200) {
-      if (response.data.code === 401) {
-        store.setToken({ token: "" });
+    if (responseCode !== 200 && responseCode !== 0) {
+      if (responseCode === 401) {
+        userStore.loginOut();
         ElMessage({ type: "warning", message: "登录信息过期\n请重新登录" });
         router.push("/login");
+        return Promise.reject(response.data);
       }
-      ElMessage({ type: "warning", message: response.data.msg || "请求异常" });
+      ElMessage({ type: "error", message: responseMsg || "请求异常" });
       return Promise.reject(response.data);
     }
 
@@ -102,7 +102,7 @@ instance.interceptors.response.use(
   },
   (error) => {
     const { response, message, code } = error;
-    if (code === "ECONNABORTED" || !response || error.status === 404) {
+    if (code === "ECONNABORTED" || !response || error.status === 404 || code === 1002000000) {
       ElMessage({ type: "warning", message: message });
       return Promise.reject(error);
     }

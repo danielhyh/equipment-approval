@@ -44,6 +44,10 @@ import Notice from "./components/notice.vue";
 import DeclareMsg from "./components/declareMsg.vue";
 import Note from "./components/note.vue";
 import UploadMsg from "./components/uploadMsg.vue";
+import { useDictStore } from "@/pinia/modules/dict.js";
+import { computed } from "vue";
+const dictStore = useDictStore();
+const applyTypeDict = computed(()=>dictStore.getDictTypeList("biz_app_type"))
 const route = useRoute();
 const type = route.query.type; // todo 后续优化传入子组件
 let dept = "shby"; // todo 后续从pinia 取值转化
@@ -106,6 +110,19 @@ const showFooter = computed(() => {
 
 let formAllData = ref({});
 provide("formAllData", formAllData);
+let typeKey = computed(()=>{
+  switch(type){
+    case 'issue':
+      return '1' 
+    case 'reissue':
+      return '2'
+    case 'change':
+      return '3'
+    case 'info':
+      return '4'
+  }
+})
+provide('applyType',typeKey.value)//申请类型
 // 步骤器变化 ++
 const maxStepChange = () => {
   if (currentStepIndex.value === maxStep.value) {
