@@ -7,12 +7,17 @@ import cn.iocoder.yudao.framework.common.pojo.PageParam;
 import cn.iocoder.yudao.framework.security.core.LoginUser;
 import cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils;
 import cn.iocoder.yudao.module.biz.controller.app.application.vo.AppApplicationSaveReqVO;
+import cn.iocoder.yudao.module.biz.dal.dataobject.applicationmaterial.ApplicationMaterialDO;
 import cn.iocoder.yudao.module.biz.dal.dataobject.institutionext.InstitutionExtDO;
+import cn.iocoder.yudao.module.biz.dal.mysql.applicationmaterial.ApplicationMaterialMapper;
 import cn.iocoder.yudao.module.biz.dal.mysql.institutionext.InstitutionExtMapper;
 import cn.iocoder.yudao.module.biz.service.devicelicense.DeviceLicenseService;
 import cn.iocoder.yudao.module.biz.service.operation.OperationLogService;
 import com.alibaba.fastjson.JSON;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.google.common.base.CaseFormat;
 import com.google.common.collect.Lists;
@@ -64,6 +69,9 @@ public class ApplicationServiceImpl implements ApplicationService {
     @Resource
     private OperationLogService operationService;
 
+    @Resource
+    private ApplicationMaterialMapper applicationMaterialMapper;
+
     @Resource(name = "bizExecutor")
     private Executor bizExecutor;
 
@@ -80,6 +88,10 @@ public class ApplicationServiceImpl implements ApplicationService {
         Long loginUserId = SecurityFrameworkUtils.getLoginUserId();
         String loginUserNickname = SecurityFrameworkUtils.getLoginUserNickname();
         operationService.log(application.getId(), loginUserId, loginUserNickname, "发起申请");
+//        LambdaUpdateWrapper<ApplicationMaterialDO> wrapper = Wrappers.lambdaUpdate();
+//        wrapper.eq(ApplicationMaterialDO::getCreator, loginUserId);
+//        wrapper.set(ApplicationMaterialDO::getApplicationId, application.getId());
+//        applicationMaterialMapper.update(wrapper);
         // 返回
         return application.getId();
     }
