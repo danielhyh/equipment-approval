@@ -41,7 +41,7 @@ public class AppUserController {
                 SELECT
                   nickname,
                   b1.institution_name,
-                  b1.id as instution_id,
+                  b1.id as institution_id,
                   b1.legal_person,
                   b1.unified_social_credit_code,
                   b1.detailed_address,

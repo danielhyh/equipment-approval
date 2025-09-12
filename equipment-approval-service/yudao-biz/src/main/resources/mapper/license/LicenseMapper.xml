@@ -87,7 +87,8 @@
                a.equipment_config_address,
                c.production_enterprise,
                c.specific_model,
-               c.installation_date
+               c.installation_date,
+               d.app_type
         from biz_license_original a
         left join biz_license_duplicate b on a.id = b.original_id
         left join biz_application d on d.id = a.application_id

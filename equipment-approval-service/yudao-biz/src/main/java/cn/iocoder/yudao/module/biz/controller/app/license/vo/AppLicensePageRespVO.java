@@ -41,6 +41,9 @@ public class AppLicensePageRespVO {
     @Schema(description = "具体型号")
     private String specificModel;
 
+    @Schema(description = "证书类型 1-乙类许可证申请，2-乙类许可证补办，3-乙类许可证变更，4-基本信息变更")
+    private Integer appType;
+
     @Schema(description = "装机日期")
     @JsonFormat(pattern = "yyyy-MM-dd")
     private LocalDate installationDate;
