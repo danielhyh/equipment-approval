@@ -206,8 +206,9 @@ public class OAuth2TokenServiceImpl implements OAuth2TokenService {
             return MapUtil.builder(LoginUser.INFO_KEY_NICKNAME, user.getNickname())
                     .put(LoginUser.INFO_KEY_DEPT_ID, StrUtil.toStringOrNull(user.getDeptId())).build();
         } else if (userType.equals(UserTypeEnum.MEMBER.getValue())) {
-            // 注意：目前 Member 暂时不读取，可以按需实现
-            return Collections.emptyMap();
+            AdminUserDO user = adminUserService.getUser(userId);
+            return MapUtil.builder(LoginUser.INFO_KEY_NICKNAME, user.getNickname())
+                    .put(LoginUser.INFO_KEY_DEPT_ID, StrUtil.toStringOrNull(user.getDeptId())).build();
         }
         return null;
     }
