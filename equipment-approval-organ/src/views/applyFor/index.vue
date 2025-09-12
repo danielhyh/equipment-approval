@@ -10,7 +10,7 @@
     </div>
 
     <!-- 步骤器组件 -->
-    <Steps v-model:currentStep="currentStepIndex" :handleStep="maxStep" />
+    <Steps v-model:currentStep="currentStepIndex" :steps="steps" :handleStep="maxStep" />
 
     <Card style="margin-top: 24px" class="card-style-page">
       <template #header>
@@ -44,6 +44,7 @@ import Notice from "./components/notice.vue";
 import DeclareMsg from "./components/declareMsg.vue";
 import Note from "./components/note.vue";
 import UploadMsg from "./components/uploadMsg.vue";
+import Review from "./components/review.vue";
 import { useDictStore } from "@/pinia/modules/dict.js";
 import { computed } from "vue";
 const dictStore = useDictStore();
@@ -65,39 +66,48 @@ const pageComponents = [
     component: markRaw(Notice),
     icon: "fa:info-circle",
     title: "申报须知",
+    status: "10%",
     btns: { next: true, prev: false, staging: false, submit: false },
   },
   {
     component: markRaw(DeclareMsg),
     icon: "fa-solid:edit",
     title: "申报信息",
+    status: "30%",
     btns: { next: true, prev: true, staging: true, submit: false },
   },
   {
     component: markRaw(Note),
     icon: "bi:exclamation-triangle-fill",
     title: "注意事项",
+    status: "50%",
     btns: { next: true, prev: true, staging: false, submit: false },
   },
   {
     component: markRaw(UploadMsg),
     icon: "garden:upload-fill-12",
     title: "材料上传",
+    status: "80%",
     btns: { next: false, prev: true, staging: false, submit: true },
   },
   {
-    component: "",
+    component: markRaw(Review),
     icon: "subway:search",
     title: "评审状态",
+    status: "90%",
     btns: { next: false, prev: false, staging: false, submit: false },
   },
   {
     component: "",
     icon: "fa-solid:hourglass-end",
     title: "申报结束",
+    status: "100%",
     btns: { next: false, prev: false, staging: false, submit: false },
   },
 ];
+const steps = computed(() => {
+  return pageComponents.map(item => ({title: item.title,status: item.status}))
+})
 const currentPage = computed(() => {
   return pageComponents[currentStepIndex.value];
 });
@@ -156,6 +166,15 @@ const nextStepFn = async () => {
 // 提交
 const submitFn = async () => {
   // 数据提交
+  if (!pageComponentRef.value) return;
+  try {
+    let formData = await pageComponentRef.value.submit();
+    if (!formData) return;
+    formAllData.value = Object.assign(formAllData.value, formData); // formData { } 数据暂存
+    maxStepChange();
+  } catch (err) {
+    console.log(err);
+  }
 };
 </script>
 
@@ -219,7 +238,7 @@ const submitFn = async () => {
 /* 过渡动画样式 */
 .fade-slide-enter-active,
 .fade-slide-leave-active {
-  transition: all 0.5s cubic-bezier(0.55, 0, 0.1, 1);
+  transition: all 0.3s cubic-bezier(0.55, 0, 0.1, 1);
 }
 
 .fade-slide-enter-from {

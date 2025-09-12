@@ -21,7 +21,7 @@
 import { computed } from "vue";
 import applyForMsg from "../index";
 let formAllData = inject("formAllData");
-let deviceType = formAllData.value?.licenseDeviceName;
+let deviceType = formAllData.value?.licenseDeviceName; // 许可设备名称
 
 let route = useRoute();
 let type = route.query.type;

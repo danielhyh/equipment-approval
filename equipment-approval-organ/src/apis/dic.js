@@ -4,5 +4,8 @@ export function getDict() {
   return instance({
     url: `/admin-api/system/dict-data/simple-list`,
     method: "get",
+    customHeader: {
+      authorization: "test1",
+    },
   });
 }

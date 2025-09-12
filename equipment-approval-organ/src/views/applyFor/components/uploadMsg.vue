@@ -76,7 +76,7 @@ import applyForMsg from "../index";
 import { createUploadFile,createApplyMaterial } from "@/apis/applyFor";
 import { genFileId } from "element-plus";
 import { Upload, Delete, Document } from "@element-plus/icons-vue";
-
+let formAllData = inject('formAllData')
 let route = useRoute();
 let type = route.query.type;
 let entity = computed(() => applyForMsg[type]);
@@ -166,13 +166,13 @@ const handleExceed = async (files, index, row) => {
 };
 
 const handleError = (error, index, row) => {
-  console.log(error,'____');
   row.fileName = "";
   row.fileSize = "";
+  row.filePath = ""
 };
 const handleSuccess = (response, index, row) => {
   console.log(response,'00-000');
-  // 修改row
+  row.filePath = response.data;
 };
 // 自定义上传
 const fileRequestFn = async (file) => {
@@ -182,8 +182,6 @@ const fileRequestFn = async (file) => {
     const formData = new FormData();
     formData.append("file", uploadFile);
    let response =  await createUploadFile(formData);
-    // 显示上传中状态
-    // ElMessage({ message: `文件${uploadFile.name}上传中...`, type: "info" });
     // 调用上传成功回调
     // onSuccess(response);
     ElMessage.success(`文件${uploadFile.name}上传成功`);
@@ -200,6 +198,7 @@ const validor = async () => {
   // 检查是否所有必填项都已上传
   const requiredFields = materialTable.value.filter((item) => item.required === true);
   const unUploadedRequired = requiredFields.filter((item) => !item.filePath);
+  console.log(unUploadedRequired)
   if (unUploadedRequired.length > 0) {
     ElMessage.error(`请上传必要材料：${unUploadedRequired.map((item) => item.text).join("、")}`);
     return false;
@@ -211,20 +210,22 @@ const validor = async () => {
 const submit = async () => {
   const isValid = await validor();
   if (!isValid) return false;
-
-  // 构建提交数据 发送请求
-  const formData = {
-    files: materialTable.value
-      .map((item) => ({
-        name: item.text,
-        fileName: item.fileName,
-        fileUrl: item.fileUrl,
-        file: item.file,
-        required: item.required,
-      }))
-      .filter((item) => item.fileName), // 只提交已上传的文件
-  };
-  return formData;
+  let params = materialTable.value.map((item) => ({
+    applicationId: formAllData.value?.appNoId,
+    materialType: item.materialType,
+    materialName: item.fileName,
+    filePath: item.filePath,
+    fileSize: item.fileSize+'',
+  }));
+  try{
+    await createApplyMaterial(params);
+    ElMessage.success("提交成功");
+    return {};
+  }catch(err){
+    ElMessage.error("提交失败");
+    return false;
+  }
+ 
 };
 defineExpose({
   validor,

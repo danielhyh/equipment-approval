@@ -25,6 +25,7 @@ import BasisInfo from "./basis.vue";
 import MsgBox from "./msgBox.vue";
 import { ElMessageBox } from "element-plus";
 import { useUserStore } from "@/pinia/modules/user";
+import { loginOutSystem } from "@/apis/login";
 const userStore = useUserStore();
 let router = useRouter();
 const logoutFn = () => {
@@ -33,7 +34,8 @@ const logoutFn = () => {
     cancelButtonText: "取消",
     type: "warning",
   })
-    .then(() => {
+    .then(async () => {
+      await loginOutSystem();
       // 确认退出登录
       userStore.loginOut();
       router.push({ name: "Login" });

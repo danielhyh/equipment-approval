@@ -19,17 +19,21 @@ export const useDictStore = defineStore("dict", {
   actions: {
     async setDictList() {
       if (!isEmptyObject(this.dictList)) return;
-      let { data } = await getDict();
-      if (!Array.isArray(data)) return;
-      for (let i = 0; i < data.length; i++) {
-        if (this.dictList[data[i].dictType]) {
-          this.dictList[data[i].dictType].push(data[i]);
-        } else {
-          this.dictList[data[i].dictType] = [data[i]];
+      try {
+        let { data } = await getDict();
+        if (!Array.isArray(data)) return;
+        for (let i = 0; i < data.length; i++) {
+          if (this.dictList[data[i].dictType]) {
+            this.dictList[data[i].dictType].push(data[i]);
+          } else {
+            this.dictList[data[i].dictType] = [data[i]];
+          }
         }
+        this.initDICT = true;
+        sessionSet("dictCache", JSON.stringify(this.dictList));
+      } catch (err) {
+        console.log(err, "字典获取失败");
       }
-      this.initDICT = true;
-      sessionSet("dictCache", JSON.stringify(this.dictList));
     },
     getDictTypeList(dictType) {
       if (!this.dictList[dictType]) return [];

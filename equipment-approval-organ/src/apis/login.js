@@ -5,7 +5,7 @@ import request from "@/utils/request";
 // 账号密码登录 {username: "admin", password: "123456"}
 export function accountLogin(data) {
   return request({
-    url: "/admin-api/system/auth/login",
+    url: "/app-api/user/auth/login",
     method: "post",
     data,
   });
@@ -24,6 +24,14 @@ export function sendLoginCode(mobile) {
     url: "/admin-api/system/auth/send-sms-code",
     method: "post",
     data: { mobile, scene: 1 },
+  });
+}
+
+// 推出登录
+export function loginOutSystem() {
+  return request({
+    url: "/app-api/user/auth/logout",
+    method: "post",
   });
 }
 

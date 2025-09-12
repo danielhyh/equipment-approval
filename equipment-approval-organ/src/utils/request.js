@@ -16,7 +16,7 @@ let noNeedTokenReq = ["/admin-api/system/auth/login"];
 // 前置拦截器（发起请求之前的拦截）
 instance.interceptors.request.use(
   (config) => {
-    let { customHeader } = config.headers;
+    let { customHeader } = config;
     const userStore = useUserStore();
     /**
      * 在这里一般会携带前台的参数发送给后台，比如下面这段代码：

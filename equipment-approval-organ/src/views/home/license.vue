@@ -21,7 +21,11 @@
       <el-table-column type="index" label="序号" :index="indexFn" width="50" align="center" fixed="left" />
       <!-- 许可证编号	证书类型	许可设备名称	阶梯配置机型	设备配置地址	发证日期	配置状态	生产企业	具体型号	装机日期	操作 -->
       <el-table-column prop="licenseNo" label="许可证编号" align="center" fixed="left" />
-      <!-- <el-table-column prop="type" label="证书类型" align="center" /> -->
+      <el-table-column prop="appType" label="证书类型" align="center" >
+        <template #default="{row}">
+          {{ applyTypeDict.find(item => item.value === row.appType+'')?.label || '-' }}
+        </template>
+      </el-table-column>
       <el-table-column prop="licenseDeviceName" label="许可设备名称" align="center" />
       <el-table-column prop="ladderConfigModel" label="阶梯配置机型" align="center" />
       <el-table-column prop="equipmentConfigAddress" label="设备配置地址" align="center" />
@@ -68,6 +72,7 @@ let listType = reactive([
   { label: "常规放射治疗类设备", value: 0, key: "4" },
   { label: "首次配置的大型医疗器械", value: 0, key: "5" },
 ]);
+// 设备类型
 let equipmentTypeDict = computed(()=>dictStore.getDictTypeList("biz_main_equipment_type"));
 watch(()=>equipmentTypeDict.value, (v) => {
   if(v.length===0)return
@@ -80,6 +85,8 @@ watch(()=>equipmentTypeDict.value, (v) => {
   })
   listType.unshift({ label: "全部证书", value: 0, key: "all" })
 },{immediate:true});
+
+let applyTypeDict = computed(()=>dictStore.getDictTypeList("biz_app_type"));
 // 自定义序号
 const indexFn = (index) => {
   // pageSize pageNum

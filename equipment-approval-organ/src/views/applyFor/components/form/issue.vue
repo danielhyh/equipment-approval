@@ -1,5 +1,5 @@
 <template>
-  <el-form :model="formData" :rules="rules" ref="formRef" label-width="120px" label-position="top" class="grid-form">
+  <el-form :model="formData" :rules="rules" ref="formRef" label-width="120px" label-position="top" class="grid-form" v-loading="loading">
     <!-- 组织机构名称（配置单位名称）* -->
     <el-form-item label="组织机构名称（配置单位名称）*" prop="institutionName" disabled>
       <el-input v-model="formData.institutionName" placeholder="请输入组织机构名称（配置单位名称）" disabled />
@@ -18,7 +18,7 @@
     </el-form-item>
     <!-- 许可设备名称* -->
     <el-form-item label="许可设备名称*" prop="licenseDeviceName" class="grid-item-l-2">
-      <el-select v-model="formData.licenseDeviceName" placeholder="请选择许可设备名称" clearable>
+      <el-select v-model="formData.licenseDeviceName" placeholder="请选择许可设备名称" clearable :disabled="submitSuccess">
         <el-option
           v-for="item in deviceOptions"
           :key="item.value"
@@ -30,7 +30,7 @@
     </el-form-item>
     <!-- 阶梯配置机型* -->
     <el-form-item label="阶梯配置机型*" prop="ladderConfigModel" class="grid-item-r-2">
-      <el-select v-model="formData.ladderConfigModel" placeholder="请输入阶梯配置机型" clearable>
+      <el-select v-model="formData.ladderConfigModel" placeholder="请输入阶梯配置机型" clearable :disabled="submitSuccess">
         <el-option v-for="item in modelOptions" :key="item.value" :label="item.label" :value="item.value" />
       </el-select>
     </el-form-item>
@@ -53,12 +53,15 @@
 </template>
 
 <script setup>
+import {isEmptyObject} from "@/utils/tools"
 import { useUserStore } from '@/pinia/modules/user';
 import {useDictStore} from '@/pinia/modules/dict';
 import { createApply } from "@/apis/applyFor"
 let userStore = useUserStore();
 let dictStore = useDictStore();
 const appType = inject('applyType'); // 申请类型
+
+let formDataInject = inject('formAllData');
 let formRef = ref(null);
 let formData = reactive({
   institutionName: "", // 组织机构名称（配置单位名称）
@@ -75,7 +78,6 @@ let rules = reactive({
   licenseDeviceName: [{ required: true, message: "请选择许可设备名称", trigger: "blur" }],
   ladderConfigModel: [{ required: true, message: "请输入阶梯配置机型", trigger: "blur" }],
 });
-
 let userInfo = computed(()=>userStore.getUser)
 // 数据初始化
 watch(()=>userInfo.value,(user)=>{
@@ -99,22 +101,30 @@ const validor = () => {
     });
   });
 };
+let loading = ref(false)
+let submitSuccess = ref(false)
 const submit = () => {
   return new Promise(async (resolve, reject) => {
     try {
       await validor();
+      if(submitSuccess.value){resolve(JSON.parse(JSON.stringify(formData)));return}
       let params = {
         // id:formData.id
         institutionId: userInfo.value.institutionId,
-        licenseDeviceName:formData.licenseDeviceName, // 这个下一步会用到
-        ladderConfigModel:formData.ladderConfigModel,
+        // licenseDeviceName:formData.licenseDeviceName, // 这个下一步会用到
+        licenseDeviceName: deviceOptions.value.find(item=>item.value === formData.licenseDeviceName)?.label,
+        // ladderConfigModel:formData.ladderConfigModel,
+        ladderConfigModel: modelOptions.value.find(item=>item.value === formData.ladderConfigModel)?.label,
         appType: appType,
       }
-      // console.log(params)
-      // console.log(userInfo.value)
-      // await createApply(params)
+      loading.value = true
+      let response =  await createApply(params)
+      formData.appNoId = response.data // 申请Id 资料上传需要
+      loading.value = false
+      submitSuccess.value = true
       resolve(JSON.parse(JSON.stringify(formData)));
     } catch (err) {
+      loading.value = false
       reject(err);
     }
   });
