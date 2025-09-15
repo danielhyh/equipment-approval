@@ -10,7 +10,7 @@ export interface Application {
   licenseDeviceName: string // 许可设备名称
   ladderConfigModel: string // 阶梯配置机型
   configReason: string // 配置理由
-  appStatus?: number // 申请状态：1-待初审，2-初审通过，3-初审不通过，4-待专家审核，5-专家审核通过，6-专家审核不通过，7-副本待审批，8-验收资料待审批，9-已完成
+  appStatus?: number // 申请状态：1-待初审，2-初审通过，3-待专家审核,4-专家审核不通过，5-专家审核通过，，7-副本待审批，8-验收资料待审批，9-已完成
   initialReviewResult: number // 初审结果：1-通过，0-不通过
   initialReviewOpinion: string // 初审意见
   initialReviewerId: number // 初审人ID
