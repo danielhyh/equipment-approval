@@ -1,6 +1,9 @@
 <template>
   <div>
-    <h3 class="c-165DFF m-b-15 f-w-700">{{ pageTitle }}(申请单位为{{ deptName }})</h3>
+    <h3 class="c-165DFF m-b-15 f-w-700">
+      {{ headTitle }}
+      <!-- {{ pageTitle }}(申请单位为{{ deptName }}) -->
+    </h3>
     <h4 class="c-165DFF m-b-10">审批条件</h4>
     <p class="l-h-1_5 c-64748b f-s-16 m-b-10">{{ condition?.remark }}</p>
     <ul class="m-b-10">
@@ -34,18 +37,16 @@
 import { inject, onMounted, watch } from "vue";
 import applyForMsg from "../index";
 
-let formAllData = inject('formAllData')
-let disabled = inject('disabled')
+let formAllData = inject("formAllData");
+let disabled = inject("disabled");
+let deptMsg = inject("deptMsg");
+let headTitle = inject("headTitle");
 let route = useRoute();
 let router = useRouter();
 let type = route.query.type;
-
-let dept = "shby"; // todo 后续从pinia 取值转化
-// 部门名称
-let deptName = computed(() => applyForMsg.dept[dept]);
+let dept = deptMsg.cssClass; // 部门 前端标记 机构性质
 // 数据
 let entity = computed(() => applyForMsg[type]);
-let pageTitle = computed(() => entity.value?.title);
 // 审批条件
 let condition = computed(() => entity.value?.condition);
 let material = computed(() => entity.value?.material?.dept[dept]);
@@ -62,7 +63,6 @@ const goGuide = () => {
     },
   });
 };
-
 // 校验
 const validor = () => {
   return new Promise((resolve, reject) => {
@@ -89,9 +89,13 @@ const submit = () => {
     }
   });
 };
-watch(()=>formAllData.value?.checked,(val)=>{
+watch(
+  () => formAllData.value?.checked,
+  (val) => {
     checked.value = val;
-},{immediate:true})
+  },
+  { immediate: true }
+);
 
 defineExpose({
   validor,

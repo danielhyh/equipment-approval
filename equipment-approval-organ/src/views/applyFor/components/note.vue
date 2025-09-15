@@ -1,6 +1,8 @@
 <template>
   <div>
-    <h3 class="c-165DFF m-b-15 f-w-700">{{ pageTitle }}(申请单位为{{ deptName }})</h3>
+    <h3 class="c-165DFF m-b-15 f-w-700">
+      {{ headTitle }}
+    </h3>
     <h4 class="c-165DFF m-b-10">审批条件</h4>
     <p class="l-h-1_5 c-64748b f-s-16 m-b-10 text-indent-2em">{{ NoteRemark }}</p>
     <div v-for="(item, index) in NoteList" :key="index" class="m-b-10">
@@ -25,12 +27,9 @@ let deviceType = formAllData.value?.licenseDeviceName; // 许可设备名称
 
 let route = useRoute();
 let type = route.query.type;
-let dept = "shby"; // todo 后续从pinia 取值转化
-// 部门名称
-let deptName = computed(() => applyForMsg.dept[dept]);
+let headTitle = inject("headTitle");
 
 let entity = computed(() => applyForMsg[type]);
-let pageTitle = computed(() => entity.value?.title);
 let Note = computed(() => entity.value?.note[deviceType]);
 let NoteRemark = computed(() => Note.value.remark);
 let NoteList = computed(() => Note.value.list);

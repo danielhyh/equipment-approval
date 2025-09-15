@@ -1,6 +1,6 @@
 <template>
   <div>
-    <h3 class="c-165DFF m-b-15 f-w-700">{{ pageTitle }}(申请单位为{{ deptName }})</h3>
+    <h3 class="c-165DFF m-b-15 f-w-700">{{ headTitle }}</h3>
     <div class="p-10 b-solid-1-0891b2 b-r-10 m-b-10">
       <div class="flex items-center c-0891b2 l-h-1_5 m-b-10">
         <svg-icon name="flowbite:lightbulb-solid" size="24" color="#0891b2" />
@@ -19,14 +19,9 @@
 
 <script setup>
 import IssueForm from "./form/issue.vue";
-import applyForMsg from "../index";
 let route = useRoute();
 let type = route.query.type;
-let entity = computed(() => applyForMsg[type]);
-let pageTitle = computed(() => entity.value?.title);
-let dept = "shby"; // todo 后续从pinia 取值转化
-// 部门名称
-let deptName = computed(() => applyForMsg.dept[dept]);
+let headTitle = inject("headTitle");
 
 // 表单组件
 let formComRef = ref(null);

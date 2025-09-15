@@ -155,6 +155,7 @@ const submit = () => {
       loading.value = true;
       let response = await (formData.id ? updateApply(params) : createApply(params));
       formData.appNoId = formData.id ? formData.id : response.data; // 申请Id 资料上传需要
+      formData.appStatus = 1 // 前端状态
       loading.value = false;
       submitSuccess.value = true;
       resolve(JSON.parse(JSON.stringify(formData)));

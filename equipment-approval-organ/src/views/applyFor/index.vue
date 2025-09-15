@@ -48,9 +48,12 @@ import UploadMsg from "./components/uploadMsg.vue";
 import Review from "./components/review.vue";
 import reviewEnd from "./components/reviewEnd.vue";
 import { useDictStore } from "@/pinia/modules/dict.js";
+import { useUserStore } from "@/pinia/modules/user.js";
 import { computed, onMounted, provide } from "vue";
 const dictStore = useDictStore();
+const userStore = useUserStore();
 const applyTypeDict = computed(() => dictStore.getDictTypeList("biz_app_type"));
+const institutionDict = computed(() => dictStore.getDictTypeList("biz_institution_type"));
 // 许可设备
 let deviceOptions = computed(() => dictStore.getDictTypeList("biz_main_equipment_type"));
 // 阶梯配置机型
@@ -60,11 +63,18 @@ const applyId = route.query.id;
 const type = route.query.type; // todo 后续优化传入子组件
 const handle = route.query.handle;
 provide("disabled", handle === "detail");
-let dept = "shby"; // todo 后续从pinia 取值转化
+let dept = computed(() => {
+  let userInfo = userStore.getUser;
+  let deptMsg = institutionDict.value.find((item) => item.value === userInfo?.institutionType);
+  return deptMsg || { cssClass: "shby", label: "社会办医", value: "1" };
+});
 // 部门名称
-let deptName = computed(() => applyForMsg.dept[dept]);
-// 标题  优化todo 后续优化可以将这个传入子组件
+let deptName = computed(() => dept.value.label);
+// 标题
 const title = computed(() => applyForMsg[type].title);
+const headTitle = computed(() => `${title.value}（申请单位为${deptName.value}）`);
+provide("headTitle", headTitle.value);
+provide("deptMsg", dept.value);
 // 当前步骤索引（从0开始）
 const currentStepIndex = ref(0);
 let maxStep = ref(0);
