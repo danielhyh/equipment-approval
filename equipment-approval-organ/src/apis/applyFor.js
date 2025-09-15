@@ -1,5 +1,4 @@
-import instance from "@/utils/request.js";
-
+import instance, { get } from "@/utils/request.js";
 // 创建申请 | 修改
 /**
  *
@@ -16,14 +15,21 @@ import instance from "@/utils/request.js";
 export const createApply = (data) => {
   return instance.post("/app-api/biz/application/create", data);
 };
+export const updateApply = (data) => {
+  return instance.put("/app-api/biz/application/update", data);
+};
 
+// 申请详情
+export const getApplyDetail = (id) => {
+  return instance.get(`/app-api/biz/application/get?id=${id}`);
+};
 // 文件上传
 export const createUploadFile = (data) => {
   return instance.post("/app-api/infra/file/upload", data);
 };
-// 申报材料提交 
+// 申报材料提交
 /**
- * 
+ *
  * @param {
  * applicationId:'申请ID', int
  * materialType:'材料类型', int
@@ -31,8 +37,13 @@ export const createUploadFile = (data) => {
  * filePath:'文件路径', string
  * fileSize:'文件大小', string
  * } data []
- * @returns 
+ * @returns
  */
 export const createApplyMaterial = (data) => {
-  return instance.post("app-api/biz/appMaterial/insert", data);
-}
+  return instance.post("/app-api/biz/appMaterial/insert", data);
+};
+
+// 获取资料
+export const getApplyMaterial = (id) => {
+  return get("/app-api/biz/appMaterial/list",{id});
+};

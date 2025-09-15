@@ -36,35 +36,37 @@
           <!-- 序号列 -->
           <el-table-column type="index" label="序号" width="50" fixed="left" align="center" />
           <!-- 申请编号 -->
-          <el-table-column prop="appNo" label="申请编号" width="180" align="center" >
+          <el-table-column prop="appNo" label="申请编号" width="180" align="center">
             <template #default="scope">
-              {{ scope.row.appNo || '-' }}
+              {{ scope.row.appNo || "-" }}
             </template>
           </el-table-column>
           <!-- 申请类型 -->
-          <el-table-column prop="appType" label="申请类型" align="center" >
+          <el-table-column prop="appType" label="申请类型" align="center" fixed="left">
             <template #default="scope">
-              {{ applyTypeDict.find(item => item.value === scope.row.appType+'')?.label || '-' }}
+              {{ applyTypeDict.find((item) => item.value === scope.row.appType + "")?.label || "-" }}
             </template>
           </el-table-column>
-         
+
           <!-- 许可设备名称 -->
-          <el-table-column prop="licenseDeviceName" label="许可设备名称"  align="center" />
+          <el-table-column prop="licenseDeviceName" label="许可设备名称" align="center" />
           <!-- 阶梯配置机型 -->
           <el-table-column prop="ladderConfigModel" label="阶梯配置机型" width="180" align="center" />
-           <!-- 创建日期 -->
-           <el-table-column prop="createTime" label="创建日期" width="180" align="center" />
+          <!-- 创建日期 -->
+          <el-table-column prop="createTime" label="创建日期" width="180" align="center" />
           <!-- 进度状态 -->
-          <el-table-column prop="appStatus" label="进度状态" align="center" >
+          <el-table-column prop="appStatus" label="进度状态" align="center">
             <template #default="scope">
-              {{ statusDict.find(item => item.value === scope.row.appStatus+'')?.label || '-' }}
+              {{ statusDict.find((item) => item.value === scope.row.appStatus + "")?.label || "-" }}
             </template>
           </el-table-column>
 
           <el-table-column prop="guideProcess" label="操作" width="180" fixed="right" align="center">
             <template #default="scope">
               <el-button type="primary" size="small" @click.stop="handleDetail(scope.row)">详情</el-button>
-              <el-button type="warning" size="small" @click.stop="handleEdit(scope.row)">修改</el-button>
+              <el-button type="warning" size="small" v-if="scope.row.appStatus === 1" @click.stop="handleEdit(scope.row)">
+                修改
+              </el-button>
             </template>
           </el-table-column>
           <template #empty>
@@ -128,13 +130,15 @@ const statusDict = dictStore.getDictTypeList("biz_app_status");
 const getToDoListFn = () => {
   getApplyList()
     .then((res) => {
-      let { data:{list}}  = res
-      toDoList.value = (list || []).map(item=>{
+      let {
+        data: { list },
+      } = res;
+      toDoList.value = (list || []).map((item) => {
         return {
           ...item,
           createTime: formatDate(item.createTime),
-        }
-      })
+        };
+      });
     })
     .catch((err) => {
       toDoList.value = [];
@@ -142,11 +146,61 @@ const getToDoListFn = () => {
 };
 // 办理列表 详情
 const handleDetail = (row) => {
-  console.log(row);
+  let { appNo, appType, id, appStatus, createTime, licenseDeviceName, ladderConfigModel } = row;
+  let applyType = null;
+  switch (appType) {
+    case 1:
+      applyType = "issue";
+      break;
+    case 2:
+      applyType = "reissue";
+      break;
+    case 3:
+      applyType = "change";
+      break;
+    case 4:
+      applyType = "basis";
+      break;
+    default:
+      applyType = null;
+  }
+  if (!applyType) {
+    ElMessage.error("申请类型不存在");
+    return;
+  }
+  router.push({
+    path: `/deputy/apply-for`,
+    query: { id, type: applyType, handle: "detail" },
+  });
 };
 // 办理列表 编辑
 const handleEdit = (row) => {
-  console.log(row);
+  let { appNo, appType, id, appStatus, createTime, licenseDeviceName, ladderConfigModel } = row;
+  let applyType = null;
+  switch (appType) {
+    case 1:
+      applyType = "issue";
+      break;
+    case 2:
+      applyType = "reissue";
+      break;
+    case 3:
+      applyType = "change";
+      break;
+    case 4:
+      applyType = "basis";
+      break;
+    default:
+      applyType = null;
+  }
+  if (!applyType) {
+    ElMessage.error("申请类型不存在");
+    return;
+  }
+  router.push({
+    path: `/deputy/apply-for`,
+    query: { id, type: applyType },
+  });
 };
 
 onMounted(() => {

@@ -1,5 +1,14 @@
 <template>
-  <el-form :model="formData" :rules="rules" ref="formRef" label-width="120px" label-position="top" class="grid-form" v-loading="loading">
+  <el-form
+    :model="formData"
+    :rules="rules"
+    ref="formRef"
+    label-width="120px"
+    label-position="top"
+    class="grid-form"
+    v-loading="loading"
+    :disabled="disabled"
+  >
     <!-- 组织机构名称（配置单位名称）* -->
     <el-form-item label="组织机构名称（配置单位名称）*" prop="institutionName" disabled>
       <el-input v-model="formData.institutionName" placeholder="请输入组织机构名称（配置单位名称）" disabled />
@@ -53,23 +62,24 @@
 </template>
 
 <script setup>
-import {isEmptyObject} from "@/utils/tools"
-import { useUserStore } from '@/pinia/modules/user';
-import {useDictStore} from '@/pinia/modules/dict';
-import { createApply } from "@/apis/applyFor"
+import { isEmptyObject } from "@/utils/tools";
+import { useUserStore } from "@/pinia/modules/user";
+import { useDictStore } from "@/pinia/modules/dict";
+import { createApply, updateApply } from "@/apis/applyFor";
 let userStore = useUserStore();
 let dictStore = useDictStore();
-const appType = inject('applyType'); // 申请类型
+const appType = inject("applyType"); // 申请类型
 
-let formDataInject = inject('formAllData');
+let formAllData = inject("formAllData");
+let disabled = inject("disabled");
 let formRef = ref(null);
 let formData = reactive({
   institutionName: "", // 组织机构名称（配置单位名称）
   legalPerson: "", // 法定代表人（或主要负责人）
   unifiedSocialCreditCode: "", // 统一社会信用代码
   ownershipNature: "", // 所有制性质
-  licenseDeviceName: "1", // 许可设备名称
-  ladderConfigModel: "1", // 阶梯配置机型
+  licenseDeviceName: "", // 许可设备名称
+  ladderConfigModel: "", // 阶梯配置机型
   detailedAddress: "", // 设备配置地址
   contactPerson: "", // 联系人
   contactPhone: "", // 联系人电话
@@ -78,17 +88,31 @@ let rules = reactive({
   licenseDeviceName: [{ required: true, message: "请选择许可设备名称", trigger: "blur" }],
   ladderConfigModel: [{ required: true, message: "请输入阶梯配置机型", trigger: "blur" }],
 });
-let userInfo = computed(()=>userStore.getUser)
+let userInfo = computed(() => userStore.getUser);
 // 数据初始化
-watch(()=>userInfo.value,(user)=>{
-  Object.keys(formData).forEach((key)=>{
-    formData[key] = user[key]||formData[key]
-  })
-},{immediate:true})
+watch(
+  () => userInfo.value,
+  (user) => {
+    Object.keys(formData).forEach((key) => {
+      formData[key] = user[key] || formData[key];
+    });
+  },
+  { immediate: true }
+);
+watch(
+  () => formAllData.value,
+  (newVal) => {
+    formData.id = newVal.id;
+    formData.appStatus = newVal.appStatus;
+    formData.licenseDeviceName = newVal.licenseDeviceName; // 许可设备名称
+    formData.ladderConfigModel = newVal.ladderConfigModel; // 阶梯配置机型
+  },
+  { immediate: true }
+);
 // 许可设备
-let deviceOptions = computed(()=>dictStore.getDictTypeList("biz_main_equipment_type"))
+let deviceOptions = computed(() => dictStore.getDictTypeList("biz_main_equipment_type"));
 // 阶梯配置机型
-let modelOptions = computed(()=>dictStore.getDictTypeList("biz_ladder_config_model"))
+let modelOptions = computed(() => dictStore.getDictTypeList("biz_ladder_config_model"));
 
 const validor = () => {
   return new Promise((resolve, reject) => {
@@ -101,30 +125,41 @@ const validor = () => {
     });
   });
 };
-let loading = ref(false)
-let submitSuccess = ref(false)
+let loading = ref(false);
+let submitSuccess = ref(false);
 const submit = () => {
   return new Promise(async (resolve, reject) => {
     try {
       await validor();
-      if(submitSuccess.value){resolve(JSON.parse(JSON.stringify(formData)));return}
+      if (submitSuccess.value) {
+        resolve(JSON.parse(JSON.stringify(formData)));
+        return;
+      }
       let params = {
-        // id:formData.id
         institutionId: userInfo.value.institutionId,
         // licenseDeviceName:formData.licenseDeviceName, // 这个下一步会用到
-        licenseDeviceName: deviceOptions.value.find(item=>item.value === formData.licenseDeviceName)?.label,
-        // ladderConfigModel:formData.ladderConfigModel,
-        ladderConfigModel: modelOptions.value.find(item=>item.value === formData.ladderConfigModel)?.label,
+        licenseDeviceName: deviceOptions.value.find((item) => item.value === formData.licenseDeviceName)?.label,
+        ladderConfigModel: modelOptions.value.find((item) => item.value === formData.ladderConfigModel)?.label,
         appType: appType,
+        appStatus: 1,
+      };
+      if (formData.id) {
+        params.id = formData.id;
       }
-      loading.value = true
-      let response =  await createApply(params)
-      formData.appNoId = response.data // 申请Id 资料上传需要
-      loading.value = false
-      submitSuccess.value = true
+      if (formData.appStatus) {
+        params.appStatus = formData.appStatus;
+      }
+      if (formAllData.value.institutionId) {
+        params.institutionId = formAllData.value.institutionId;
+      }
+      loading.value = true;
+      let response = await (formData.id ? updateApply(params) : createApply(params));
+      formData.appNoId = formData.id ? formData.id : response.data; // 申请Id 资料上传需要
+      loading.value = false;
+      submitSuccess.value = true;
       resolve(JSON.parse(JSON.stringify(formData)));
     } catch (err) {
-      loading.value = false
+      loading.value = false;
       reject(err);
     }
   });

@@ -39,18 +39,27 @@
 
 <script setup>
 import applyForMsg from "./index.js";
+import { getApplyDetail } from "@/apis/applyFor.js";
 import { Back, Right, Checked, List } from "@element-plus/icons-vue";
 import Notice from "./components/notice.vue";
 import DeclareMsg from "./components/declareMsg.vue";
 import Note from "./components/note.vue";
 import UploadMsg from "./components/uploadMsg.vue";
 import Review from "./components/review.vue";
+import reviewEnd from "./components/reviewEnd.vue";
 import { useDictStore } from "@/pinia/modules/dict.js";
-import { computed } from "vue";
+import { computed, onMounted, provide } from "vue";
 const dictStore = useDictStore();
-const applyTypeDict = computed(()=>dictStore.getDictTypeList("biz_app_type"))
+const applyTypeDict = computed(() => dictStore.getDictTypeList("biz_app_type"));
+// 许可设备
+let deviceOptions = computed(() => dictStore.getDictTypeList("biz_main_equipment_type"));
+// 阶梯配置机型
+let modelOptions = computed(() => dictStore.getDictTypeList("biz_ladder_config_model"));
 const route = useRoute();
+const applyId = route.query.id;
 const type = route.query.type; // todo 后续优化传入子组件
+const handle = route.query.handle;
+provide("disabled", handle === "detail");
 let dept = "shby"; // todo 后续从pinia 取值转化
 // 部门名称
 let deptName = computed(() => applyForMsg.dept[dept]);
@@ -98,7 +107,7 @@ const pageComponents = [
     btns: { next: false, prev: false, staging: false, submit: false },
   },
   {
-    component: "",
+    component: markRaw(reviewEnd),
     icon: "fa-solid:hourglass-end",
     title: "申报结束",
     status: "100%",
@@ -106,8 +115,8 @@ const pageComponents = [
   },
 ];
 const steps = computed(() => {
-  return pageComponents.map(item => ({title: item.title,status: item.status}))
-})
+  return pageComponents.map((item) => ({ title: item.title, status: item.status }));
+});
 const currentPage = computed(() => {
   return pageComponents[currentStepIndex.value];
 });
@@ -115,24 +124,27 @@ const currentbtns = computed(() => {
   return currentPage.value.btns;
 });
 const showFooter = computed(() => {
-  return currentbtns.value.next || currentbtns.value.prev || currentbtns.value.staging || currentbtns.value.submit;
+  return (
+    (currentbtns.value.next || currentbtns.value.prev || currentbtns.value.staging || currentbtns.value.submit) &&
+    handle !== "detail"
+  );
 });
 
 let formAllData = ref({});
 provide("formAllData", formAllData);
-let typeKey = computed(()=>{
-  switch(type){
-    case 'issue':
-      return '1' 
-    case 'reissue':
-      return '2'
-    case 'change':
-      return '3'
-    case 'info':
-      return '4'
+let typeKey = computed(() => {
+  switch (type) {
+    case "issue":
+      return 1;
+    case "reissue":
+      return 2;
+    case "change":
+      return 3;
+    case "info":
+      return 4;
   }
-})
-provide('applyType',typeKey.value)//申请类型
+});
+provide("applyType", typeKey.value); //申请类型
 // 步骤器变化 ++
 const maxStepChange = () => {
   if (currentStepIndex.value === maxStep.value) {
@@ -149,7 +161,6 @@ const stagingFn = () => {
 const prevStepFn = () => {
   currentStepIndex.value--;
 };
-
 // 下一步
 const nextStepFn = async () => {
   if (!pageComponentRef.value) return;
@@ -162,7 +173,6 @@ const nextStepFn = async () => {
     console.log(err);
   }
 };
-
 // 提交
 const submitFn = async () => {
   // 数据提交
@@ -176,6 +186,45 @@ const submitFn = async () => {
     console.log(err);
   }
 };
+// 获取详情
+const getApplyDetailFn = async () => {
+  if (!applyId) return;
+  try {
+    let res = await getApplyDetail(applyId);
+    let { data } = res;
+    formAllData.value = data;
+    // 许可设备
+    if (data.licenseDeviceName) {
+      formAllData.value.licenseDeviceName = deviceOptions.value.find((item) => item.label === data.licenseDeviceName)?.value;
+    }
+    // 阶梯配置机型
+    if (data.ladderConfigModel) {
+      formAllData.value.ladderConfigModel = modelOptions.value.find((item) => item.label === data.ladderConfigModel)?.value;
+    }
+    formAllData.value.checked = true;
+    // 评审状态
+    switch (data.appStatus) {
+      case 1:
+      case 3:
+        maxStep.value = 4;
+        currentStepIndex.value = 4;
+        break;
+      case 2:
+      case 4:
+      case 5:
+        maxStep.value = 5;
+        currentStepIndex.value = 4;
+        break;
+      default:
+        break;
+    }
+  } catch (err) {
+    console.log(err);
+  }
+};
+onMounted(() => {
+  getApplyDetailFn();
+});
 </script>
 
 <style lang="scss" scoped>

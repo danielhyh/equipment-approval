@@ -23,7 +23,7 @@
     </div>
     <!-- 声明勾选 -->
     <div class="m-t-40 m-l-r-20 p-t-b-10 p-l-r-20 b-r-10 bg-c-f8fafc b-solid-2" :class="{ error: validError }">
-      <el-checkbox v-model="checked" class="custom-checkbox">
+      <el-checkbox v-model="checked" class="custom-checkbox" :disabled="disabled">
         我已仔细阅读并完全理解以上申报须知，确认我的申请满足所有审批条件，具备所有必需材料，并同意按照相关规定进行申报。
       </el-checkbox>
     </div>
@@ -31,8 +31,11 @@
 </template>
 
 <script setup>
+import { inject, onMounted, watch } from "vue";
 import applyForMsg from "../index";
 
+let formAllData = inject('formAllData')
+let disabled = inject('disabled')
 let route = useRoute();
 let router = useRouter();
 let type = route.query.type;
@@ -86,6 +89,9 @@ const submit = () => {
     }
   });
 };
+watch(()=>formAllData.value?.checked,(val)=>{
+    checked.value = val;
+},{immediate:true})
 
 defineExpose({
   validor,

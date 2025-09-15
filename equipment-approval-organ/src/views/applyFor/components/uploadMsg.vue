@@ -14,7 +14,7 @@
 
     <h4 class="c-165DFF m-b-15">申报材料</h4>
 
-    <el-table :data="materialTable" style="width: 100%" class="table_style">
+    <el-table :data="materialTable" style="width: 100%" class="table_style" v-loading="loading">
       <!-- 序号 -->
       <el-table-column type="index" width="60" label="序号" align="center" fixed="left">
         <template #default="{ $index }">
@@ -59,8 +59,9 @@
             :on-exceed="(file) => handleExceed(file, $index, row)"
             :on-error="(file) => handleError(file, $index, row)"
             :on-success="(file) => handleSuccess(file, $index, row)"
+            :disabled="disabled"
           >
-            <el-button type="primary" size="small">
+            <el-button type="primary" size="small" :disabled="disabled">
               <el-icon><Upload /></el-icon>
               <span>{{ row.fileName ? "重新上传" : "上传" }}</span>
             </el-button>
@@ -73,10 +74,13 @@
 
 <script setup>
 import applyForMsg from "../index";
-import { createUploadFile,createApplyMaterial } from "@/apis/applyFor";
+import { createUploadFile, createApplyMaterial, getApplyMaterial } from "@/apis/applyFor";
 import { genFileId } from "element-plus";
 import { Upload, Delete, Document } from "@element-plus/icons-vue";
-let formAllData = inject('formAllData')
+import { nextTick } from "vue";
+let loading = ref(false);
+let formAllData = inject("formAllData");
+let disabled = inject("disabled", () => false);
 let route = useRoute();
 let type = route.query.type;
 let entity = computed(() => applyForMsg[type]);
@@ -84,7 +88,6 @@ let pageTitle = computed(() => entity.value?.title);
 let dept = "shby"; // todo 后续从pinia 取值转化
 // 部门名称
 let deptName = computed(() => applyForMsg.dept[dept]);
-
 // 收取材料列表
 let material = computed(() => entity.value.material.dept[dept].list);
 
@@ -105,6 +108,28 @@ const initTable = () => {
       filePath: null,
     };
   });
+  if (formAllData.value?.id) {
+    initTableDataFn();
+  }
+};
+const initTableDataFn = async () => {
+  try {
+    if (!formAllData.value.id) return;
+    loading.value = true;
+    let response = await getApplyMaterial(formAllData.value.id);
+    materialTable.value.forEach((item, index) => {
+      let res = response.data.find((i) => i.materialName === item.text);
+      if (res) {
+        item.fileName = res.materialName;
+        item.fileSize = res.fileSize;
+        item.filePath = res.filePath;
+      }
+    });
+  } catch (err) {
+    console.log(err);
+  } finally {
+    loading.value = false;
+  }
 };
 
 // 用于存储所有upload实例的映射
@@ -161,17 +186,16 @@ const handleExceed = async (files, index, row) => {
     const file = files[0];
     file.uid = genFileId();
     uploadInstance.handleStart(file);
-    uploadInstance.submit()
+    uploadInstance.submit();
   }
 };
 
 const handleError = (error, index, row) => {
   row.fileName = "";
   row.fileSize = "";
-  row.filePath = ""
+  row.filePath = "";
 };
 const handleSuccess = (response, index, row) => {
-  console.log(response,'00-000');
   row.filePath = response.data;
 };
 // 自定义上传
@@ -181,7 +205,7 @@ const fileRequestFn = async (file) => {
     // 创建FormData对象
     const formData = new FormData();
     formData.append("file", uploadFile);
-   let response =  await createUploadFile(formData);
+    let response = await createUploadFile(formData);
     // 调用上传成功回调
     // onSuccess(response);
     ElMessage.success(`文件${uploadFile.name}上传成功`);
@@ -198,34 +222,34 @@ const validor = async () => {
   // 检查是否所有必填项都已上传
   const requiredFields = materialTable.value.filter((item) => item.required === true);
   const unUploadedRequired = requiredFields.filter((item) => !item.filePath);
-  console.log(unUploadedRequired)
   if (unUploadedRequired.length > 0) {
     ElMessage.error(`请上传必要材料：${unUploadedRequired.map((item) => item.text).join("、")}`);
     return false;
   }
   return true;
 };
-
 // 提交
 const submit = async () => {
   const isValid = await validor();
   if (!isValid) return false;
   let params = materialTable.value.map((item) => ({
-    applicationId: formAllData.value?.appNoId,
+    applicationId: formAllData.value?.id || formAllData.value?.appNoId,
     materialType: item.materialType,
-    materialName: item.fileName,
+    materialName: item.text,
     filePath: item.filePath,
-    fileSize: item.fileSize+'',
+    fileSize: item.fileSize + "",
   }));
-  try{
+  try {
+    loading.value = true;
     await createApplyMaterial(params);
     ElMessage.success("提交成功");
     return {};
-  }catch(err){
+  } catch (err) {
     ElMessage.error("提交失败");
     return false;
+  } finally {
+    loading.value = false;
   }
- 
 };
 defineExpose({
   validor,
