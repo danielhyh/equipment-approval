@@ -123,7 +123,7 @@
                 class="btn expert-btn"
                 type="primary"
                 :icon="Avatar"
-                v-if="scope.row.appStatus === '4'"
+                v-if="scope.row.appStatus === '3'"
                 @click.stop="gotoDetailFn(scope.row, 'expert')"
               >
                 专家审批

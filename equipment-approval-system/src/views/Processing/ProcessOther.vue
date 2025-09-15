@@ -3,7 +3,7 @@
     <div class="header-row">
       <div class="left">
         <el-icon><Monitor /></el-icon>
-        <span>{{ titleName + '-' + basicInfo.institutionName }}</span>
+        <span>{{ titleName + '-' + basicInfo?.institutionName }}</span>
       </div>
       <div class="right">
         <el-button type="primary" :icon="Back" @click="goBack">返回办件中心</el-button>
@@ -14,7 +14,7 @@
         <div class="content-basis-msg">
           <div class="title-row">
             <el-icon><Management /></el-icon>
-            <span> {{ basicInfo.institutionName }}</span>
+            <span> {{ basicInfo?.institutionName }}</span>
           </div>
           <div class="other-row">
             <div class="col"
@@ -102,7 +102,7 @@ const checkDisabled = computed(() => {
   if (typeActive.value.value === 'firstAudit' && status === '1') {
     return false
   }
-  if (typeActive.value.value === 'expertAudit' && status === '4') {
+  if (typeActive.value.value === 'expertAudit' && status === '3') {
     return false
   }
   return true
