@@ -7,6 +7,9 @@ import lombok.Data;
 @Schema(description = "用户申报材料响应")
 public class MaterialResponse {
 
+    @Schema(description = "id")
+    private Long id;
+
     @Schema(description = "1-申请表，2-承诺书，3-营业执照，4-执业许可证，5-技术条件材料，6-补办申请表，7-变更申请表")
     private Integer materialType;
 

@@ -77,24 +77,27 @@
     </select>
     <select id="licensePage"
             resultType="cn.iocoder.yudao.module.biz.controller.app.license.vo.AppLicensePageRespVO">
-        select application_id,
-               a.id as original_id,
-               b.id as duplicate_id,
-               a.license_no,
-               a.issue_date,
-               a.license_device_name,
-               a.ladder_config_model,
-               a.equipment_config_address,
-               c.production_enterprise,
-               c.specific_model,
-               c.installation_date,
-               d.app_type
+        select d.id as application_id,
+        a.id as original_id,
+        b.id as duplicate_id,
+        a.license_no,
+        a.issue_date,
+        a.license_device_name,
+        a.ladder_config_model,
+        a.equipment_config_address,
+        c.production_enterprise,
+        c.specific_model,
+        c.installation_date,
+        d.app_type,
+        IF(b.id IS NOT NULL, 'Y', 'N') AS has_duplicate,
+        IF(e.id IS NOT NULL, 'Y', 'N') AS has_acceptance_material
         from biz_license_original a
         left join biz_license_duplicate b on a.id = b.original_id
         left join biz_application d on d.id = a.application_id
         left join biz_class_a_equipment c on d.equipment_id = c.id
+        left join biz_acceptance_material e on e.application_id = d.id
         <where>
-            and d.creator = #{userId}
+            and d.creator = #{userId} and d.app_status = 5
             <if test="type != null and type != ''">
                 and a.license_device_name = #{type}
             </if>

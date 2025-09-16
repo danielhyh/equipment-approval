@@ -78,6 +78,8 @@ public interface ApplicationService {
      */
     PageResult<ApplicationPageRespVO> getApplicationPage(ApplicationPageReqVO pageReqVO);
 
+    PageResult<ApplicationPageRespVO> getAppApplicationPage(ApplicationPageReqVO pageReqVO);
+
     ApplicationBasicInformationVO getApplicationBasicInformation(Long id);
 
     BusinessInfoVO businessInfo(Long id);

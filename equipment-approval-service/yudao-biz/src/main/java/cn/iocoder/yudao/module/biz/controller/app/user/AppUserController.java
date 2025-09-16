@@ -5,17 +5,20 @@ import cn.iocoder.yudao.framework.common.exception.enums.GlobalErrorCodeConstant
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils;
 import cn.iocoder.yudao.module.biz.controller.app.user.vo.UserInstitutionInfo;
+import cn.iocoder.yudao.module.biz.dal.dataobject.institutionext.InstitutionExtDO;
+import cn.iocoder.yudao.module.biz.dal.mysql.institutionext.InstitutionExtMapper;
+import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
+import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.annotation.Resource;
+import jakarta.validation.Valid;
 import org.springframework.jdbc.core.simple.JdbcClient;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import static cn.iocoder.yudao.framework.common.pojo.CommonResult.success;
 
@@ -27,6 +30,9 @@ public class AppUserController {
 
     @Resource
     private JdbcClient jdbcClient;
+
+    @Resource
+    private InstitutionExtMapper institutionExtMapper;
 
     @GetMapping("/getUserInfo")
     @Operation(summary = "根据用户id查询机构基本信息",
@@ -41,7 +47,7 @@ public class AppUserController {
                 SELECT
                   nickname,
                   b1.institution_name,
-                  b1.id as institution_id,
+                  b1.dept_id as institution_id,
                   b1.legal_person,
                   b1.unified_social_credit_code,
                   b1.detailed_address,
@@ -65,5 +71,26 @@ public class AppUserController {
         }
         UserInstitutionInfo single = jdbcClient.sql(sql).param(loginUserId).query(UserInstitutionInfo.class).single();
         return success(single);
+    }
+
+
+    @PostMapping("update")
+    @Operation(summary = "修改机构基本信息")
+    @io.swagger.v3.oas.annotations.parameters.RequestBody
+    public CommonResult<?> updateUserInfo(@RequestBody UserInstitutionInfo userInstitutionInfo) {
+        LambdaUpdateWrapper<InstitutionExtDO> wrapper = Wrappers.lambdaUpdate(InstitutionExtDO.class)
+                .set(userInstitutionInfo.getContactPerson() != null, InstitutionExtDO::getContactPerson, userInstitutionInfo.getContactPerson())
+                .set(userInstitutionInfo.getContactPhone() != null, InstitutionExtDO::getContactPhone, userInstitutionInfo.getContactPhone())
+                .set(userInstitutionInfo.getLegalPerson() != null, InstitutionExtDO::getLegalPerson, userInstitutionInfo.getLegalPerson())
+                .set(userInstitutionInfo.getDetailedAddress() != null, InstitutionExtDO::getDetailedAddress, userInstitutionInfo.getDetailedAddress())
+                .eq(InstitutionExtDO::getDeptId, userInstitutionInfo.getInstitutionId());
+        institutionExtMapper.update(wrapper);
+        return success(true);
+    }
+
+    @GetMapping("/test")
+    @Operation(summary = "这是测试接口")
+    public CommonResult<String> test() {
+        return success("test2222");
     }
 }

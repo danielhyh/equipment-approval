@@ -40,12 +40,12 @@ public class AppApplicationRespVO {
     @ExcelProperty("配置理由")
     private String configReason;
 
-    @Schema(description = "申请状态：1-待初审，2-初审通过，3-初审不通过，4-待专家审核，5-专家审核通过，6-专家审核不通过，7-副本待审批，8-验收资料待审批，9-已完成", requiredMode = Schema.RequiredMode.REQUIRED, example = "1")
-    @ExcelProperty("申请状态：1-待初审，2-初审通过，3-初审不通过，4-待专家审核，5-专家审核通过，6-专家审核不通过，7-副本待审批，8-验收资料待审批，9-已完成")
+    @Schema(description = "申请状态：1-待初审，2-初审不通过，3-待专家审核，4-专家审核不通过，5-专家审核通过", requiredMode = Schema.RequiredMode.REQUIRED, example = "1")
+    @ExcelProperty("申请状态：1-待初审，2-初审不通过，3-待专家审核，4-专家审核不通过，5-专家审核通过")
     private Integer appStatus;
 
     @Schema(description = "创建时间", requiredMode = Schema.RequiredMode.REQUIRED)
     @ExcelProperty("创建时间")
     private LocalDateTime createTime;
 
-}
+}

@@ -27,6 +27,7 @@ public class OperationLogService {
 
     private static final String QUERY_SQL = """
         SELECT
+            id,
              business_id, operator_id, operator_name,
              action_desc, extra_info, remark, create_time
         FROM biz_operation_log

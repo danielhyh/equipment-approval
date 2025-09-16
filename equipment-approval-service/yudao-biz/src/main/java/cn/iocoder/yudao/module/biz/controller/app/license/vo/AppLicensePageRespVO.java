@@ -48,4 +48,8 @@ public class AppLicensePageRespVO {
     @JsonFormat(pattern = "yyyy-MM-dd")
     private LocalDate installationDate;
 
+    private String hasDuplicate;
+
+    private String hasAcceptanceMaterial;
+
 }

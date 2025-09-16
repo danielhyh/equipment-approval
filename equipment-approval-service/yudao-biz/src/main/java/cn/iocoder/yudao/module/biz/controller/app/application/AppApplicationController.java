@@ -91,7 +91,7 @@ public class AppApplicationController {
                     @Schema(implementation = AppApplicationRespVO.class)))
             })
     public CommonResult<PageResult<AppApplicationRespVO>> getApplicationPage(@Valid AppApplicationPageReqVO pageReqVO) {
-        PageResult<ApplicationPageRespVO> pageResult = applicationService.getApplicationPage(BeanUtils.toBean(pageReqVO, ApplicationPageReqVO.class));
+        PageResult<ApplicationPageRespVO> pageResult = applicationService.getAppApplicationPage(BeanUtils.toBean(pageReqVO, ApplicationPageReqVO.class));
         return success(BeanUtils.toBean(pageResult, AppApplicationRespVO.class));
     }
 

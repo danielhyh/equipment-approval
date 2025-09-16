@@ -1,8 +1,10 @@
 package cn.iocoder.yudao.module.biz.service.devicelicense;
 
 import cn.iocoder.yudao.framework.common.exception.ServiceException;
+import cn.iocoder.yudao.framework.dict.core.DictFrameworkUtils;
 import cn.iocoder.yudao.module.biz.dal.dataobject.devicelicense.DeviceLicenseDO;
 import cn.iocoder.yudao.module.biz.dal.mysql.devicelicense.DeviceLicenseMapper;
+import jakarta.annotation.PostConstruct;
 import jakarta.annotation.Resource;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -11,12 +13,16 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 @Service
 public class DeviceLicenseService {
 
     @Resource
     private DeviceLicenseMapper deviceLicenseMapper;
+
+
 
     @Transactional
     public String generateLicenseNumber(
@@ -30,13 +36,39 @@ public class DeviceLicenseService {
         if (stepType == null ) {
             throw new ServiceException(1111, "阶梯分型不能为空");
         }
-        String stepCode = STEP_TYPE.get(stepType);
+        if (categoryName == null ) {
+            throw new ServiceException(1111, "设备类型不能为空");
+        }
+        // 获取数据
+
+        List<String> ladderConfigModelLabel = DictFrameworkUtils.getDictDataLabelList("biz_ladder_config_model");
+        List<String> ladderConfigModelValue = DictFrameworkUtils.getDictDataValueList("biz_ladder_config_model");
+
+
+
+        Map<String, String> ladderConfigModelMap = IntStream.range(0, Math.min(ladderConfigModelLabel.size(), ladderConfigModelValue.size()))
+                .boxed()
+                .collect(Collectors.toMap(
+                        ladderConfigModelLabel::get,
+                        ladderConfigModelValue::get
+                ));
+        String stepCode = ladderConfigModelMap.get(stepType);
         if (stepCode == null) {
             throw new ServiceException(1111, "不支持的阶梯分型: " + stepType);
         }
+        if (provinceName == null) {
+            throw new ServiceException(2122, "区域不能为空");
+        }
         String provCode = PROVINCE_MAP.get("陕西省");
-
-        String categoryCode = CATEGORY_CODE_YI.get(categoryName);
+        List<String> equipmentTypeLabel = DictFrameworkUtils.getDictDataLabelList("biz_main_equipment_type");
+        List<String> equipmentTypeValue = DictFrameworkUtils.getDictDataValueList("biz_main_equipment_type");
+        Map<String, String> equipmentTypeMap = IntStream.range(0, Math.min(equipmentTypeLabel.size(), equipmentTypeValue.size()))
+                .boxed()
+                .collect(Collectors.toMap(
+                        equipmentTypeLabel::get,
+                        equipmentTypeValue::get
+                ));
+        String categoryCode = equipmentTypeMap.get(categoryName);
 
         if (categoryCode == null) {
             throw new ServiceException(1111, "不支持的设备类型: " + categoryName);
@@ -179,7 +211,14 @@ public class DeviceLicenseService {
     }
 
     private String getCategoryNameByCode(String deviceClass, String code) {
-        Map<String, String> map = "甲".equals(deviceClass) ? CATEGORY_CODE_JIA : CATEGORY_CODE_YI;
+        List<String> equipmentTypeLabel = DictFrameworkUtils.getDictDataLabelList("biz_main_equipment_type");
+        List<String> equipmentTypeValue = DictFrameworkUtils.getDictDataValueList("biz_main_equipment_type");
+        Map<String, String> map = IntStream.range(0, Math.min(equipmentTypeLabel.size(), equipmentTypeValue.size()))
+                .boxed()
+                .collect(Collectors.toMap(
+                        equipmentTypeLabel::get,
+                        equipmentTypeValue::get
+                ));
 
         // 反向查找 key
         return map.entrySet().stream()
@@ -233,20 +272,20 @@ public class DeviceLicenseService {
     );
 
     // 乙类
-    private static final Map<String, String> CATEGORY_CODE_YI = Map.of(
-            "X线正电子发射断层扫描仪", "01",
-            "内窥镜手术器械控制系统", "02",
-            "64排及以上X线计算机断层扫描仪", "03",
-            "1.5T及以上磁共振成像系统", "04",
-            "直线加速器", "05",
-            "伽玛射线立体定向放射治疗系统", "06"
-    );
-
-    //阶梯分型代码
-    private static final Map<String, String> STEP_TYPE = Map.of(
-            "未实施阶梯分型", "0",
-            "临床实用型", "1",
-            "临床研究型", "2",
-            "科研型", "3"
-    );
+//    private static final Map<String, String> CATEGORY_CODE_YI = Map.of(
+//            "X线正电子发射断层扫描仪", "01",
+//            "内窥镜手术器械控制系统", "02",
+//            "64排及以上X线计算机断层扫描仪", "03",
+//            "1.5T及以上磁共振成像系统", "04",
+//            "直线加速器", "05",
+//            "伽玛射线立体定向放射治疗系统", "06"
+//    );
+//
+//    //阶梯分型代码
+//    private static final Map<String, String> STEP_TYPE = Map.of(
+//            "未实施阶梯分型", "0",
+//            "临床实用型", "1",
+//            "临床研究型", "2",
+//            "科研型", "3"
+//    );
 }
