@@ -23,8 +23,10 @@ import org.springframework.validation.annotation.Validated;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.time.temporal.TemporalUnit;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
@@ -78,6 +80,8 @@ public class ApplicationServiceImpl implements ApplicationService {
         ApplicationDO application = BeanUtils.toBean(createReqVO, ApplicationDO.class);
         application.setAppNo("SQ-"+timeFormatter.format(LocalDateTime.now()));
         application.setAppStatus(1);//待初审
+        application.setDeadline(LocalDate.now().plusDays(45));
+        //TODO 添加定时任务
         applicationMapper.insert(application);
         //记录操作日志
         Long loginUserId = SecurityFrameworkUtils.getLoginUserId();
@@ -152,6 +156,13 @@ public class ApplicationServiceImpl implements ApplicationService {
         // 必须使用 MyBatis Plus 的分页对象
         IPage<ApplicationPageRespVO> page = new Page<>(pageReqVO.getPageNo(), pageReqVO.getPageSize());
         applicationMapper.page(page, pageReqVO);
+        for (ApplicationPageRespVO record : page.getRecords()) {
+            String appStatus = record.getAppStatus();
+            record.setRemainingDays(record.getRemainingDays() + "天");
+            if ("5".equals(appStatus)) {
+                record.setRemainingDays("-");
+            }
+        }
         return new PageResult<>(page.getRecords(), page.getTotal());
     }
 
@@ -261,7 +272,7 @@ public class ApplicationServiceImpl implements ApplicationService {
                                 license_device_name,
                                 detailed_address,
                                 valid_date
-                            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, DATE_ADD(NOW(), INTERVAL 10 YEAR))
                 """;
         //插入正本表
         jdbcClient.sql(sql).params(
