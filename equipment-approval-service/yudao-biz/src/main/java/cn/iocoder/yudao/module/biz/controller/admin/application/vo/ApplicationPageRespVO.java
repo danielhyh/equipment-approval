@@ -17,9 +17,13 @@ public class ApplicationPageRespVO {
 
     private String licenseDeviceName;
 
+    private Long institutionId;
+
+    private String appNo;
+
     private String ladderConfigModel;
 
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "Asia/Shanghai")
     private Date createTime;
 
     private String appStatus;
@@ -29,4 +33,10 @@ public class ApplicationPageRespVO {
     private String remainingDays;
 
     private String appType;
+
+    private Long originalId;
+
+    private Long duplicateId;
+
+    private String licenseNo;
 }

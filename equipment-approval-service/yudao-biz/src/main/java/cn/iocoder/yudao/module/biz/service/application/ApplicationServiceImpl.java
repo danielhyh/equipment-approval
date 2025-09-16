@@ -2,29 +2,21 @@ package cn.iocoder.yudao.module.biz.service.application;
 
 import cn.iocoder.yudao.framework.common.exception.ErrorCode;
 import cn.iocoder.yudao.framework.common.exception.ServiceException;
-import cn.iocoder.yudao.framework.common.exception.enums.GlobalErrorCodeConstants;
-import cn.iocoder.yudao.framework.common.pojo.PageParam;
-import cn.iocoder.yudao.framework.security.core.LoginUser;
 import cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils;
 import cn.iocoder.yudao.module.biz.controller.app.application.vo.AppApplicationSaveReqVO;
-import cn.iocoder.yudao.module.biz.dal.dataobject.applicationmaterial.ApplicationMaterialDO;
-import cn.iocoder.yudao.module.biz.dal.dataobject.institutionext.InstitutionExtDO;
 import cn.iocoder.yudao.module.biz.dal.mysql.applicationmaterial.ApplicationMaterialMapper;
-import cn.iocoder.yudao.module.biz.dal.mysql.institutionext.InstitutionExtMapper;
 import cn.iocoder.yudao.module.biz.service.devicelicense.DeviceLicenseService;
+import cn.iocoder.yudao.module.biz.service.notification.CreateNotificationRequest;
+import cn.iocoder.yudao.module.biz.service.notification.NotificationService;
 import cn.iocoder.yudao.module.biz.service.operation.OperationLogService;
 import com.alibaba.fastjson.JSON;
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
-import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.google.common.base.CaseFormat;
 import com.google.common.collect.Lists;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.jdbc.core.simple.JdbcClient;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import jakarta.annotation.Resource;
 import org.springframework.validation.annotation.Validated;
@@ -74,6 +66,9 @@ public class ApplicationServiceImpl implements ApplicationService {
 
     @Resource(name = "bizExecutor")
     private Executor bizExecutor;
+
+    @Resource
+    private NotificationService notificationService;
 
     private final DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("yyyyMMddHHmmss");
 
@@ -152,11 +147,18 @@ public class ApplicationServiceImpl implements ApplicationService {
 
     @Override
     public PageResult<ApplicationPageRespVO> getApplicationPage(ApplicationPageReqVO pageReqVO) {
-        Long loginUserId = SecurityFrameworkUtils.getLoginUserId();
-        pageReqVO.setUserId(loginUserId);
+//        Long loginUserId = SecurityFrameworkUtils.getLoginUserId();
+//        pageReqVO.setUserId(loginUserId);
         // 必须使用 MyBatis Plus 的分页对象
         IPage<ApplicationPageRespVO> page = new Page<>(pageReqVO.getPageNo(), pageReqVO.getPageSize());
         applicationMapper.page(page, pageReqVO);
+        return new PageResult<>(page.getRecords(), page.getTotal());
+    }
+
+    @Override
+    public PageResult<ApplicationPageRespVO> getAppApplicationPage(ApplicationPageReqVO pageReqVO) {
+        IPage<ApplicationPageRespVO> page = new Page<>(pageReqVO.getPageNo(), pageReqVO.getPageSize());
+        applicationMapper.page2(page, pageReqVO);
         return new PageResult<>(page.getRecords(), page.getTotal());
     }
 
@@ -189,7 +191,9 @@ public class ApplicationServiceImpl implements ApplicationService {
             update.setInitialReviewerId(loginUserId);
             update.setInitialReviewOpinion(opinion);
             update.setAppStatus(result == 1 ? 3 : 2);
-            operationService.log(reviewVO.getId(), loginUserId, loginUserNickname, result ==1 ? "初步审核已通过,待专家审核": "初步审核未通过");
+            String res = result ==1 ? "初步审核已通过,待专家审核。": "初步审核未通过。";
+            publisherNotification(id, loginUserId, res, opinion);
+            operationService.log(reviewVO.getId(), loginUserId, loginUserNickname, res);
         } else if ("EXPERT".equals(reviewType)) {
             update.setExpertReviewResult(result);
             update.setExpertReviewTime(LocalDateTime.now());
@@ -213,12 +217,28 @@ public class ApplicationServiceImpl implements ApplicationService {
                         });
 
             }
-            operationService.log(reviewVO.getId(), loginUserId, loginUserNickname, result ==1 ? "专家审核通过": "专家审核未通过", null,"expertIdList", JSON.toJSONString(expertIdList));
+            String res = result ==1 ? "专家审核已通过。": "专家审核未通过。";
+            publisherNotification(id, loginUserId, res, opinion);
+            operationService.log(reviewVO.getId(), loginUserId, loginUserNickname, res, null,"expertIdList", JSON.toJSONString(expertIdList));
         } else {
             throw new ServiceException(new ErrorCode(1199, "无效的审核类型: " + reviewType));
         }
 
         applicationMapper.updateById(update);
+    }
+
+    Map<Integer, String> appTypeMap = Map.of(1, "申请", 2, "补办", 3 , "变更", 4, "基本信息变更");
+
+    private void publisherNotification(Long appId, Long userId, String reviewRes, String opinion) {
+        ApplicationDO applicationDO = applicationMapper.selectById(appId);
+        String licenseDeviceName = applicationDO.getLicenseDeviceName();
+        CreateNotificationRequest createNotificationRequest = new CreateNotificationRequest();
+        createNotificationRequest.setTitle(licenseDeviceName + "申请进度更新");
+        String format = String.format("您提交的%s配置许可证%s%s, 审核意见：%s。", licenseDeviceName, appTypeMap.get(applicationDO.getAppType()), reviewRes, opinion);
+        createNotificationRequest.setContent(format);
+        createNotificationRequest.setPublishNow(true);
+        createNotificationRequest.setCreator(String.valueOf(userId));
+        notificationService.createNotification(createNotificationRequest);
     }
 
 
@@ -275,6 +295,9 @@ public class ApplicationServiceImpl implements ApplicationService {
     @Override
     public ApprovalDetailsVO approvalDetails(Long id) {
         ApprovalDetailsVO vo = applicationMapper.approvalDetails(id);
+        if (vo == null) {
+            return new ApprovalDetailsVO();
+        }
         String expertId = vo.getExpertId();
         if (StringUtils.isNotBlank(expertId)) {
             String[] split = expertId.split(",");

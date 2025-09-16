@@ -2,6 +2,8 @@ package cn.iocoder.yudao.module.biz.controller.app.license;
 
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
+import cn.iocoder.yudao.module.biz.controller.admin.license.vo.DuplicateLicenseVO;
+import cn.iocoder.yudao.module.biz.controller.admin.license.vo.OriginalLicenseVO;
 import cn.iocoder.yudao.module.biz.controller.app.license.vo.AppDuplicateSubmitRequest;
 import cn.iocoder.yudao.module.biz.controller.app.license.vo.AppLicensePageRespVO;
 import cn.iocoder.yudao.module.biz.service.license.LicenseService;
@@ -51,5 +53,21 @@ public class AppLicenseController {
     @io.swagger.v3.oas.annotations.parameters.RequestBody
     public CommonResult<Boolean> duplicateSubmit(@RequestBody @Valid AppDuplicateSubmitRequest request)  {
         return success(licenseService.insertDuplicateLicense(request));
+    }
+
+    @Parameter(required = true, name = "id", description = "正本id")
+    @GetMapping("/getOriginalById")
+    public CommonResult<OriginalLicenseVO> getOriginalById(@RequestParam("id") Long id) {
+        return CommonResult.success(licenseService.getOriginalById(id));
+    }
+
+    @Operation(summary = "许可证中心副本查询",
+            responses = @ApiResponse(
+                    content = @Content(schema = @Schema(implementation = DuplicateLicenseVO.class))
+            ))
+    @Parameter(required = true, name = "id", description = "副本id")
+    @GetMapping("/getDuplicateById")
+    public CommonResult<DuplicateLicenseVO> getDuplicateById(@RequestParam("id") Long id) {
+        return CommonResult.success(licenseService.getDuplicateById(id));
     }
 }

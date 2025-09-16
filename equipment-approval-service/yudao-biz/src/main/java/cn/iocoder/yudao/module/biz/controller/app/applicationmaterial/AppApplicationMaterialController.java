@@ -10,6 +10,7 @@ import cn.iocoder.yudao.module.biz.controller.app.applicationmaterial.vo.Materia
 import cn.iocoder.yudao.module.biz.dal.dataobject.applicationmaterial.ApplicationMaterialDO;
 import cn.iocoder.yudao.module.biz.dal.mysql.applicationmaterial.ApplicationMaterialMapper;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -54,12 +55,17 @@ public class AppApplicationMaterialController {
     @GetMapping("/list")
     @Operation(summary = "用户申报材料查询")
     @ApiResponses
-    public CommonResult<List<MaterialResponse>> list() {
-        Long loginUserId = SecurityFrameworkUtils.getLoginUserId();
-        if (loginUserId == null) {
-            throw new ServiceException(GlobalErrorCodeConstants.INTERNAL_SERVER_ERROR);
-        }
-        List<ApplicationMaterialDO> list = applicationMaterialMapper.selectList("creator", loginUserId);
+    @Parameter(name = "id", description = "申请id")
+    public CommonResult<List<MaterialResponse>> list(@RequestParam("id") Long id) {
+        List<ApplicationMaterialDO> list = applicationMaterialMapper.selectList("application_id", id);
         return success(BeanUtils.toBean(list, MaterialResponse.class));
+    }
+
+    @GetMapping("/delete")
+    @Operation(summary = "删除申报材料")
+    @Parameter(name = "id", description = "list接口返回的id")
+    public CommonResult<?> delete(@RequestParam("id") Long id) {
+        applicationMaterialMapper.deleteById(id);
+        return success(true);
     }
 }

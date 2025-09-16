@@ -18,13 +18,69 @@
         ba.app_status,
         ba.deadline,
         ba.app_type,
-        GREATEST(DATEDIFF(ba.deadline, NOW()), 0) AS remaining_days
+        ba.app_no,
+        ba.institution_id,
+        GREATEST(DATEDIFF(ba.deadline, NOW()), 0) AS remaining_days,
+        blo.id as original_id,
+        blo.license_no,
+        bld.id as duplicate_id
         FROM
         biz_application ba
-        JOIN
+        LEFT JOIN
         biz_institution_ext bie ON ba.institution_id = bie.dept_id
+        left join
+        biz_license_original blo ON ba.id = blo.application_id
+        LEFT JOIN
+        biz_license_duplicate bld ON blo.id = bld.original_id
         <where>
              and ba.deleted = 0
+            <if test="reqVO.userId != null and reqVO.userId != ''">
+                and ba.creator = #{reqVO.userId}
+            </if>
+            <if test="reqVO.appType != null and reqVO.appType != ''">
+                and app_type = #{reqVO.appType}
+            </if>
+            <if test="reqVO.licenseDeviceName != null and reqVO.licenseDeviceName != ''">
+                and license_device_name = #{reqVO.licenseDeviceName}
+            </if>
+            <if test="reqVO.appStatus != null and reqVO.appStatus != ''">
+                and app_status = #{reqVO.appStatus}
+            </if>
+            <if test="reqVO.deptOrDeviceName != null and reqVO.deptOrDeviceName != ''">
+                and ( bie.institution_name like CONCAT('%', #{reqVO.deptOrDeviceName}, '%') OR
+                ba.license_device_name like CONCAT('%', #{reqVO.deptOrDeviceName}, '%') )
+            </if>
+        </where>
+        ORDER BY
+        create_time DESC
+    </select>
+
+    <select id="page2" resultType="cn.iocoder.yudao.module.biz.controller.admin.application.vo.ApplicationPageRespVO">
+        SELECT
+        ba.id,
+        bie.institution_name,
+        ba.license_device_name,
+        ba.ladder_config_model,
+        ba.create_time,
+        ba.app_status,
+        ba.deadline,
+        ba.app_type,
+        ba.app_no,
+        ba.institution_id,
+        GREATEST(DATEDIFF(ba.deadline, NOW()), 0) AS remaining_days,
+        blo.id as original_id,
+        blo.license_no,
+        bld.id as duplicate_id
+        FROM
+        biz_application ba
+        LEFT JOIN
+        biz_institution_ext bie ON ba.institution_id = bie.dept_id
+        left join
+        biz_license_original blo ON ba.id = blo.application_id
+        LEFT JOIN
+        biz_license_duplicate bld ON blo.id = bld.original_id
+        <where>
+            and ba.deleted = 0 and ba.app_status in (1,2,3,4)
             <if test="reqVO.userId != null and reqVO.userId != ''">
                 and ba.creator = #{reqVO.userId}
             </if>
@@ -62,14 +118,14 @@
             region
         FROM
             biz_application ba
-                JOIN biz_institution_ext bie on ba.institution_id = bie.dept_id
+            LEFT JOIN biz_institution_ext bie on ba.institution_id = bie.dept_id
         WHERE
             ba.id = #{id} and ba.deleted = 0
     </select>
     
     <select id="businessInfo" resultType="cn.iocoder.yudao.module.biz.controller.admin.application.vo.BusinessInfoVO">
         SELECT
-            bce.license_device_name,
+            ba.license_device_name,
             ladder_config_model,
             equipment_config_address,
             production_enterprise,
@@ -80,7 +136,7 @@
             special_description
         FROM
             biz_application ba
-                JOIN biz_class_a_equipment bce ON ba.equipment_id = bce.id
+             LEFT   JOIN biz_class_a_equipment bce ON ba.equipment_id = bce.id
         where ba.deleted = 0 and ba.id = #{id}
     </select>
 

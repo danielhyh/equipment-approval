@@ -25,7 +25,7 @@ public interface ExpertExtMapper extends BaseMapperX<ExpertExtDO> {
 
     List<ExpertExtRespVO> list(@Param("keyword")String keywords, @Param("specialty") String specialty);
 
-    @Select("select specialty from biz_expert_ext where deleted = 0")
+    @Select("select DISTINCT specialty from biz_expert_ext where deleted = 0 and specialty is not null")
     List<String> getSpecialty();
 
     List<ExpertReviewVO> selectReviewRecord(@Param("id") Long id);
