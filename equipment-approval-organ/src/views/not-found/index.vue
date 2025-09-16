@@ -4,24 +4,28 @@
       <div class="number">404</div>
       <h1 class="title">页面不存在</h1>
       <p class="description">抱歉，您访问的页面不存在或已被移动</p>
-      <el-button type="primary" @click="goBack" class="back-button">返回首页</el-button>
+      <el-button type="primary" @click="goBack" class="back-button">
+        {{ isBack ? "返回上一页" : "返回首页" }}
+      </el-button>
     </div>
   </div>
 </template>
 
 <script setup>
-import { useRouter } from 'vue-router';
-
 const router = useRouter();
-
+// const route = useRoute()
+console.log(router);
 const goBack = () => {
   // 尝试返回上一页，如果不能则跳转到首页
   if (window.history.length > 1) {
     router.back();
   } else {
-    router.push('/home');
+    router.push("/home");
   }
 };
+let isBack = computed(() => {
+  return window.history.length > 1;
+});
 </script>
 
 <style lang="scss" scoped>

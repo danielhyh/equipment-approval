@@ -16,7 +16,7 @@
           @click="changeTypeFn(item)"
         >
           <span>{{ item.label }}</span>
-          <!--          <i v-if="item.value">{{ item.value }}</i>-->
+          <i v-if="item.size">{{ item.size }}</i>
         </div>
       </div>
       <div class="search-list-container">
@@ -132,6 +132,7 @@
                 size="small"
                 class="btn"
                 type="primary"
+                v-if="scope.row.originalId"
                 @click.stop="showLicenceFn(scope.row, 'A')"
               >
                 正本
@@ -140,6 +141,7 @@
                 size="small"
                 class="btn"
                 type="primary"
+                v-if="scope.row.duplicateId"
                 @click.stop="showLicenceFn(scope.row, 'B')"
               >
                 副本
@@ -181,6 +183,9 @@ import { getDictOptions } from '@/utils/dict'
 import type { DictDataType } from '@/utils/dict'
 import { View, Search, Avatar, Download, Printer } from '@element-plus/icons-vue'
 import { ApplicationApi } from '@/api/biz/application'
+import type { originalProfile, copyProfile } from '../licenseCenter/components/licenseProfile'
+import { dayTimeFormate } from '../licenseCenter/components/licenseProfile'
+import { LicenseApi } from '@/api/biz/license/index'
 
 const router = useRouter()
 type TypeList = {
@@ -189,30 +194,45 @@ type TypeList = {
   type: string
   status?: string
   equipment?: string
+  key?: string
+  size?: number | string
 }
 let typeList = ref<TypeList[]>([
   {
     label: '证书申请',
+    size: 0,
     value: 1,
     type: 'apply',
     status: 'biz_app_status',
-    equipment: 'biz_main_equipment_type'
+    equipment: 'biz_main_equipment_type',
+    key: 'cert_apply_count'
   },
   {
     label: '证书补办',
     value: 2,
+    size: 0,
     type: 'reissue',
     status: 'biz_review_result',
-    equipment: 'biz_main_equipment_type'
+    equipment: 'biz_main_equipment_type',
+    key: 'cert_renew_count'
   },
   {
     label: '证书变更',
+    size: 0,
     value: 3,
     type: 'change',
     status: 'biz_review_result',
-    equipment: 'biz_main_equipment_type'
+    equipment: 'biz_main_equipment_type',
+    key: 'cert_change_count'
   },
-  { label: '基本信息变更', value: 4, type: 'basicInfoChange', status: 'biz_review_result' }
+  {
+    label: '基本信息变更',
+    size: 0,
+    value: 4,
+    type: 'basicInfoChange',
+    status: 'biz_review_result',
+    key: 'info_change_count'
+  }
 ])
 let activeType = ref<string>('apply')
 let activeStatus = ref<string>('biz_app_status')
@@ -234,6 +254,7 @@ const getList = async () => {
     const data = await ApplicationApi.getApplicationPage(queryParams)
     list.value = data.list
     total.value = data.total
+    getCount()
   } catch (err) {
     console.log(err, '查询列表失败')
   } finally {
@@ -333,27 +354,6 @@ const resetAllFn = () => {
   getList()
 }
 
-// type FormDataEnum = {
-//   status: string
-//   equipment?: string
-//   keywords: string
-// }
-// let formData = ref<FormDataEnum>({
-//   status: '-1',
-//   equipment: '-1',
-//   keywords: ''
-// })
-
-// let formSearchRef = ref<FormInstance | null>(null)
-// const resetForm = () => {
-//   formSearchRef.value?.resetFields()
-//   formData.value = {
-//     status: '-1',
-//     equipment: '-1',
-//     keywords: ''
-//   }
-// }
-
 let list = ref<any[]>([])
 const total = ref(0) // 列表的总页数
 let loading = ref<boolean>(false)
@@ -379,13 +379,59 @@ let licenceDialogBind = computed(() => {
     fullscreen: true
   }
 })
-let licenceData = ref({})
+let licenceData = ref<any>({})
 
 let licenceRef = ref<InstanceType<typeof licence> | null>(null)
 const showLicenceFn = (row, type) => {
-  console.log('row', row)
   licenceTitle.value = type === 'A' ? '正本' : '副本'
+  licenceData.value = {
+    licenceType: 'B',
+    licenceSubtitle: type,
+    code: row.licenseNo
+  }
+  if (type === 'A') beforeLicenseRequest(row.originalId, row.duplicateId, type)
+  else beforeLicenseRequest(row.originalId, row.duplicateId, type)
   liscenceVisible.value = true
+}
+const beforeLicenseRequest = async (originalId, duplicateId, type) => {
+  try {
+    let arr: (string | null | undefined)[] = []
+    if (type === 'A') {
+      let response: originalProfile = await LicenseApi.getLicenseOriginal({ id: originalId })
+      arr.push(response.configUnitName)
+      arr.push(response.unifiedSocialCreditCode)
+      arr.push(response.legalPerson)
+      arr.push(response.licenseDeviceName)
+      arr.push(response.ownershipNature)
+      arr.push(response.ladderConfigModel)
+      arr.push(response.equipmentConfigAddress)
+      licenceData.value.licenseData = arr
+      licenceData.value.stampUit = response.issuingAuthority
+      licenceData.value.stampDate = response.issueDate
+    } else {
+      let response1: copyProfile = await LicenseApi.getLicenseCopy({ id: duplicateId })
+      let response2: originalProfile = await LicenseApi.getLicenseOriginal({ id: originalId })
+      let response = { ...response1, ...response2 }
+      arr.push(response.configUnitName)
+      arr.push(response.productionEnterprise)
+      arr.push(response.legalPerson)
+      arr.push(response.specificModel)
+      arr.push(response.ownershipNature)
+      arr.push(response.productSerialNo)
+      arr.push(response.equipmentConfigAddress)
+      arr.push(dayTimeFormate(response.installationDate))
+      arr.push(response.unifiedSocialCreditCode)
+      arr.push(dayTimeFormate(response.infoSubmitDate))
+      arr.push(response.licenseDeviceName)
+      arr.push(response.remark)
+      arr.push(response.ladderConfigModel)
+      licenceData.value.licenseData = arr
+      licenceData.value.stampUit = response.duplicateIssuingAuthority
+      licenceData.value.stampDate = response.duplicateIssueDate
+    }
+  } catch (err) {
+    console.log(err, '请求许可证失败')
+  }
 }
 const printFn = () => {
   if (!licenceRef.value) {
@@ -404,9 +450,19 @@ const downloadFn = () => {
 const gotoDetailFn = (row, type) => {
   router.push({ path: '/process-other', query: { id: row.id, type: type, status: row.appStatus } })
 }
+
+// 统计办件数量
+const getCount = async () => {
+  try {
+    const data = await ApplicationApi.getApplicationCount({ status: 1 })
+    typeList.value.forEach((item) => {
+      item.size = data[item.key || ''] || 0
+    })
+  } catch (err) {
+    console.log(err, '统计办件数量失败')
+  }
+}
 onMounted(() => {
-  // 在组件挂载时可以进行一些初始化操作
-  console.log('Processing Center mounted')
   getList()
 })
 </script>

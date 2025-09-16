@@ -1,6 +1,8 @@
 import { defineStore } from "pinia";
-import { getStorage, setStorage, removeStorage } from "@/utils/storage";
+import { sessionSet, sessionGet } from "@/utils/storage";
+import { isJsonString, isEmptyObject } from "@/utils/tools";
 // 医疗设备基础信息
+// 证书列表详情基础信息
 export const useBasisStore = defineStore("basis", {
   state: () => ({
     pageTitle: "",
@@ -31,6 +33,7 @@ export const useBasisStore = defineStore("basis", {
         iconType: "blue",
       },
     ],
+    licenseBasis: isJsonString(sessionGet("licenseBasis")) ?JSON.parse(sessionGet("licenseBasis")):{},
   }),
   getters: {
     getPageTitle(state) {
@@ -39,12 +42,20 @@ export const useBasisStore = defineStore("basis", {
     getModelList(state) {
       return state.modelList;
     },
+    getLicenseBasis(state) {
+      return state.licenseBasis;
+    },
   },
   actions: {
     setPageTitle(id) {
       if (!id) return;
       let findItem = this.modelList.find((item) => item.id === id);
-      this.pageTitle = findItem?.title || "未知";
+      this.pageTitle = findItem?.title || "";
+    },
+    setLicenseBasis(data) {
+      if (isEmptyObject(data)) return;
+      this.licenseBasis = data;
+      sessionSet("licenseBasis", JSON.stringify(this.licenseBasis));
     },
   },
 });

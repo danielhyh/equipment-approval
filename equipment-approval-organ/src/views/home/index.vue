@@ -32,7 +32,7 @@
       <!-- 办理列表 -->
       <div class="todo-list" v-if="toDoList.length">
         <h3>办理列表</h3>
-        <el-table class="table_style" :data="toDoList" style="width: 100%" size="small">
+        <el-table class="table_style m-b-20" :data="toDoList" style="width: 100%" size="small">
           <!-- 序号列 -->
           <el-table-column type="index" label="序号" width="50" fixed="left" align="center" />
           <!-- 申请编号 -->
@@ -73,6 +73,13 @@
             <el-empty description="暂无数据" :image-size="80"></el-empty>
           </template>
         </el-table>
+        <Pagination
+          :total="paramsValue.total"
+          v-model:pageNum="paramsValue.pageNum"
+          v-model:pageSize="paramsValue.pageSize"
+          :background="true"
+          @changePageOrPageSize="getToDoListFn"
+        />
       </div>
     </Card>
 
@@ -93,7 +100,7 @@ import { useBasisStore } from "@/pinia/modules/basis";
 import { useDictStore } from "@/pinia/modules/dict";
 import { getApplyList } from "@/apis/home";
 import { formatDate } from "@/utils/tools";
-import { onMounted } from "vue";
+import { onMounted, reactive } from "vue";
 
 const dictStore = useDictStore();
 const basisStore = useBasisStore();
@@ -123,16 +130,26 @@ const handleGuide = (card) => {
 
 // 代办列表
 const toDoList = ref([]);
+let paramsValue = reactive({
+  total: 0,
+  pageNum: 1,
+  pageSize: 10,
+});
 // 申请类型
 const applyTypeDict = dictStore.getDictTypeList("biz_app_type");
 // 申请状态
 const statusDict = dictStore.getDictTypeList("biz_app_status");
 const getToDoListFn = () => {
-  getApplyList()
+  let params = {
+    pageSize: paramsValue.pageSize,
+    pageNo: paramsValue.pageNum,
+  };
+  getApplyList(params)
     .then((res) => {
       let {
-        data: { list },
+        data: { list, total},
       } = res;
+      paramsValue.total = total;
       toDoList.value = (list || []).map((item) => {
         return {
           ...item,

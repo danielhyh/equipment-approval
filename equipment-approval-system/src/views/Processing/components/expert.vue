@@ -53,12 +53,12 @@
           <el-input
             v-model.trim="searchExpertForm.keyword"
             placeholder="请输入专家姓名或医院"
-            @change="getSpecialtyList"
+            @change="getExpertList"
             clearable
           />
           <el-select
             v-model="searchExpertForm.specialty"
-            @change="getSpecialtyList"
+            @change="getExpertList"
             placeholder="请选择专业类别"
             clearable
           >
@@ -157,6 +157,7 @@ let formValue = ref({
   id: Number(id),
   licenseCode: '',
   createDate: '',
+  licenseGenerateDate: '',
   expertAttachments: '', //上传附件的地址 多个以逗号隔开
   expertIds: '' //选中的专家的id
 })
@@ -274,6 +275,7 @@ const submitFn = async () => {
     }
     //调用接口
     formValue.value.expertAttachments = fileList.value.join(',')
+    formValue.value.licenseGenerateDate = formValue.value.createDate
     await ApplicationApi.review(formValue.value)
     ElMessage.success('提交成功')
     return { success: true }
@@ -283,11 +285,17 @@ const submitFn = async () => {
 }
 const specialtyList = ref([])
 const getExpertList = async () => {
-  expertList.value = await ExpertExtApi.getList()
+  let params = {
+    keywords: searchExpertForm.value.keyword,
+    specialty: searchExpertForm.value.specialty
+  }
+
+  expertList.value = await ExpertExtApi.getList(params)
   updateFormValue()
 }
 const getSpecialtyList = async () => {
-  specialtyList.value = await ExpertExtApi.getSpecialty(searchExpertForm.value)
+  let res = await ExpertExtApi.getSpecialty()
+  specialtyList.value = res.filter((eg) => eg)
 }
 const searchExpertForm = ref({
   keyword: undefined,

@@ -30,6 +30,11 @@ export const ApplicationApi = {
     return await request.get({ url: `/biz/application/page`, params })
   },
 
+  // 统计办件数量 {status:1<int> 未审批}
+  getApplicationCount: async (params) => {
+    return await request.get({ url: `/biz/statistics/application-summary`, params })
+  },
+
   // 查询申请详情
   getApplication: async (id: number) => {
     return await request.get({ url: `/biz/application/get?id=` + id })

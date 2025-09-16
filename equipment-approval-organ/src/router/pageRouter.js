@@ -45,16 +45,35 @@ export default [
         component: () => import("@/views/guide/index.vue"),
         meta: { title: "使用指南" },
       },
+      // 证书列表 子页面
+      {
+        path: "license-copy",
+        name: "LicenseCopy",
+        component: () => import("@/views/home/licensePage/index.vue"),
+        meta: { title: "副本提交", page: "copy" },
+      },
+      {
+        path: "license-file",
+        name: "LicenseFile",
+        component: () => import("@/views/home/licensePage/index.vue"),
+        meta: { title: "验收资料提交", page: "file" },
+      },
+      {
+        path: "license-detail",
+        name: "LicenseDetail",
+        component: () => import("@/views/home/licensePage/index.vue"),
+        meta: { title: "证书详细信息", page: "detail" },
+      },
     ],
   },
   // 404路由配置 - 必须放在所有路由的最后
   {
-    path: '/:pathMatch(.*)*', // 通配符路由，匹配任何未定义的路径
-    name: 'NotFound',
-    component: () => import('@/views/not-found/index.vue'),
+    path: "/:pathMatch(.*)*", // 通配符路由，匹配任何未定义的路径
+    name: "NotFound",
+    component: () => import("@/views/not-found/index.vue"),
     meta: {
-      title: '404 - 页面不存在',
-      requiresAuth: false // 不需要登录即可访问
-    }
+      title: "404 - 页面不存在",
+      requiresAuth: false, // 不需要登录即可访问
+    },
   },
 ];

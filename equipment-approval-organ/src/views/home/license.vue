@@ -21,9 +21,9 @@
       <el-table-column type="index" label="序号" :index="indexFn" width="50" align="center" fixed="left" />
       <!-- 许可证编号	证书类型	许可设备名称	阶梯配置机型	设备配置地址	发证日期	配置状态	生产企业	具体型号	装机日期	操作 -->
       <el-table-column prop="licenseNo" label="许可证编号" align="center" fixed="left" />
-      <el-table-column prop="appType" label="证书类型" align="center" >
-        <template #default="{row}">
-          {{ applyTypeDict.find(item => item.value === row.appType+'')?.label || '-' }}
+      <el-table-column prop="appType" label="证书类型" align="center">
+        <template #default="{ row }">
+          {{ applyTypeDict.find((item) => item.value === row.appType + "")?.label || "-" }}
         </template>
       </el-table-column>
       <el-table-column prop="licenseDeviceName" label="许可设备名称" align="center" />
@@ -34,7 +34,13 @@
       <el-table-column prop="productionEnterprise" label="生产企业" align="center" />
       <el-table-column prop="specificModel" label="具体型号" align="center" />
       <el-table-column prop="installationDate" label="装机日期" align="center" />
-      <el-table-column label="操作" align="center" width="200" fixed="right" />
+      <el-table-column label="操作" align="center" width="230" fixed="right">
+        <template #default="{ row }">
+          <el-button type="primary" size="small" @click="handleCopy(row)">副本提交</el-button>
+          <el-button type="success" size="small" @click="handleFile(row)">验收资料提交</el-button>
+          <el-button type="warning" size="small" @click="handleDetail(row)">详细信息</el-button>
+        </template>
+      </el-table-column>
       <template #empty>
         <el-empty description="暂无数据" :image-size="80"></el-empty>
       </template>
@@ -45,7 +51,7 @@
       v-model:pageNum="paramsValue.pageNum"
       v-model:pageSize="paramsValue.pageSize"
       :background="true"
-      @changePageOrPageSize="handleChange"
+      @changePageOrPageSize="getLicenseListFn"
     />
   </div>
 </template>
@@ -53,9 +59,9 @@
 <script setup name="LicenseList">
 import { getLicenseList } from "@/apis/home";
 import { useDictStore } from "@/pinia/modules/dict";
-import { computed } from "vue";
+import { useBasisStore } from "@/pinia/modules/basis";
+const router = useRouter();
 const dictStore = useDictStore();
-
 let paramsValue = reactive({
   pageNum: 1,
   pageSize: 10,
@@ -73,20 +79,24 @@ let listType = reactive([
   { label: "首次配置的大型医疗器械", value: 0, key: "5" },
 ]);
 // 设备类型
-let equipmentTypeDict = computed(()=>dictStore.getDictTypeList("biz_main_equipment_type"));
-watch(()=>equipmentTypeDict.value, (v) => {
-  if(v.length===0)return
-  listType = v.map(item=>{
-    return {
-      label: item.label,
-      value: 0,
-      key: item.value,
-    }
-  })
-  listType.unshift({ label: "全部证书", value: 0, key: "all" })
-},{immediate:true});
+let equipmentTypeDict = computed(() => dictStore.getDictTypeList("biz_main_equipment_type"));
+watch(
+  () => equipmentTypeDict.value,
+  (v) => {
+    if (v.length === 0) return;
+    listType = v.map((item) => {
+      return {
+        label: item.label,
+        value: 0,
+        key: item.value,
+      };
+    });
+    listType.unshift({ label: "全部证书", value: 0, key: "all" });
+  },
+  { immediate: true }
+);
 
-let applyTypeDict = computed(()=>dictStore.getDictTypeList("biz_app_type"));
+let applyTypeDict = computed(() => dictStore.getDictTypeList("biz_app_type"));
 // 自定义序号
 const indexFn = (index) => {
   // pageSize pageNum
@@ -95,27 +105,46 @@ const indexFn = (index) => {
 const getLicenseListFn = async () => {
   loading.value = true;
   let params = { pageSize: paramsValue.pageSize, pageNum: paramsValue.pageNum, type: paramsValue.type };
-  if(params.type === "all"){
-    delete params.type
+  if (params.type === "all") {
+    delete params.type;
   }
-  getLicenseList(params).then(res=>{
-    let { data:{list,total}}  = res
-    licenseListData.value = list || [];
-    paramsValue.total = total;
-  }).catch(err=>{
-    licenseListData.value = [];
-    paramsValue.total = licenseListData.value.length;
-  }).finally(()=>{
-    loading.value = false;
-  })
+  getLicenseList(params)
+    .then((res) => {
+      let {
+        data: { list, total },
+      } = res;
+      licenseListData.value = list || [];
+      paramsValue.total = total;
+    })
+    .catch((err) => {
+      licenseListData.value = [];
+      paramsValue.total = licenseListData.value.length;
+    })
+    .finally(() => {
+      loading.value = false;
+    });
 };
 const handleChangeType = (v) => {
   paramsValue.type = v;
   paramsValue.pageNum = 1;
   getLicenseListFn();
 };
-const handleChange = (v) => {
-  getLicenseListFn();
+
+const basisStore = useBasisStore();
+// 副本提交
+const handleCopy = (row) => {
+  basisStore.setLicenseBasis(row)
+  router.push({name:'LicenseCopy'})
+};
+// 验收资料提交
+const handleFile = (row) => {
+  basisStore.setLicenseBasis(row)
+  router.push({name:'LicenseFile'})
+};
+// 详细信息
+const handleDetail = (row) => {
+  basisStore.setLicenseBasis(row)
+  router.push({name:'LicenseDetail'})
 };
 
 onMounted(() => {
