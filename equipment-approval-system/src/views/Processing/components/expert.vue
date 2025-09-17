@@ -182,6 +182,7 @@ const updateFormValue = () => {
       }
     })
   }
+  generateLicenseNum()
 }
 
 let formRef = ref<FormInstance | null>(null)
@@ -289,9 +290,7 @@ const getExpertList = async () => {
     keywords: searchExpertForm.value.keyword,
     specialty: searchExpertForm.value.specialty
   }
-
   expertList.value = await ExpertExtApi.getList(params)
-  updateFormValue()
 }
 const getSpecialtyList = async () => {
   let res = await ExpertExtApi.getSpecialty()
@@ -304,10 +303,10 @@ const searchExpertForm = ref({
 const generateLicenseNum = async () => {
   formValue.value.licenseCode = await ApplicationApi.generateLicense(Number(id))
 }
-onMounted(() => {
-  getExpertList()
+onMounted(async () => {
+  await getExpertList()
   getSpecialtyList()
-  generateLicenseNum()
+  updateFormValue()
 })
 
 defineExpose({

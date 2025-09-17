@@ -53,13 +53,13 @@ const getOrigin = () => {
   loading.value = true;
   getLicenseOrigin(licesneBasis.value.originalId)
     .then((res) => {
-      console.log("rees", res);
       licenseOriginBasis = Object.assign(licenseOriginBasis, res.data);
     })
     .finally(() => {
       loading.value = false;
     });
 };
+const submit = ()=>{}
 onMounted(() => {
   getOrigin();
 });

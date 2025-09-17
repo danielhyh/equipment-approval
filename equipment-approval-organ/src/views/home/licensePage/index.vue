@@ -27,8 +27,8 @@
       </div>
 
       <div class="core-box">
-        <keep-alive >
-          <component :is="activeItem.component" />
+        <keep-alive>
+          <component :is="activeItem.component" :disabled="!activeItem.tag" ref="activeComRef" />
         </keep-alive>
       </div>
 
@@ -64,6 +64,7 @@ const componentList = computed(() => {
   }
 });
 let activeItem = ref(componentList.value[0]);
+let activeComRef = ref(null);
 const handleClick = (item) => {
   activeItem.value = item;
 };

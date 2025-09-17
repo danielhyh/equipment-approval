@@ -1,5 +1,5 @@
 <template>
-  <el-form class="grid-form" :model="formData" :rules="rules" ref="formRef" label-position="top">
+  <el-form class="grid-form" :model="formData" :rules="rules" ref="formRef" label-position="top" :disabled="disabled">
     <el-form-item label="生产企业" prop="productionEnterprise">
       <el-input v-model="formData.productionEnterprise" placeholder="请输入生产企业" />
     </el-form-item>
@@ -34,7 +34,12 @@
 
 <script setup>
 import { reactive } from "vue";
-
+let props = defineProps({
+  disabled: {
+    type: Boolean,
+    default: false,
+  },
+});
 let formData = reactive({
   // 生产企业
   productionEnterprise: "",
@@ -61,13 +66,15 @@ let rules = ref({
   infoSubmitDate: [{ required: true, message: "请输入信息报送日期", trigger: ["blur"] }],
   duplicateIssueDate: [{ required: true, message: "请输入副本发证日期", trigger: ["blur"] }],
 });
+
+
 </script>
 
 <style lang="scss" scoped>
 .grid-form {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap:  20px;
+  gap: 20px;
   &:deep(.el-form-item) {
     margin: 0;
     --el-disabled-text-color: #171717;
