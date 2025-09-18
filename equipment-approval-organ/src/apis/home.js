@@ -66,3 +66,20 @@ export function getFilesMaterialList(params){
     params,
   });
 }
+
+// 创建补充信息
+export function createLicenseOther(data){
+  return instance({
+    url: "/app-api/biz/supplementary-info/create",
+    method: "post",
+    data,
+  });
+}
+// 获取补充信息列表 {applicationId}
+export function getLicenseOtherList(params){
+  return instance({
+    url: "/app-api/biz/supplementary-info/list",
+    method:'get',
+    params,
+  });
+}

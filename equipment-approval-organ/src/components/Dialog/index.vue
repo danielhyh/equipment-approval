@@ -26,6 +26,8 @@ let props = defineProps({
       width: "50%",
       "append-to-body": true,
       "destroy-on-close": true,
+      "close-on-click-modal": false,
+      draggable:true
     }),
   },
 });

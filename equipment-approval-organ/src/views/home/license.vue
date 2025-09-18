@@ -45,7 +45,10 @@
           >
             验收资料提交
           </el-button>
-          <el-button type="warning" size="small" v-if="row.hasDuplicate === 'Y'" @click="handleDetail(row)">详细信息</el-button>
+          <el-button type="warning" size="small" v-if="row.hasDuplicate === 'Y'" @click="handleOther(row)"
+            >补充其他信息</el-button
+          >
+          <el-button type="primary" size="small" v-if="row.hasDuplicate === 'Y'" @click="handleDetail(row)">详细信息</el-button>
         </template>
       </el-table-column>
       <template #empty>
@@ -60,6 +63,20 @@
       :background="true"
       @changePageOrPageSize="getLicenseListFn"
     />
+    <!-- 补充其他信息弹窗 -->
+    <Dialog v-model:visible="otherVisible">
+      <template #header>
+        <svg-icon name="zondicons:add-solid" size="18" class="m-r-5" color="#165DFF" />
+        <span class="f-w-700 c-333">补充其他信息</span>
+      </template>
+      <otherDialog ref="otherDialogRef" v-model:loading="otherloading" />
+      <template #footer>
+        <div class="flex items-center justify-center">
+          <el-button type="info" :disabled="otherloading" @click="otherVisible = false">取消</el-button>
+          <el-button type="primary" :loading="otherloading" @click="handleOtherSubmit">提交</el-button>
+        </div>
+      </template>
+    </Dialog>
   </div>
 </template>
 
@@ -67,6 +84,7 @@
 import { getLicenseList } from "@/apis/home";
 import { useDictStore } from "@/pinia/modules/dict";
 import { useBasisStore } from "@/pinia/modules/basis";
+import otherDialog from "./licensePage/otherDialog.vue";
 const router = useRouter();
 const dictStore = useDictStore();
 let paramsValue = reactive({
@@ -144,9 +162,18 @@ const handleCopy = (row) => {
   router.push({ name: "LicenseCopy", query: { key: "copyMsg" } });
 };
 // 其他信息补充
+let otherVisible = ref(false);
+let otherloading = ref(false);
+let otherDialogRef = ref(null);
 const handleOther = (row) => {
-  // basisStore.setLicenseBasis(row);
-  // router.push({ name: "LicenseOther" });
+  basisStore.setLicenseBasis(row);
+  otherVisible.value = true;
+};
+const handleOtherSubmit = async () => {
+  let isPass = await otherDialogRef.value?.submit()
+  if(isPass){
+    otherVisible.value = false;
+  }
 };
 // 验收资料提交
 const handleFile = (row) => {
