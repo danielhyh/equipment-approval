@@ -26,20 +26,39 @@
     <el-form-item label="副本发证机关" prop="duplicateIssuingAuthority">
       <el-input v-model="formData.duplicateIssuingAuthority" placeholder="请输入副本发证机关" disabled />
     </el-form-item>
-    <el-form-item label="备注信息" prop="remark" class="grid-item-row">
+    <el-form-item label="采购价格" prop="purchasePrice">
+      <el-input v-model="formData.purchasePrice" placeholder="请输入采购价格" type="number" clearable>
+        <template #prepend>￥</template>
+        <template #append>元</template>
+      </el-input>
+    </el-form-item>
+    <el-form-item label="设备特殊说明" prop="specialDescription" class="grid-item-1-2">
+      <el-input
+        v-model="formData.specialDescription"
+        type="textarea"
+        :autosize="{ minRows: 4, maxRows: 8 }"
+        placeholder="请输入备注信息"
+      />
+    </el-form-item>
+    <el-form-item label="备注信息" prop="remark" class="grid-item-2-4">
       <el-input v-model="formData.remark" type="textarea" :autosize="{ minRows: 4, maxRows: 8 }" placeholder="请输入备注信息" />
     </el-form-item>
   </el-form>
 </template>
 
 <script setup>
-import { reactive } from "vue";
+import { getLicenseCopy, submitCopy } from "@/apis/home";
+import { useBasisStore } from "@/pinia/modules/basis";
+import { onMounted } from "vue";
+let basisStore = useBasisStore();
+let licenseBasis = computed(() => basisStore.getLicenseBasis);
 let props = defineProps({
   disabled: {
     type: Boolean,
     default: false,
   },
 });
+let formRef = ref(null);
 let formData = reactive({
   // 生产企业
   productionEnterprise: "",
@@ -57,6 +76,8 @@ let formData = reactive({
   duplicateIssueDate: "",
   // 备注信息
   remark: "",
+  purchasePrice: "", // 采购价格
+  specialDescription: "", //设备特殊说明
 });
 let rules = ref({
   productionEnterprise: [{ required: true, message: "请输入生产企业", trigger: ["blur"] }],
@@ -65,9 +86,54 @@ let rules = ref({
   installationDate: [{ required: true, message: "请输入装机日期", trigger: ["blur"] }],
   infoSubmitDate: [{ required: true, message: "请输入信息报送日期", trigger: ["blur"] }],
   duplicateIssueDate: [{ required: true, message: "请输入副本发证日期", trigger: ["blur"] }],
+  purchasePrice: [{ required: true, message: "请输入采购价格", trigger: ["blur"] }],
 });
+// 获取副本信息
+let loading = ref(false);
+const getCopyInfo = () => {
+  if (!licenseBasis.value.duplicateId) return;
+  loading.value = true;
+  getLicenseCopy(licenseBasis.value.duplicateId)
+    .then((res) => {
+      formData = Object.assign(formData, res.data);
+    })
+    .finally(() => {
+      loading.value = false;
+    });
+};
+// 校验
+const validor = async () => {
+  try {
+    return await formRef.value.validate();
+  } catch (err) {
+    ElMessage.error("请填写完整信息");
+    return false;
+  }
+};
+const submit = async () => {
+  try {
+    let valid = await validor();
+    if (!valid || loading.value) return false;
+    loading.value = true;
+    let params = {
+      ...formData,
+      originalId: licenseBasis.value.originalId,
+    }
+    await submitCopy(params);
+    ElMessage.success("提交成功");
+    return true
+  } catch (err) {
+    ElMessage.error("提交失败");
+    return false
+  }
+};
 
-
+onMounted(() => {
+  getCopyInfo();
+});
+defineExpose({
+  submit,
+});
 </script>
 
 <style lang="scss" scoped>
@@ -97,8 +163,11 @@ let rules = ref({
       width: 100%;
     }
   }
-  .grid-item-row {
-    grid-column: 1/5;
+  .grid-item-1-2 {
+    grid-column: 1/3;
+  }
+  .grid-item-2-4 {
+    grid-column: 3/5;
   }
 }
 </style>

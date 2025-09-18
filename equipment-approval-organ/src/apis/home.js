@@ -42,10 +42,27 @@ export function getLicenseCopy(id) {
  * } data
  * @returns
  */
-export function submitCopyAndOtherInfo(data) {
+export function submitCopy(data) {
   return instance({
     url: "/app-api/biz/license/duplicate-submit",
     method: "post",
     data,
+  });
+}
+
+// 验收资料上传
+export function createFilesMaterial(data){
+  return instance({
+    url: "/app-api/biz/acceptance-material/create",
+    method: "post",
+    data,
+  });
+}
+// 获取验收资料列表 {applicationId}
+export function getFilesMaterialList(params){
+  return instance({
+    url: "/app-api/biz/acceptance-material/list",
+    method: "get",
+    params,
   });
 }

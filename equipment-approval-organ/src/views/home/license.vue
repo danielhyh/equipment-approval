@@ -36,9 +36,16 @@
       <el-table-column prop="installationDate" label="装机日期" align="center" />
       <el-table-column label="操作" align="center" width="230" fixed="right">
         <template #default="{ row }">
-          <el-button type="primary" size="small" @click="handleCopy(row)">副本提交</el-button>
-          <el-button type="success" size="small" @click="handleFile(row)">验收资料提交</el-button>
-          <el-button type="warning" size="small" @click="handleDetail(row)">详细信息</el-button>
+          <el-button type="primary" size="small" v-if="row.hasDuplicate === 'N'" @click="handleCopy(row)">副本提交</el-button>
+          <el-button
+            type="success"
+            size="small"
+            v-if="row.hasDuplicate === 'Y' && row.hasAcceptanceMaterial === 'N'"
+            @click="handleFile(row)"
+          >
+            验收资料提交
+          </el-button>
+          <el-button type="warning" size="small" v-if="row.hasDuplicate === 'Y'" @click="handleDetail(row)">详细信息</el-button>
         </template>
       </el-table-column>
       <template #empty>
@@ -133,18 +140,23 @@ const handleChangeType = (v) => {
 const basisStore = useBasisStore();
 // 副本提交
 const handleCopy = (row) => {
-  basisStore.setLicenseBasis(row)
-  router.push({name:'LicenseCopy'})
+  basisStore.setLicenseBasis(row);
+  router.push({ name: "LicenseCopy", query: { key: "copyMsg" } });
+};
+// 其他信息补充
+const handleOther = (row) => {
+  // basisStore.setLicenseBasis(row);
+  // router.push({ name: "LicenseOther" });
 };
 // 验收资料提交
 const handleFile = (row) => {
-  basisStore.setLicenseBasis(row)
-  router.push({name:'LicenseFile'})
+  basisStore.setLicenseBasis(row);
+  router.push({ name: "LicenseFile", query: { key: "fileMsg" } });
 };
 // 详细信息
 const handleDetail = (row) => {
-  basisStore.setLicenseBasis(row)
-  router.push({name:'LicenseDetail'})
+  basisStore.setLicenseBasis(row);
+  router.push({ name: "LicenseDetail" });
 };
 
 onMounted(() => {

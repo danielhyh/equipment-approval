@@ -1,18 +1,5 @@
 <template>
   <div>
-    <el-form :model="formData" :rules="rules" ref="formRef" class="grid-form" label-position="top" :disabled="isDisabled">
-      <el-form-item label="设备采购价格(￥：元)" prop="purchasePrice">
-        <el-input v-model="formData.purchasePrice" placeholder="请输入设备采购价格"></el-input>
-      </el-form-item>
-      <el-form-item label="设备特殊说明" prop="specialDescription" class="grid-row">
-        <el-input
-          v-model="formData.specialDescription"
-          type="textarea"
-          :autosize="{ minRows: 4 }"
-          placeholder="请输入设备特殊说明"
-        ></el-input>
-      </el-form-item>
-    </el-form>
     <!-- 设备使用人员 -->
     <div class="header-title m-t-b-10">
       <svg-icon name="typcn:group" size="20" class="m-r-5" />
@@ -49,7 +36,7 @@
     <!-- 正本悬挂位置 上传 -->
     <div class="upload-content-box">
       <template v-if="!isDisabled">
-        <upload v-model:filePath="formData.originalHangPosition" :accept="acceptType" :disabled="isDisabled" :maxSize="10" />
+        <!-- <upload v-model:filePath="formData.originalHangPosition" :accept="acceptType" :disabled="isDisabled" :maxSize="10" /> -->
       </template>
       <template v-else>
         <!-- 正本悬挂位置 回显 -->
@@ -61,8 +48,13 @@
           preview-teleported
           :preview-src-list="handlePreviewList"
         />
-        <el-empty v-else image-size="150"></el-empty>
+        <el-empty v-else :image-size="150"></el-empty>
       </template>
+    </div>
+    <!-- 设备使用情况 -->
+    <div class="header-title m-t-b-10">
+      <svg-icon name="fa-solid:chart-line" size="20" class="m-r-5" />
+      <span>设备使用情况</span>
     </div>
     <!-- 弹窗 -->
     <Dialog v-model:visible="dialogVisible" :attr="dialogAttr" @closed="handleClosed">
@@ -121,14 +113,10 @@ let props = defineProps({
 let isDisabled = props.disabled;
 let formRef = ref(null);
 let formData = reactive({
-  purchasePrice: "", // 设备采购价格
-  specialDescription: "", // 设备特殊说明
   equipmentUsers: [], // 设备使用人员 JSON格式
   hangingLocation: "", // 正本悬挂位置
 });
-let rules = ref({
-  purchasePrice: [{ required: true, message: "请输入设备采购价格", trigger: ["blur", "change"] }],
-});
+let rules = ref({});
 
 // 弹窗
 let dialogVisible = ref(false);
@@ -213,28 +201,7 @@ const handlePreviewList = computed(() => {
   return [];
 });
 
-// 提交校验
-const validor = async () => {
-  try {
-    let bool = await formRef.value.validate();
-    if (bool) return true;
-    ElMessage.error("请填写完整信息");
-    return false;
-  } catch (err) {
-    ElMessage.error("请填写完整信息");
-    return false;
-  }
-};
-const submit = () => {
-  return new Promise(async (resolve, reject) => {
-    let bool = await validor();
-    if (!bool) return reject("校验失败");
-    resolve(true);
-  });
-};
-defineExpose({
-  submit,
-});
+
 </script>
 
 <style lang="scss" scoped>

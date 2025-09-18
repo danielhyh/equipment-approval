@@ -34,7 +34,7 @@
 
       <!-- footer -->
       <div class="footer-box" v-show="activeItem.tag">
-        <el-button type="primary" round size="large">保存</el-button>
+        <el-button type="primary" round size="large" @click.stop="submitFn()">保存</el-button>
       </div>
     </div>
   </div>
@@ -46,6 +46,7 @@ import comList from "./index";
 import { useBasisStore } from "@/pinia/modules/basis";
 const basisStore = useBasisStore();
 const route = useRoute();
+const router = useRouter();
 const metaTitle = route.meta.title;
 const metaPage = route.meta.page;
 const licenseDeviceName = basisStore.licenseBasis?.licenseDeviceName || "";
@@ -68,7 +69,18 @@ let activeComRef = ref(null);
 const handleClick = (item) => {
   activeItem.value = item;
 };
-onMounted(() => {});
+const submitFn = () => {
+  let pass = activeComRef.value?.submit();
+  if (pass) {
+    router.replace({ path: "/home/index-page" });
+  }
+};
+onMounted(() => {
+  let key = route.query?.key || "";
+  if (key) {
+    activeItem.value = componentList.value.find((item) => item.key === key) || activeItem.value;
+  }
+});
 </script>
 
 <style lang="scss" scoped>
