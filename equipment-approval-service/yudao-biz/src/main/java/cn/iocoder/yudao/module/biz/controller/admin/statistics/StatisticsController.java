@@ -29,4 +29,10 @@ public class StatisticsController {
     public CommonResult<Map<String, Object>> applicationSummary(@RequestParam(required = false, name = "status") Integer status) {
         return success(statisticsService.applicationSummary(status));
     }
+
+    @GetMapping("/equipment-summary")
+    @Operation(summary = "设备汇总统计")
+    public CommonResult<Map<String, Object>> equipmentSummary(@RequestParam(required = false, name = "year") Integer year) {
+        return success(statisticsService.equipmentSummary(year));
+    }
 }

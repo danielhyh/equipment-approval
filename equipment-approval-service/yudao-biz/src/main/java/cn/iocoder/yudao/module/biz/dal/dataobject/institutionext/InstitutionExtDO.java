@@ -63,6 +63,11 @@ public class InstitutionExtDO extends BaseDO {
      * 营业执照号
      */
     private String businessLicenseNo;
+
+    /**
+     * 营业执照图片
+     */
+    private String businessLicensePic;
     /**
      * 法定代表人
      */
@@ -89,4 +94,4 @@ public class InstitutionExtDO extends BaseDO {
     private Integer institutionType;
 
 
-}
+}

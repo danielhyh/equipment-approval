@@ -36,15 +36,18 @@ public class SupplementaryInfoServiceImpl implements SupplementaryInfoService {
     private SupplementaryInfoMapper supplementaryInfoMapper;
 
     @Override
-    public Long createSupplementaryInfo(AppSupplementaryInfoSaveReqVO createReqVO) {
+    public Boolean createSupplementaryInfo(List<AppSupplementaryInfoSaveReqVO> createReqVO) {
         Long loginUserId = SecurityFrameworkUtils.getLoginUserId();
         // 插入
-        SupplementaryInfoDO supplementaryInfo = BeanUtils.toBean(createReqVO, SupplementaryInfoDO.class);
-        supplementaryInfo.setCreator(loginUserId.toString());
-        supplementaryInfoMapper.insert(supplementaryInfo);
+        List<SupplementaryInfoDO> supplementaryInfo = BeanUtils.toBean(createReqVO, SupplementaryInfoDO.class,
+                s -> {
+                    assert loginUserId != null;
+                    s.setCreator(loginUserId.toString());
+                }
+        );
 
         // 返回
-        return supplementaryInfo.getId();
+        return supplementaryInfoMapper.insertBatch(supplementaryInfo);
     }
 
     @Override
@@ -88,10 +91,10 @@ public class SupplementaryInfoServiceImpl implements SupplementaryInfoService {
     }
 
     @Override
-    public List<SupplementaryInfoDO> list(Integer type) {
+    public List<SupplementaryInfoDO> list(Long id) {
         Long loginUserId = SecurityFrameworkUtils.getLoginUserId();
         LambdaQueryWrapper<SupplementaryInfoDO> queryWrapper = Wrappers.lambdaQuery(SupplementaryInfoDO.class)
-                .eq(type != null, SupplementaryInfoDO::getInfoType, type)
+                .eq(SupplementaryInfoDO::getApplicationId, id)
                 .eq(SupplementaryInfoDO::getCreator, loginUserId);
         return supplementaryInfoMapper.selectList(queryWrapper);
     }

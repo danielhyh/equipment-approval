@@ -45,4 +45,7 @@ public class UserInstitutionInfo {
 
     @Schema(description = "联系电话")
     private String contactPhone;
+
+    @Schema(description = "营业执照图片")
+    private String businessLicensePic;
 }

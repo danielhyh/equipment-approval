@@ -11,14 +11,18 @@ import cn.iocoder.yudao.module.biz.controller.app.license.vo.AppLicensePageRespV
 import cn.iocoder.yudao.module.biz.dal.dataobject.classaequipment.ClassAEquipmentDO;
 import cn.iocoder.yudao.module.biz.dal.mysql.classaequipment.ClassAEquipmentMapper;
 import cn.iocoder.yudao.module.biz.dal.mysql.license.LicenseMapper;
+import cn.iocoder.yudao.module.biz.service.utils.JdbcClientHelper;
 import com.alibaba.fastjson.JSON;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.google.common.base.CaseFormat;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.jdbc.core.simple.JdbcClient;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.sql.ResultSetMetaData;
@@ -31,6 +35,8 @@ import java.util.concurrent.Executor;
 @Slf4j
 public class LicenseService {
 
+    private final Logger logger = LoggerFactory.getLogger(LicenseService.class);
+
     @Resource
     private LicenseMapper licenseMapper;
 
@@ -39,9 +45,6 @@ public class LicenseService {
 
     @Resource
     private JdbcClient jdbcClient;
-
-    @Resource(name = "bizExecutor")
-    private Executor bizExecutor;
 
     public PageResult<AppLicensePageRespVO> licensePage(Integer pageSize, Integer pageNum, String type) {
         IPage<AppLicensePageRespVO> page = new Page<>(pageNum, pageSize);
@@ -65,38 +68,26 @@ public class LicenseService {
         return licenseMapper.getDuplicateById(id);
     }
 
+    @Transactional
     public boolean insertDuplicateLicense(AppDuplicateSubmitRequest request) {
         Long loginUserId = SecurityFrameworkUtils.getLoginUserId();
-        CompletableFuture.runAsync(() -> insertEquipment(request), bizExecutor)
-                .exceptionally(throwable -> {
-                    log.error("【异步任务失败】插入设备异常，request={}", JSON.toJSONString(request), throwable);
-                    return null;
-                });
-
-
-        return licenseMapper.insertDuplicateLicense(request, loginUserId) > 0;
+        boolean res = licenseMapper.insertDuplicateLicense(request, loginUserId) > 0;
+        insertEquipment(request);
+        return res;
     }
 
     public void insertEquipment(AppDuplicateSubmitRequest req) {
         ClassAEquipmentDO equipmentDO = getClassAEquipmentDO(req);
         String sql = """
-                select a.*, b.id as app_id,b.license_device_name from biz_institution_ext a
+                select a.institution_name, a.contact_person,
+                       a.contact_phone, a.unified_social_credit_code, a.legal_person,
+                       a.ownership_nature, a.detailed_address,
+                       b.id as id,b.license_device_name from biz_institution_ext a
                 left join biz_application b on a.dept_id = b.institution_id
                 left join biz_license_original c on b.id = c.application_id
                 where c.id = ?
                 """;
-        Map<String, String> res = jdbcClient.sql(sql).param(req.getOriginalId()).query((rs, rowNum) -> {
-            ResultSetMetaData metaData = rs.getMetaData();
-            int columnCount = metaData.getColumnCount();
-            Map<String, String> map = new HashMap<>();
-            for (int i = 1; i <= columnCount; i++) {
-                String columnName = metaData.getColumnName(i);
-                String camelKey = CaseFormat.LOWER_UNDERSCORE.to(CaseFormat.LOWER_CAMEL, columnName);
-                Object val = rs.getObject(i);
-                map.put(camelKey, val != null ? val.toString() : "");
-            }
-            return map;
-        }).single();
+        Map<String, String> res = jdbcClient.sql(sql).param(req.getOriginalId()).query(JdbcClientHelper::resultSetToMap).single();
         equipmentDO.setConfigUnitName(res.get("institutionName"));
         equipmentDO.setContactPerson(res.get("contactPerson"));
         equipmentDO.setContactPhone(res.get("contactPhone"));
@@ -110,8 +101,13 @@ public class LicenseService {
         //更新application表 equipmentId
         jdbcClient.sql("update biz_application set equipment_id = :eid where id = :id")
                 .param("eid", equipmentDO.getId())
-                .param("id", res.get("appId"))
+                .param("id", res.get("id"))
                 .update();
+        logger.info("修改application表:{} equipmentId:{}", res.get("id"), equipmentDO.getId());
+        //biz_license_duplicate equipment_id
+        jdbcClient.sql("update biz_license_duplicate set equipment_id = ? where id = ?")
+                .params(equipmentDO.getId(), req.getId()).update();
+        logger.info("修改biz_license_duplicate表:{} equipmentId:{}", req.getId(), equipmentDO.getId());
     }
 
     private static ClassAEquipmentDO getClassAEquipmentDO(AppDuplicateSubmitRequest req) {
@@ -119,10 +115,12 @@ public class LicenseService {
         equipmentDO.setProductionEnterprise(req.getProductionEnterprise());
         equipmentDO.setSpecificModel(req.getSpecificModel());
         equipmentDO.setInstallationDate(req.getInstallationDate());
+        equipmentDO.setSerialNumber(req.getProductSerialNo());
         equipmentDO.setPurchasePrice(new BigDecimal(req.getPurchasePrice()));
         equipmentDO.setStatus(1);
         equipmentDO.setEquipmentUsers(req.getEquipmentUsers());
         equipmentDO.setSpecialDescription(req.getSpecialDescription());
+        equipmentDO.setType(2);
         return equipmentDO;
     }
 }

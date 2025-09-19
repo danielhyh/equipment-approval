@@ -48,8 +48,10 @@ public class AppLicensePageRespVO {
     @JsonFormat(pattern = "yyyy-MM-dd")
     private LocalDate installationDate;
 
+    @Schema(description = "已提交副本 Y提交 N未提交")
     private String hasDuplicate;
 
+    @Schema(description = "已提交验收材料 Y提交 N未提交")
     private String hasAcceptanceMaterial;
 
 }

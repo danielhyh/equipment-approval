@@ -91,5 +91,13 @@ public class ClassAEquipmentDO extends BaseDO {
      */
     private Integer status;
 
+    /**
+     * 状态：1-甲类，0-乙类
+     */
+    private Integer type;
+
+    //序列号
+    private String serialNumber;
+
 
 }
