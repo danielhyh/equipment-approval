@@ -33,7 +33,7 @@
         </div>
         <!-- 二维码 -->
         <div class="licence-qr-code" v-show="!isBLicenceSub">
-          <Qrcode :width="83" tag="img" ref="qrcodeRef" />
+          <Qrcode :width="83" tag="canvas" ref="qrcodeRef" />
         </div>
         <!-- 签发机关 年月日盖章 -->
         <div class="licence-stamp-date">
@@ -56,205 +56,183 @@
   </div>
 </template>
 
-<script setup lang="ts" name="License">
-import jsPDF from 'jspdf'
-import domtoimage from 'dom-to-image'
-import { ElMessage } from 'element-plus'
-import NEImage from '@/assets/lincence/national-emblem-b.png'
-import { ALicenceData, BLicenceData } from './license'
-import { VuePrintNext } from 'vue-print-next'
+<script setup name="License">
+import { getLicenseUrl } from "@/utils/tools";
+import jsPDF from "jspdf";
+import domtoimage from "dom-to-image";
+import { ALicenceData, BLicenceData } from "./license";
+import { VuePrintNext } from "vue-print-next";
+let NEImage = getLicenseUrl("national-emblem-b.png");
 // 许可证
 let props = defineProps({
-  licenceType: { type: String, default: 'A' }, // A:甲类 | B:乙类 控制标题  以及样式
-  licenceSubtitle: { type: String, default: 'A' }, // A:正本 | B:副本 控制副标题 以及字段内容 以及样式
-  code: { type: [String, null, undefined], default: '甲2703200938' },
+  licenceType: { type: String, default: "A" }, // A:甲类 | B:乙类 控制标题  以及样式
+  licenceSubtitle: { type: String, default: "A" }, // A:正本 | B:副本 控制副标题 以及字段内容 以及样式
+  code: { type: [String, null, undefined], default: "" },
   licenseData: {
     type: Array,
     default: () => {
       return [
-        '国家新能源科技有限公司', // 配置单位名称
-        '913301067046373179', // 统一社会信用代码
-        '韩歆毅', // 法定代表人
-        '磁共振成像设备', // 许可设备名称
-        '国有企业', // 所有制性质
-        'MRI设备', // 阶梯配置机型
-        '北京市海淀区' // 设备配置地址
-      ]
-    }
+        "国家新能源科技有限公司", // 配置单位名称
+        "913301067046373179", // 统一社会信用代码
+        "韩歆毅", // 法定代表人
+        "磁共振成像设备", // 许可设备名称
+        "国有企业", // 所有制性质
+        "MRI设备", // 阶梯配置机型
+        "北京市海淀区", // 设备配置地址
+      ];
+    },
   },
-  stampUit: { type: [String, null, undefined], default: '陕西省卫生健康委员会' }, // 签发单位
-  stampDate: { type: [String, null, undefined], default: '2023年01月01日' }, // 签发日期
-  seal: { type: [String, null, undefined], default: '' } // 盖章
-})
+  stampUit: { type: [String, null, undefined], default: "陕西省卫生健康委员会" }, // 签发单位
+  stampDate: { type: [String, null, undefined], default: "2023年01月01日" }, // 签发日期
+  seal: { type: [String, null, undefined], default: "" }, // 盖章
+});
 
 let licenceTitle = computed(() => {
-  if (props.licenceType === 'A') {
-    return '甲类大型医用设备配置许可证'
+  if (props.licenceType === "A") {
+    return "甲类大型医用设备配置许可证";
   }
-  if (props.licenceType === 'B') {
-    return '乙类大型医用设备配置许可证'
+  if (props.licenceType === "B") {
+    return "乙类大型医用设备配置许可证";
   }
-})
+});
 let licenceSubtitle = computed(() => {
-  if (props.licenceSubtitle === 'A') {
-    return '（正本）'
+  if (props.licenceSubtitle === "A") {
+    return "（正本）";
   }
-  if (props.licenceSubtitle === 'B') {
-    return '（副本）'
+  if (props.licenceSubtitle === "B") {
+    return "（副本）";
   }
-})
+});
 let licenceCode = computed(() => {
-  return props.code
-})
+  return props.code;
+});
 let licenceContent = computed(() => {
-  let data =
-    props.licenceSubtitle === 'A'
-      ? JSON.parse(JSON.stringify(ALicenceData))
-      : JSON.parse(JSON.stringify(BLicenceData))
+  let data = props.licenceSubtitle === "A" ? JSON.parse(JSON.stringify(ALicenceData)) : JSON.parse(JSON.stringify(BLicenceData));
   // 根据传入的 licenseData 替换默认数据
   if (props.licenseData.length > 0) {
     props.licenseData.forEach((item, index) => {
-      data[index].value = item || ''
-    })
+      if (data[index]) data[index].value = item || "";
+    });
   }
-  return data
-})
+  return data;
+});
 let stampDateEg = computed(() => {
-  if (!props.stampDate) return ['', '', '']
+  if (!props.stampDate) return ["", "", ""];
   // 按 年月日 格式分割
-  if (props.stampDate.includes('年')) {
-    let date = props.stampDate.split('年')
-    let month = date[1].split('月')
-    let day = month[1].split('日')
-    return [date[0], month[0], day[0]]
+  if (props.stampDate.includes("年")) {
+    let date = props.stampDate.split("年");
+    let month = date[1].split("月");
+    let day = month[1].split("日");
+    return [date[0], month[0], day[0]];
   }
-  if (props.stampDate.includes('-')) {
-    let date = props.stampDate.split('-')
-    return date
+  if (props.stampDate.includes("-")) {
+    let date = props.stampDate.split("-");
+    return date;
   }
-  return ['', '', '']
-})
+  return ["", "", ""];
+});
 let firstColumns = computed(() => {
-  return licenceContent.value.filter((_, index) => index % 2 === 0)
-})
+  return licenceContent.value.filter((_, index) => index % 2 === 0);
+});
 let secondColumns = computed(() => {
-  return licenceContent.value.filter((_, index) => index % 2 === 1)
-})
+  return licenceContent.value.filter((_, index) => index % 2 === 1);
+});
 let isBLicenceSub = computed(() => {
   // 是否是副本
-  return props.licenceSubtitle === 'B'
-})
+  return props.licenceSubtitle === "B";
+});
 
-let licenceIDRef = ref<Element | null>(null)
-let loading = ref<boolean>(false)
-let imageload = ref<boolean>(true)
+let licenceIDRef = ref(null);
+let loading = ref(false);
+let imageload = ref(true);
 const imageloadError = () => {
-  imageload.value = false
-  console.error('Image failed to load')
-}
+  imageload.value = false;
+  console.error("Image failed to load");
+};
 
 const vaildFn = async () => {
   return new Promise((resolve, reject) => {
     if (!licenceIDRef.value) {
       ElMessage({
-        message: '资源加载失败',
-        type: 'error',
+        message: "资源加载失败",
+        type: "error",
         duration: 1000,
         showClose: false,
-        grouping: false
-      })
-      reject('error:HTML 资源加载失败！')
+        grouping: false,
+      });
+      reject("error:HTML 资源加载失败！");
     }
     if (!imageload.value) {
       ElMessage({
-        message: '图片资源加载失败',
-        type: 'error',
+        message: "图片资源加载失败",
+        type: "error",
         duration: 1000,
         showClose: false,
-        grouping: false
-      })
-      reject('error:图片资源加载失败！')
+        grouping: false,
+      });
+      reject("error:图片资源加载失败！");
     }
-    resolve('success')
-  })
-}
+    resolve("success");
+  });
+};
 const printFn = async () => {
-  loading.value = true
+  loading.value = true;
   // 打印
-  let response = await vaildFn().catch((err) => err)
-  if (response !== 'success') {
-    return
+  let response = await vaildFn().catch((err) => err);
+  if (response !== "success") {
+    return;
   }
   new VuePrintNext({
-    el: '#licenceID',
-    standard: 'html5',
-    paperSize: 'A4',
-    orientation: 'landscape'
-  })
-  loading.value = false
-}
+    el: "#licenceID",
+    standard: "html5",
+    paperSize: "A4",
+    orientation: "landscape",
+  });
+  loading.value = false;
+};
 const downloadPdf = async () => {
   return new Promise(async (resolve, reject) => {
-    loading.value = true
+    loading.value = true;
     try {
       // 下载PDF
-      let response = await vaildFn().catch((err) => err)
-      if (response !== 'success') {
-        return
+      let response = await vaildFn().catch((err) => err);
+      if (response !== "success") {
+        return;
       }
-      const element = licenceIDRef.value as HTMLElement
-      element.style.margin = '0'
+      const element = licenceIDRef.value;
+      element.style.margin = "0";
       let dataUrl = await domtoimage.toPng(element).catch(function (error) {
-        console.error(' domtoimage 失败!', error)
-      })
-      element.style.margin = '0 auto'
+        console.error(" domtoimage 失败!", error);
+      });
+      element.style.margin = "0 auto";
 
       // A4横向尺寸 (297mm x 210mm)
-      const pdfWidth = 297
-      const pdfHeight = 210
+      const pdfWidth = 297;
+      const pdfHeight = 210;
 
       // 创建PDF实例
       const pdf = new jsPDF({
-        orientation: 'landscape',
-        unit: 'mm',
+        orientation: "landscape",
+        unit: "mm",
         format: [pdfWidth, pdfHeight],
-        compress: true
-      })
+        compress: true,
+      });
 
-      // // 计算图片在PDF中的尺寸
-      // const canvasAspectRatio = pdfWidth / pdfHeight
-      // const pdfAspectRatio = pdfWidth / pdfHeight
-      // // A4横向尺寸 (297mm x 210mm)
-      // let imgWidth: number, imgHeight: number, offsetX: number, offsetY: number
-      // if (canvasAspectRatio > pdfAspectRatio) {
-      //   // 图片更宽，以宽度为准
-      //   imgWidth = pdfWidth
-      //   imgHeight = pdfWidth / canvasAspectRatio
-      //   offsetX = 0
-      //   offsetY = (pdfHeight - imgHeight) / 2
-      // } else {
-      //   // 图片更高，以高度为准
-      //   imgHeight = pdfHeight
-      //   imgWidth = pdfHeight * canvasAspectRatio
-      //   offsetX = (pdfWidth - imgWidth) / 2
-      //   offsetY = 0
-      // }
-      // console.log(imgWidth, imgHeight, '----------->>>>>')
-      pdf.addImage(dataUrl, 'PNG', 0, 0, pdfWidth, pdfHeight)
-      pdf.save(`${licenceTitle.value}-${licenceSubtitle.value}.pdf`)
-      loading.value = false
-      resolve('PDF下载成功')
+      pdf.addImage(dataUrl, "PNG", 0, 0, pdfWidth, pdfHeight);
+      pdf.save(`${licenceTitle.value}-${licenceSubtitle.value}.pdf`);
+      loading.value = false;
+      resolve("PDF下载成功");
     } catch (err) {
-      loading.value = false
-      console.log(err, '----->>>>下载PDF失败')
-      reject(err)
+      loading.value = false;
+      console.log(err, "----->>>>下载PDF失败");
+      reject(err);
     }
-  })
-}
+  });
+};
 defineExpose({
   print: printFn,
-  download: downloadPdf
-})
+  download: downloadPdf,
+});
 </script>
 
 <style scoped>
@@ -262,10 +240,11 @@ defineExpose({
   width: 297mm;
   height: 210mm;
   background-color: white;
-  position: relative;
+  position: relative !important;
   margin: 0 auto;
   line-height: 1;
   text-align: center;
+  overflow: hidden;
 }
 .licence-out-border {
   width: 248.5mm;
@@ -275,7 +254,7 @@ defineExpose({
   left: 50%;
   transform: translate(-50%, -50%);
   box-sizing: border-box;
-  background-image: url('@/assets/lincence/border.svg');
+  background-image: url("@/assets/license/border.svg");
   background-repeat: no-repeat;
   background-size: 100% 100%;
 }
@@ -301,7 +280,7 @@ defineExpose({
   font-size: 28pt;
   color: #ebc773;
   letter-spacing: 2.6mm;
-  font-family: '黑体', 'Microsoft Yahei', sans-serif;
+  font-family: "黑体", "Microsoft Yahei", sans-serif;
   padding-top: 33mm;
 }
 .licence-subtitle {
@@ -309,14 +288,14 @@ defineExpose({
   font-size: 20pt;
   color: #ebc773;
   letter-spacing: 3.9mm;
-  font-family: '华文宋体', '宋体', 'Microsoft Yahei', sans-serif;
+  font-family: "华文宋体", "宋体", "Microsoft Yahei", sans-serif;
   font-weight: bold;
   padding-top: 3mm;
 }
 .licence-code {
   font-size: 13pt;
   color: #000;
-  font-family: '黑体', 'Microsoft Yahei', sans-serif;
+  font-family: "黑体", "Microsoft Yahei", sans-serif;
   font-weight: bold;
   letter-spacing: 1.1mm;
   padding-top: 4mm;
@@ -344,20 +323,20 @@ defineExpose({
   font-size: 13pt;
   line-height: 28pt;
   color: #000;
-  font-family: '黑体', 'Microsoft Yahei', sans-serif;
+  font-family: "黑体", "Microsoft Yahei", sans-serif;
   /* font-weight: bold; */
 }
 .licence-content-columns .licence-content-item .subLabel {
   font-size: 10pt;
   line-height: 20pt;
   color: #000;
-  font-family: '黑体', 'Microsoft Yahei', sans-serif;
+  font-family: "黑体", "Microsoft Yahei", sans-serif;
 }
 .licence-content-columns .licence-content-item .value {
   font-size: 12pt;
   line-height: 13pt;
   color: #000;
-  font-family: '黑体', 'Microsoft Yahei', sans-serif;
+  font-family: "黑体", "Microsoft Yahei", sans-serif;
   padding-left: 10px;
   display: table-cell;
 }
@@ -384,7 +363,6 @@ defineExpose({
   width: 22mm;
   height: 22mm;
 }
-
 .licence-stamp-date {
   position: absolute;
   bottom: 5mm;
@@ -399,13 +377,13 @@ defineExpose({
 }
 .licence-stamp-date .stamp-row .label {
   font-size: 12pt;
-  font-family: '黑体', 'Microsoft Yahei', sans-serif;
+  font-family: "黑体", "Microsoft Yahei", sans-serif;
   letter-spacing: 3.5mm;
 }
 .licence-stamp-date .stamp-row .value {
   width: 50mm;
   font-size: 12pt;
-  font-family: '黑体', 'Microsoft Yahei', sans-serif;
+  font-family: "黑体", "Microsoft Yahei", sans-serif;
   text-align: center;
 }
 .licence-stamp-date .remark {
@@ -416,20 +394,18 @@ defineExpose({
   margin-left: auto;
   width: 43mm;
   text-align: center;
-  font-family: '华文宋体', '宋体', 'Microsoft Yahei', sans-serif;
+  font-family: "华文宋体", "宋体", "Microsoft Yahei", sans-serif;
 }
 .licence-stamp-date .date-row {
   font-size: 12pt;
   font-style: normal;
-  font-family: '黑体', 'Microsoft Yahei', sans-serif;
-  em {
-    font-style: normal;
-  }
+  font-family: "黑体", "Microsoft Yahei", sans-serif;
 }
 .licence-stamp-date .date-row em {
   display: inline-block;
   width: 10.2mm;
   text-align: center;
+  font-style: normal;
 }
 @page {
   size: A4 landscape;
@@ -444,10 +420,11 @@ defineExpose({
     width: 297mm;
     height: 210mm;
     background-color: white;
-    position: relative;
+    position: relative !important;
     margin: 0 auto;
     line-height: 1;
     text-align: center;
+    overflow: hidden;
   }
   .licence-out-border {
     width: 248.5mm;
@@ -457,7 +434,7 @@ defineExpose({
     left: 50%;
     transform: translate(-50%, -50%);
     box-sizing: border-box;
-    background-image: url('@/assets/lincence/border.svg');
+    background-image: url("@/assets/license/border.svg");
     background-repeat: no-repeat;
     background-size: 100% 100%;
   }
@@ -483,7 +460,7 @@ defineExpose({
     font-size: 28pt;
     color: #ebc773;
     letter-spacing: 2.6mm;
-    font-family: '黑体', 'Microsoft Yahei', sans-serif;
+    font-family: "黑体", "Microsoft Yahei", sans-serif;
     padding-top: 33mm;
   }
   .licence-subtitle {
@@ -491,14 +468,14 @@ defineExpose({
     font-size: 20pt;
     color: #ebc773;
     letter-spacing: 3.9mm;
-    font-family: '华文宋体', '宋体', 'Microsoft Yahei', sans-serif;
+    font-family: "华文宋体", "宋体", "Microsoft Yahei", sans-serif;
     font-weight: bold;
     padding-top: 3mm;
   }
   .licence-code {
     font-size: 13pt;
     color: #000;
-    font-family: '黑体', 'Microsoft Yahei', sans-serif;
+    font-family: "黑体", "Microsoft Yahei", sans-serif;
     font-weight: bold;
     letter-spacing: 1.1mm;
     padding-top: 4mm;
@@ -526,20 +503,20 @@ defineExpose({
     font-size: 13pt;
     line-height: 28pt;
     color: #000;
-    font-family: '黑体', 'Microsoft Yahei', sans-serif;
+    font-family: "黑体", "Microsoft Yahei", sans-serif;
     /* font-weight: bold; */
   }
   .licence-content-columns .licence-content-item .subLabel {
     font-size: 10pt;
     line-height: 20pt;
     color: #000;
-    font-family: '黑体', 'Microsoft Yahei', sans-serif;
+    font-family: "黑体", "Microsoft Yahei", sans-serif;
   }
   .licence-content-columns .licence-content-item .value {
     font-size: 12pt;
     line-height: 13pt;
     color: #000;
-    font-family: '黑体', 'Microsoft Yahei', sans-serif;
+    font-family: "黑体", "Microsoft Yahei", sans-serif;
     padding-left: 10px;
     display: table-cell;
   }
@@ -581,13 +558,13 @@ defineExpose({
   }
   .licence-stamp-date .stamp-row .label {
     font-size: 12pt;
-    font-family: '黑体', 'Microsoft Yahei', sans-serif;
+    font-family: "黑体", "Microsoft Yahei", sans-serif;
     letter-spacing: 3.5mm;
   }
   .licence-stamp-date .stamp-row .value {
     width: 50mm;
     font-size: 12pt;
-    font-family: '黑体', 'Microsoft Yahei', sans-serif;
+    font-family: "黑体", "Microsoft Yahei", sans-serif;
     text-align: center;
   }
   .licence-stamp-date .remark {
@@ -598,17 +575,18 @@ defineExpose({
     margin-left: auto;
     width: 43mm;
     text-align: center;
-    font-family: '华文宋体', '宋体', 'Microsoft Yahei', sans-serif;
+    font-family: "华文宋体", "宋体", "Microsoft Yahei", sans-serif;
   }
   .licence-stamp-date .date-row {
     font-size: 12pt;
     font-style: normal;
-    font-family: '黑体', 'Microsoft Yahei', sans-serif;
+    font-family: "黑体", "Microsoft Yahei", sans-serif;
   }
   .licence-stamp-date .date-row em {
     display: inline-block;
     width: 10.2mm;
     text-align: center;
+    font-style: normal;
   }
 }
 </style>

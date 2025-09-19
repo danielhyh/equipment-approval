@@ -53,6 +53,18 @@ export const useUserStore = defineStore("user", {
         console.log(err, "获取用户信息失败");
       }
     },
+    async updateUser() {
+      try {
+        let response = await getUserInfo();
+        let { data } = response;
+        this.user = data;
+        setStorage("userInfo", JSON.stringify(data));
+      } catch (err) {
+        this.user = null;
+        removeStorage("userInfo");
+        console.log(err, "获取用户信息失败");
+      }
+    },
     setToken(token) {
       this.token = token;
       setStorage("token", token);

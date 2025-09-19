@@ -17,7 +17,7 @@
   </el-dialog>
 </template>
 
-<script setup>
+<script setup name="Dialog">
 let props = defineProps({
   attr: {
     type: Object,

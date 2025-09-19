@@ -33,8 +33,7 @@
   </div>
 </template>
 
-<script setup>
-import { computed } from "vue";
+<script setup name="Steps">
 
 // 定义组件props
 const props = defineProps({

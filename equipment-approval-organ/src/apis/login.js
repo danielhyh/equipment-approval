@@ -44,3 +44,25 @@ export function getUserInfo() {
 }
 
 // 编辑用户信息
+export function editUserInfo(data) {
+  return request({
+    url: "/app-api/biz/institution/update",
+    method: "post",
+    data,
+  });
+}
+
+// 获取用户未读通知
+export function getUnreadMsg() {
+  return request({
+    url: "/app-api/biz/notification/unread",
+    method: "get",
+  });
+}
+// 标记已读通知
+export function markReadMsg(id) {
+  return request({
+    url: `/app-api/biz/notification/${id}/read`,
+    method: "get",
+  });
+}

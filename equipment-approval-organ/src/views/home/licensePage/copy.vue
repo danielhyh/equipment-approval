@@ -1,55 +1,75 @@
 <template>
-  <el-form class="grid-form" :model="formData" :rules="rules" ref="formRef" label-position="top" :disabled="disabled">
-    <el-form-item label="生产企业" prop="productionEnterprise">
-      <el-input v-model="formData.productionEnterprise" placeholder="请输入生产企业" />
-    </el-form-item>
-    <el-form-item label="具体型号" prop="specificModel">
-      <el-input v-model="formData.specificModel" placeholder="请输入具体型号" />
-    </el-form-item>
-    <el-form-item label="产品序列号" prop="productSerialNo">
-      <el-input v-model="formData.productSerialNo" placeholder="请输入产品序列号" />
-    </el-form-item>
-    <el-form-item label="装机日期" prop="installationDate">
-      <el-date-picker v-model="formData.installationDate" type="date" value-format="YYYY-MM-DD" placeholder="请选择装机日期" />
-    </el-form-item>
-    <el-form-item label="信息报送日期" prop="infoSubmitDate">
-      <el-date-picker v-model="formData.infoSubmitDate" type="date" value-format="YYYY-MM-DD" placeholder="请选择信息报送日期" />
-    </el-form-item>
-    <el-form-item label="副本发证日期" prop="duplicateIssueDate">
-      <el-date-picker
-        v-model="formData.duplicateIssueDate"
-        type="date"
-        value-format="YYYY-MM-DD"
-        placeholder="请选择副本发证日期"
-      />
-    </el-form-item>
-    <el-form-item label="副本发证机关" prop="duplicateIssuingAuthority">
-      <el-input v-model="formData.duplicateIssuingAuthority" placeholder="请输入副本发证机关" disabled />
-    </el-form-item>
-    <el-form-item label="采购价格" prop="purchasePrice">
-      <el-input v-model="formData.purchasePrice" placeholder="请输入采购价格" type="number" clearable>
-        <template #prepend>￥</template>
-        <template #append>元</template>
-      </el-input>
-    </el-form-item>
-    <el-form-item label="设备特殊说明" prop="specialDescription" class="grid-item-1-2">
-      <el-input
-        v-model="formData.specialDescription"
-        type="textarea"
-        :autosize="{ minRows: 4, maxRows: 8 }"
-        placeholder="请输入备注信息"
-      />
-    </el-form-item>
-    <el-form-item label="备注信息" prop="remark" class="grid-item-2-4">
-      <el-input v-model="formData.remark" type="textarea" :autosize="{ minRows: 4, maxRows: 8 }" placeholder="请输入备注信息" />
-    </el-form-item>
-  </el-form>
+  <div>
+    <el-form class="grid-form" :model="formData" :rules="rules" ref="formRef" label-position="top" :disabled="disabled">
+      <el-form-item label="生产企业" prop="productionEnterprise">
+        <el-input v-model="formData.productionEnterprise" placeholder="请输入生产企业" />
+      </el-form-item>
+      <el-form-item label="具体型号" prop="specificModel">
+        <el-input v-model="formData.specificModel" placeholder="请输入具体型号" />
+      </el-form-item>
+      <el-form-item label="产品序列号" prop="productSerialNo">
+        <el-input v-model="formData.productSerialNo" placeholder="请输入产品序列号" />
+      </el-form-item>
+      <el-form-item label="装机日期" prop="installationDate">
+        <el-date-picker v-model="formData.installationDate" type="date" value-format="YYYY-MM-DD" placeholder="请选择装机日期" />
+      </el-form-item>
+      <el-form-item label="信息报送日期" prop="infoSubmitDate">
+        <el-date-picker
+          v-model="formData.infoSubmitDate"
+          type="date"
+          value-format="YYYY-MM-DD"
+          placeholder="请选择信息报送日期"
+        />
+      </el-form-item>
+      <el-form-item label="副本发证日期" prop="duplicateIssueDate">
+        <el-date-picker
+          v-model="formData.duplicateIssueDate"
+          type="date"
+          value-format="YYYY-MM-DD"
+          placeholder="请选择副本发证日期"
+        />
+      </el-form-item>
+      <el-form-item label="副本发证机关" prop="duplicateIssuingAuthority">
+        <el-input v-model="formData.duplicateIssuingAuthority" placeholder="请输入副本发证机关" disabled />
+      </el-form-item>
+      <el-form-item label="采购价格" prop="purchasePrice">
+        <el-input v-model="formData.purchasePrice" placeholder="请输入采购价格" type="number" clearable>
+          <template #prepend>￥</template>
+          <template #append>元</template>
+        </el-input>
+      </el-form-item>
+      <el-form-item label="设备特殊说明" prop="specialDescription" class="grid-item-1-2">
+        <el-input
+          v-model="formData.specialDescription"
+          type="textarea"
+          :autosize="{ minRows: 4, maxRows: 8 }"
+          placeholder="请输入备注信息"
+        />
+      </el-form-item>
+      <el-form-item label="备注信息" prop="remark" class="grid-item-2-4">
+        <el-input v-model="formData.remark" type="textarea" :autosize="{ minRows: 4, maxRows: 8 }" placeholder="请输入备注信息" />
+      </el-form-item>
+    </el-form>
+    <div v-if="licenseBasis.duplicateId">
+      <div class="m-t-30 flex items-center justify-center" style="position: relative; z-index: 999">
+        <el-button type="primary" @click="hideCopyChange" :icon="hideCopy ? View : Hide">
+          {{ hideCopy ? "查看副本" : "隐藏副本" }}
+        </el-button>
+        <el-button type="primary" @click="downloadFn" v-show="!hideCopy">下载副本</el-button>
+        <el-button type="primary" @click="printFn" v-show="!hideCopy">打印副本</el-button>
+      </div>
+      <div style="overflow: auto">
+        <license v-show="!hideCopy" ref="licenseRef" v-bind="licenseProps" />
+      </div>
+    </div>
+  </div>
 </template>
 
 <script setup>
-import { getLicenseCopy, submitCopy } from "@/apis/home";
+import { View, Hide } from "@element-plus/icons-vue";
+import { dayTimeFormate } from "@/utils/tools";
+import { getLicenseCopy, submitCopy, getLicenseOrigin } from "@/apis/home";
 import { useBasisStore } from "@/pinia/modules/basis";
-import { onMounted } from "vue";
 let basisStore = useBasisStore();
 let licenseBasis = computed(() => basisStore.getLicenseBasis);
 let props = defineProps({
@@ -88,14 +108,53 @@ let rules = ref({
   duplicateIssueDate: [{ required: true, message: "请输入副本发证日期", trigger: ["blur"] }],
   purchasePrice: [{ required: true, message: "请输入采购价格", trigger: ["blur"] }],
 });
+let licenseRef = ref(null);
+let licenseProps = reactive({
+  licenceType: "B",
+  licenceSubtitle: "B",
+  code: "",
+  licenseData: [],
+  stampUit: "",
+  stampDate: "",
+});
+// 副本
+let hideCopy = ref(true);
+const hideCopyChange = () => {
+  hideCopy.value = !hideCopy.value;
+};
+const downloadFn = () => {
+  licenseRef.value?.download();
+};
+const printFn = () => {
+  licenseRef.value?.print();
+};
 // 获取副本信息
 let loading = ref(false);
 const getCopyInfo = () => {
   if (!licenseBasis.value.duplicateId) return;
-  loading.value = true;
-  getLicenseCopy(licenseBasis.value.duplicateId)
-    .then((res) => {
-      formData = Object.assign(formData, res.data);
+  Promise.all([getLicenseOrigin(licenseBasis.value.originalId), getLicenseCopy(licenseBasis.value.duplicateId)])
+    .then((resArr) => {
+      let [originRes, copyRes] = resArr;
+      formData = Object.assign(formData, copyRes.data);
+      let data = { ...originRes.data, ...copyRes.data };
+      let arr = []
+      arr.push(data.configUnitName);
+      arr.push(data.productionEnterprise);
+      arr.push(data.legalPerson);
+      arr.push(data.specificModel);
+      arr.push(data.ownershipNature);
+      arr.push(data.productSerialNo);
+      arr.push(data.equipmentConfigAddress);
+      arr.push(dayTimeFormate(data.installationDate));
+      arr.push(data.unifiedSocialCreditCode);
+      arr.push(dayTimeFormate(data.infoSubmitDate));
+      arr.push(data.licenseDeviceName);
+      arr.push(data.remark);
+      arr.push(data.ladderConfigModel);
+      licenseProps.licenseData = arr
+      licenseProps.code = licenseBasis.value.licenseNo;
+      licenseProps.stampUit = data.duplicateIssuingAuthority;
+      licenseProps.stampDate = data.duplicateIssueDate;
     })
     .finally(() => {
       loading.value = false;
@@ -118,13 +177,13 @@ const submit = async () => {
     let params = {
       ...formData,
       originalId: licenseBasis.value.originalId,
-    }
+    };
     await submitCopy(params);
     ElMessage.success("提交成功");
-    return true
+    return true;
   } catch (err) {
     ElMessage.error("提交失败");
-    return false
+    return false;
   }
 };
 

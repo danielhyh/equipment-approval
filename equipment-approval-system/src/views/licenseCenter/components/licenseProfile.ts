@@ -31,7 +31,7 @@ export interface copyProfile extends originalProfile {
   duplicateIssueDate?: string | null
 }
 
-// 时间格式化
+// 时间格式化 YYYY-MM-DD 转 YYYY 年 MM 月 DD 日
 export const dayTimeFormate = (time) => {
   if (!time) return ''
   return time.replace(/(\d{4})-(\d{2})-(\d{2})/, '$1 年 $2 月 $3 日')

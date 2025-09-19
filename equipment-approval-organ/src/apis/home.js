@@ -83,3 +83,12 @@ export function getLicenseOtherList(params){
     params,
   });
 }
+
+// 获取操作记录列表 {id：applicationId}
+export function getLicenseHistoryList(params){
+  return instance({
+    url: "/app-api/biz/log/list",
+    method: "get",
+    params,
+  });
+}

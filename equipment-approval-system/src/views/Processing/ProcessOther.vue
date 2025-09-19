@@ -157,7 +157,7 @@ const typeRef = ref<InstanceType<typeof Preliminary> | InstanceType<typeof Exper
 const submitFn = async () => {
   if (typeRef.value && typeof typeRef.value.submitFn === 'function') {
     let response = await typeRef.value.submitFn() // 调用子组件的 submitFn 方法
-    if (response.success) {
+    if (response && response.success) {
       goBack()
     }
   } else {

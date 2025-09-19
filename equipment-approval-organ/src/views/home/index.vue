@@ -95,7 +95,7 @@
 </template>
 
 <script setup>
-import LicenseList from "./license.vue";
+import LicenseList from "./licenseList.vue";
 import { useBasisStore } from "@/pinia/modules/basis";
 import { useDictStore } from "@/pinia/modules/dict";
 import { getApplyList } from "@/apis/home";

@@ -8,7 +8,10 @@ export const getDocUrl = (url) => {
   if (!url) return;
   return new URL(`../assets/doc/${url}`, import.meta.url).href;
 };
-
+export const getLicenseUrl = (url) => {
+  if (!url) return;
+  return new URL(`../assets/license/${url}`, import.meta.url).href;
+}
 // 判断是否是 JSON 字符串
 export function isJsonString(str) {
   if(typeof str !== 'string') return false;
@@ -41,6 +44,11 @@ export function formatDate(date, format = "yyyy-MM-dd hh:mm:ss") {
   minute = minute < 10 ? "0" + minute : minute;
   second = second < 10 ? "0" + second : second;
   return format.replace("yyyy", year).replace("MM", month).replace("dd", day).replace("hh", hour).replace("mm", minute).replace("ss", second);
+}
+// 时间格式化 YYYY-MM-DD 转 YYYY 年 MM 月 DD 日
+export const dayTimeFormate = (time) => {
+  if (!time) return ''
+  return time.replace(/(\d{4})-(\d{2})-(\d{2})/, '$1 年 $2 月 $3 日')
 }
 
 export function textToSpeech(text, callback) {

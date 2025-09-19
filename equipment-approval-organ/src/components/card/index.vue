@@ -9,7 +9,7 @@
   </el-card>
 </template>
 
-<script setup></script>
+<script setup name="Card"></script>
 
 <style lang="scss" scoped>
 .card-style {

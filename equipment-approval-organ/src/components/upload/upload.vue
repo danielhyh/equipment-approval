@@ -29,7 +29,7 @@
   </el-upload>
 </template>
 
-<script setup>
+<script setup name="Upload">
 import { createUploadFile } from "@/apis/applyFor";
 import { genFileId } from "element-plus";
 import { Upload } from "@element-plus/icons-vue";

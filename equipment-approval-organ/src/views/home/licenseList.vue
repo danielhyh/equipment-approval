@@ -49,6 +49,7 @@
             >补充其他信息</el-button
           >
           <el-button type="primary" size="small" v-if="row.hasDuplicate === 'Y'" @click="handleDetail(row)">详细信息</el-button>
+          <el-button type="primary" size="small" v-if="row.hasDuplicate === 'Y'" @click="handleQrCode(row)">二维码信息</el-button>
         </template>
       </el-table-column>
       <template #empty>
@@ -170,8 +171,8 @@ const handleOther = (row) => {
   otherVisible.value = true;
 };
 const handleOtherSubmit = async () => {
-  let isPass = await otherDialogRef.value?.submit()
-  if(isPass){
+  let isPass = await otherDialogRef.value?.submit();
+  if (isPass) {
     otherVisible.value = false;
   }
 };
@@ -184,6 +185,10 @@ const handleFile = (row) => {
 const handleDetail = (row) => {
   basisStore.setLicenseBasis(row);
   router.push({ name: "LicenseDetail" });
+};
+const handleQrCode = (row) => {
+  basisStore.setLicenseBasis(row);
+  router.push({ name: "LicenseDetail", query: { key: "qrCodeMsg" } });
 };
 
 onMounted(() => {
@@ -244,6 +249,12 @@ onMounted(() => {
   }
   &:deep(.el-table) {
     margin-bottom: 20px;
+    .cell {
+      .el-button {
+        margin-top: 5px;
+        margin-bottom: 5px;
+      }
+    }
   }
 }
 </style>

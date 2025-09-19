@@ -109,7 +109,7 @@
 import { formatDate } from "@/utils/tools";
 import { createLicenseOther } from "@/apis/home";
 import { useBasisStore } from "@/pinia/modules/basis";
-import Upload from "./components/upload.vue";
+import Upload from "../../../components/upload/upload.vue";
 const basisStore = useBasisStore();
 const licenseBasis = computed(() => basisStore.getLicenseBasis);
 let applicationId = computed(() => licenseBasis.value.applicationId);

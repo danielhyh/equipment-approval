@@ -103,7 +103,7 @@ const init = async () => {
     formData.equipmentUsers = personList[0].infoContent ? JSON.parse(personList[0].infoContent) : [];
 
     let checkMaintainList = response.data
-      .filter((item) => item.infoType === 3)
+      .filter((item) => item.infoType === 3 && item.infoContent !== "")
       .sort((pre, cur) => cur.createTime - pre.createTime);
     formData.checkMaintain = checkMaintainList.map((item) => ({
       createTime: formatDate(item.createTime),
@@ -111,7 +111,7 @@ const init = async () => {
     }));
 
     let deviceMsgListArr = response.data
-      .filter((item) => item.infoType === 2)
+      .filter((item) => item.infoType === 2 && item.infoContent !== "")
       .sort((pre, cur) => cur.createTime - pre.createTime);
     formData.deviceMsgList = deviceMsgListArr.map((item) => ({
       createTime: formatDate(item.createTime),
@@ -194,8 +194,28 @@ onMounted(() => {
   border-bottom: 2px solid rgba(22, 93, 255, 0.1);
 }
 .msg-item {
-  border-radius: 10px;
-  padding: 14px 20px;
-  
+  background: rgba(248, 250, 252, 0.8);
+  border: 1px solid rgba(226, 232, 240, 0.6);
+  border-radius: 8px;
+  padding: 15px;
+  transition: all 0.3s ease;
+  & + .msg-item {
+    margin-top: 15px;
+  }
+  &:hover {
+    box-shadow: 0 4px 12px rgba(22, 93, 255, 0.1);
+    border-color: rgba(22, 93, 255, 0.3);
+  }
+  .time {
+    font-weight: 600;
+    color: #165dff;
+    margin-bottom: 8px;
+    font-size: 13px;
+  }
+  .remark {
+    color: #1e293b;
+    line-height: 1.5;
+    font-size: 13px;
+  }
 }
 </style>
