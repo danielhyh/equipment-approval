@@ -84,6 +84,11 @@ public class ApplicationStatusScheduler {
         createNotificationRequest.setContent(format);
         createNotificationRequest.setPublishNow(true);
         createNotificationRequest.setCreator(String.valueOf((Long) 1L));
+        createNotificationRequest.setAppId(applicationDO.getId());
+        String institutionName = client.sql("select institution_name from biz_institution_ext where dept_id = ?")
+                .param(applicationDO.getInstitutionId())
+                .query(String.class).single();
+        createNotificationRequest.setUnitName(institutionName);
         notificationService.createNotification(createNotificationRequest);
     }
 }

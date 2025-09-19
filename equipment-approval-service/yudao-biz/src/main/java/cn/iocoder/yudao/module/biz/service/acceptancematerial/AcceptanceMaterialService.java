@@ -20,7 +20,7 @@ public interface AcceptanceMaterialService {
      * @param createReqVO 创建信息
      * @return 编号
      */
-    Long createAcceptanceMaterial(@Valid AppAcceptanceMaterialSaveReqVO createReqVO);
+    Boolean createAcceptanceMaterial(@Valid List<AppAcceptanceMaterialSaveReqVO> createReqVOs);
 
     /**
      * 更新验收资料
@@ -59,6 +59,6 @@ public interface AcceptanceMaterialService {
      */
     PageResult<AcceptanceMaterialDO> getAcceptanceMaterialPage(AppAcceptanceMaterialPageReqVO pageReqVO);
 
-    List<AcceptanceMaterialDO> list(Integer type);
+    List<AcceptanceMaterialDO> list(Long id);
 
 }

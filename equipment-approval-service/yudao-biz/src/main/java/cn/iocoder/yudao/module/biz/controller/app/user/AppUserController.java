@@ -4,6 +4,7 @@ import cn.iocoder.yudao.framework.common.exception.ServiceException;
 import cn.iocoder.yudao.framework.common.exception.enums.GlobalErrorCodeConstants;
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils;
+import cn.iocoder.yudao.module.biz.controller.app.user.vo.UpdateInstitutionReq;
 import cn.iocoder.yudao.module.biz.controller.app.user.vo.UserInstitutionInfo;
 import cn.iocoder.yudao.module.biz.dal.dataobject.institutionext.InstitutionExtDO;
 import cn.iocoder.yudao.module.biz.dal.mysql.institutionext.InstitutionExtMapper;
@@ -57,7 +58,8 @@ public class AppUserController {
                   b1.institution_level,
                   CONCAT('陕西省', b1.region) AS region,
                   b1.contact_person,
-                  b1.contact_phone
+                  b1.contact_phone,
+                  b1.business_license_pic
                 FROM
                   system_users su
                   LEFT JOIN biz_institution_ext b1 ON su.dept_id = b1.dept_id
@@ -77,12 +79,13 @@ public class AppUserController {
     @PostMapping("update")
     @Operation(summary = "修改机构基本信息")
     @io.swagger.v3.oas.annotations.parameters.RequestBody
-    public CommonResult<?> updateUserInfo(@RequestBody UserInstitutionInfo userInstitutionInfo) {
+    public CommonResult<?> updateUserInfo(@RequestBody UpdateInstitutionReq userInstitutionInfo) {
         LambdaUpdateWrapper<InstitutionExtDO> wrapper = Wrappers.lambdaUpdate(InstitutionExtDO.class)
                 .set(userInstitutionInfo.getContactPerson() != null, InstitutionExtDO::getContactPerson, userInstitutionInfo.getContactPerson())
                 .set(userInstitutionInfo.getContactPhone() != null, InstitutionExtDO::getContactPhone, userInstitutionInfo.getContactPhone())
                 .set(userInstitutionInfo.getLegalPerson() != null, InstitutionExtDO::getLegalPerson, userInstitutionInfo.getLegalPerson())
                 .set(userInstitutionInfo.getDetailedAddress() != null, InstitutionExtDO::getDetailedAddress, userInstitutionInfo.getDetailedAddress())
+                .set(userInstitutionInfo.getBusinessLicensePic() != null, InstitutionExtDO::getBusinessLicensePic, userInstitutionInfo.getBusinessLicensePic())
                 .eq(InstitutionExtDO::getDeptId, userInstitutionInfo.getInstitutionId());
         institutionExtMapper.update(wrapper);
         return success(true);

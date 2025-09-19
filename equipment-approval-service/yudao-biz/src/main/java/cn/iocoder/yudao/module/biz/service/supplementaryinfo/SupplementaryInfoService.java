@@ -20,7 +20,7 @@ public interface SupplementaryInfoService {
      * @param createReqVO 创建信息
      * @return 编号
      */
-    Long createSupplementaryInfo(@Valid AppSupplementaryInfoSaveReqVO createReqVO);
+    Boolean createSupplementaryInfo(@Valid List<AppSupplementaryInfoSaveReqVO> createReqVO);
 
     /**
      * 更新补充信息
@@ -59,6 +59,6 @@ public interface SupplementaryInfoService {
      */
     PageResult<SupplementaryInfoDO> getSupplementaryInfoPage(AppSupplementaryInfoPageReqVO pageReqVO);
 
-    List<SupplementaryInfoDO> list(Integer type);
+    List<SupplementaryInfoDO> list(Long id);
 
 }

@@ -42,7 +42,7 @@ public class AppAcceptanceMaterialController {
     @PostMapping("/create")
     @Operation(summary = "创建验收资料")
     @io.swagger.v3.oas.annotations.parameters.RequestBody
-    public CommonResult<Long> createAcceptanceMaterial(@Valid @RequestBody AppAcceptanceMaterialSaveReqVO createReqVO) {
+    public CommonResult<Boolean> createAcceptanceMaterial(@Valid @RequestBody List<AppAcceptanceMaterialSaveReqVO> createReqVO) {
         return success(acceptanceMaterialService.createAcceptanceMaterial(createReqVO));
     }
 
@@ -64,8 +64,8 @@ public class AppAcceptanceMaterialController {
     @GetMapping("/list")
     @Operation(summary = "查询验收资料列表")
     @ApiResponse
-    public CommonResult<List<AppAcceptanceMaterialRespVO>> list(@RequestParam(value = "type", required = false) Integer type) {
-        return success(BeanUtils.toBean(acceptanceMaterialService.list(type), AppAcceptanceMaterialRespVO.class));
+    public CommonResult<List<AppAcceptanceMaterialRespVO>> list(@RequestParam(value = "applicationId") Long id) {
+        return success(BeanUtils.toBean(acceptanceMaterialService.list(id), AppAcceptanceMaterialRespVO.class));
     }
 
 

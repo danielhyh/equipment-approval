@@ -9,10 +9,10 @@ import cn.iocoder.yudao.module.biz.service.devicelicense.DeviceLicenseService;
 import cn.iocoder.yudao.module.biz.service.notification.CreateNotificationRequest;
 import cn.iocoder.yudao.module.biz.service.notification.NotificationService;
 import cn.iocoder.yudao.module.biz.service.operation.OperationLogService;
+import cn.iocoder.yudao.module.biz.service.utils.JdbcClientHelper;
 import com.alibaba.fastjson.JSON;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import com.google.common.base.CaseFormat;
 import com.google.common.collect.Lists;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -21,12 +21,9 @@ import org.springframework.stereotype.Service;
 import jakarta.annotation.Resource;
 import org.springframework.validation.annotation.Validated;
 
-import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.time.temporal.TemporalUnit;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
@@ -81,16 +78,23 @@ public class ApplicationServiceImpl implements ApplicationService {
         application.setAppNo("SQ-"+timeFormatter.format(LocalDateTime.now()));
         application.setAppStatus(1);//待初审
         application.setDeadline(LocalDate.now().plusDays(45));
-        //TODO 添加定时任务
         applicationMapper.insert(application);
         //记录操作日志
         Long loginUserId = SecurityFrameworkUtils.getLoginUserId();
         String loginUserNickname = SecurityFrameworkUtils.getLoginUserNickname();
         operationService.log(application.getId(), loginUserId, loginUserNickname, "发起申请");
-//        LambdaUpdateWrapper<ApplicationMaterialDO> wrapper = Wrappers.lambdaUpdate();
-//        wrapper.eq(ApplicationMaterialDO::getCreator, loginUserId);
-//        wrapper.set(ApplicationMaterialDO::getApplicationId, application.getId());
-//        applicationMaterialMapper.update(wrapper);
+        //发通知
+        var request = new CreateNotificationRequest();
+        String institutionName = jdbcClient.sql("select institution_name from biz_institution_ext where dept_id = ?")
+                .param(createReqVO.getInstitutionId())
+                .query(String.class).single();
+        request.setAppId(application.getId());
+        request.setTitle(institutionName);
+        String format = String.format("%s(%s)", createReqVO.getLicenseDeviceName(), createReqVO.getLadderConfigModel());
+        request.setContent(format);
+        request.setPublishNow(false);
+        request.setCreator("1");
+        notificationService.createNotification(request);
         // 返回
         return application.getId();
     }
@@ -249,6 +253,11 @@ public class ApplicationServiceImpl implements ApplicationService {
         createNotificationRequest.setContent(format);
         createNotificationRequest.setPublishNow(true);
         createNotificationRequest.setCreator(String.valueOf(userId));
+        createNotificationRequest.setAppId(appId);
+        String institutionName = jdbcClient.sql("select institution_name from biz_institution_ext where dept_id = ?")
+                .param(applicationDO.getInstitutionId())
+                .query(String.class).single();
+        createNotificationRequest.setUnitName(institutionName);
         notificationService.createNotification(createNotificationRequest);
     }
 
@@ -297,7 +306,7 @@ public class ApplicationServiceImpl implements ApplicationService {
                   LEFT JOIN biz_institution_ext bie ON ba.institution_id = bie.dept_id
                 WHERE
                   ba.id = ?
-                """).param(id).query(this::resultSetToMap).single();
+                """).param(id).query(JdbcClientHelper::resultSetToMap).single();
 
         return deviceLicenseService.generateLicenseNumber("乙", map.get("region"), map.get("licenseDeviceName"),
                 map.get("ladderConfigModel"));
@@ -319,17 +328,6 @@ public class ApplicationServiceImpl implements ApplicationService {
             vo.setExpertList(nameList);
         }
         return vo;
-    }
-
-    private Map<String, String> resultSetToMap(ResultSet rs, int rowNum) throws SQLException {
-        Map<String, String> row = new HashMap<>();
-        for (int i = 1; i <= rs.getMetaData().getColumnCount(); i++) {
-            String columnName = rs.getMetaData().getColumnName(i);
-            columnName = CaseFormat.LOWER_UNDERSCORE.to(CaseFormat.LOWER_CAMEL, columnName);
-            Object value = rs.getObject(i);
-            row.put(columnName, value != null ? value.toString() : null);
-        }
-        return row;
     }
 
 }

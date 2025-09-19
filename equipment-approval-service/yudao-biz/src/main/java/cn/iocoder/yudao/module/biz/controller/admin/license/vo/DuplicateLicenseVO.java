@@ -35,4 +35,16 @@ public class DuplicateLicenseVO {
 
     @Schema(description = "备注信息", example = "该设备用于肿瘤筛查")
     private String remark;
+
+    @Schema(description = "采购价格")
+    private String purchasePrice;
+
+    @Schema(description = "设备特殊说明")
+    private String specialDescription;
+
+    @Schema(description = "设备使用人员JSON")
+    private String equipmentUsers;
+
+    @Schema(description = "正本悬挂位置")
+    private String originalPosition;
 }

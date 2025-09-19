@@ -82,6 +82,12 @@ public class NotificationService {
         jdbcTemplate.update(sql, title, loginUserId, content, id);
     }
 
+    public void deleteNotification(Long id) {
+        Long loginUserId = SecurityFrameworkUtils.getLoginUserId();
+        String sql = "update biz_notifications set deleted = b'1', updater = ?, update_time = NOW() where id = ?";
+        jdbcTemplate.update(sql, id, loginUserId);
+    }
+
     public Long createNotification(CreateNotificationRequest request) {
         String title = request.getTitle();
         String content = request.getContent();
@@ -93,8 +99,8 @@ public class NotificationService {
 
         // SQL 插入通知
         String sql = """
-        INSERT INTO biz_notifications (title, content, `status`, publish_time, creator, create_time, deleted)
-        VALUES (?, ?, ?, ?, ?, ?, ?)
+        INSERT INTO biz_notifications (title, content, unit_name, app_id, `status`, publish_time, creator, create_time, deleted)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
         """;
 
         KeyHolder keyHolder = new GeneratedKeyHolder();
@@ -102,11 +108,13 @@ public class NotificationService {
             PreparedStatement ps = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
             ps.setString(1, title);
             ps.setString(2, content);
-            ps.setString(3, status);
-            ps.setTimestamp(4, publishNow ? Timestamp.valueOf(now) : null);
-            ps.setString(5, creator != null ? creator : "");
-            ps.setTimestamp(6, Timestamp.valueOf(now));
-            ps.setBoolean(7, false);
+            ps.setString(3, request.getUnitName());
+            ps.setLong(4, request.getAppId());
+            ps.setString(5, status);
+            ps.setTimestamp(6, publishNow ? Timestamp.valueOf(now) : null);
+            ps.setString(7, creator != null ? creator : "");
+            ps.setTimestamp(8, Timestamp.valueOf(now));
+            ps.setBoolean(9, false);
             return ps;
         }, keyHolder);
 

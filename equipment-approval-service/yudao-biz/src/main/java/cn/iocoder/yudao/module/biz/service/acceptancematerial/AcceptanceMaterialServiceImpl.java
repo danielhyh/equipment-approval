@@ -4,6 +4,7 @@ import cn.hutool.core.collection.CollUtil;
 import cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
+import org.apache.ibatis.executor.BatchResult;
 import org.springframework.stereotype.Service;
 import jakarta.annotation.Resource;
 import org.springframework.validation.annotation.Validated;
@@ -36,13 +37,13 @@ public class AcceptanceMaterialServiceImpl implements AcceptanceMaterialService 
     private AcceptanceMaterialMapper acceptanceMaterialMapper;
 
     @Override
-    public Long createAcceptanceMaterial(AppAcceptanceMaterialSaveReqVO createReqVO) {
+    public Boolean createAcceptanceMaterial(List<AppAcceptanceMaterialSaveReqVO> createReqVO) {
         // 插入
-        AcceptanceMaterialDO acceptanceMaterial = BeanUtils.toBean(createReqVO, AcceptanceMaterialDO.class);
-        acceptanceMaterialMapper.insert(acceptanceMaterial);
+        List<AcceptanceMaterialDO> acceptanceMaterial = BeanUtils.toBean(createReqVO, AcceptanceMaterialDO.class);
+
 
         // 返回
-        return acceptanceMaterial.getId();
+        return  acceptanceMaterialMapper.insertBatch(acceptanceMaterial);
     }
 
     @Override
@@ -86,10 +87,10 @@ public class AcceptanceMaterialServiceImpl implements AcceptanceMaterialService 
     }
 
     @Override
-    public List<AcceptanceMaterialDO> list(Integer type) {
+    public List<AcceptanceMaterialDO> list(Long  id) {
         Long loginUserId = SecurityFrameworkUtils.getLoginUserId();
         LambdaQueryWrapper<AcceptanceMaterialDO> wrapper = Wrappers.lambdaQuery(AcceptanceMaterialDO.class)
-                .eq(type != null, AcceptanceMaterialDO::getMaterialType, type)
+                .eq( AcceptanceMaterialDO::getApplicationId, id)
                 .eq(AcceptanceMaterialDO::getCreator, loginUserId);
         return acceptanceMaterialMapper.selectList(wrapper);
     }

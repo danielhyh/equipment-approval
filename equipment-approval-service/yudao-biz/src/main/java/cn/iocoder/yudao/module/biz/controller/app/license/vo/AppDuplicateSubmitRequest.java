@@ -10,6 +10,8 @@ import java.time.LocalDate;
 @Schema(description = "副本提交入参实体")
 public class AppDuplicateSubmitRequest {
 
+    private Long id;
+
     @Schema(description = "正本id")
     @NotNull(message = "正本id不能为null")
     private Long originalId;
@@ -53,4 +55,7 @@ public class AppDuplicateSubmitRequest {
 
     @Schema(description = "设备使用人员 JSON格式")
     private String equipmentUsers;
+
+    @Schema(description = "正本悬挂位置")
+    private String originalPosition;
 }

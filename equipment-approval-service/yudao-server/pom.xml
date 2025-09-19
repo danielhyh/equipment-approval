@@ -186,6 +186,20 @@
                 </configuration>
             </plugin>
 
+            <!-- Maven Compiler Plugin -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.11.0</version>
+                <configuration>
+                    <source>${java.version}</source> <!-- 确保与你的 Java 版本一致，例如 1.8 或 11 -->
+                    <target>${java.version}</target>
+                    <compilerArgs>
+                        <arg>-g</arg>
+                    </compilerArgs>
+                </configuration>
+            </plugin>
+
 
             <!--拷贝依赖到jar外面的lib目录-->
             <plugin>

@@ -1,5 +1,6 @@
 package cn.iocoder.yudao.module.biz.controller.app.supplementaryinfo;
 
+import io.swagger.v3.oas.annotations.Parameters;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import org.springframework.web.bind.annotation.*;
 import jakarta.annotation.Resource;
@@ -42,7 +43,7 @@ public class AppSupplementaryInfoController {
     @PostMapping("/create")
     @Operation(summary = "创建补充信息")
     @io.swagger.v3.oas.annotations.parameters.RequestBody
-    public CommonResult<Long> createSupplementaryInfo(@Valid @RequestBody AppSupplementaryInfoSaveReqVO createReqVO) {
+    public CommonResult<Boolean> createSupplementaryInfo(@Valid @RequestBody List<AppSupplementaryInfoSaveReqVO> createReqVO) {
         return success(supplementaryInfoService.createSupplementaryInfo(createReqVO));
     }
 
@@ -62,10 +63,12 @@ public class AppSupplementaryInfoController {
 
     @GetMapping("/list")
     @Operation(summary = "获取补充信息列表")
-    @Parameter(name = "type", description = "信息类型：1-正本悬挂位置，2-设备使用情况，3-检查保养记录，4-使用人员变更")
+    @Parameters(
+            @Parameter(name = "applicationId", description = "申请id")
+    )
     @ApiResponse
-    public CommonResult<List<AppSupplementaryInfoRespVO>> list(@RequestParam(value = "type", required = false) Integer type) {
-        List<SupplementaryInfoDO> list = supplementaryInfoService.list(type);
+    public CommonResult<List<AppSupplementaryInfoRespVO>> list( @RequestParam("applicationId") Long id) {
+        List<SupplementaryInfoDO> list = supplementaryInfoService.list( id);
         return success(BeanUtils.toBean(list, AppSupplementaryInfoRespVO.class));
     }
 }
