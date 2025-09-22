@@ -31,25 +31,25 @@
       <el-table :data="tableData" row-key="id" style="min-height: 570px">
         <el-table-column label="序号" type="index" width="54" align="center" :index="changeIndex" />
         <!-- 配置单位名称 -->
-        <el-table-column label="配置单位名称" prop="unitName" align="center" />
+        <el-table-column label="配置单位名称" prop="configUnitName" align="center" />
         <!-- 社会统一信用代码 -->
-        <el-table-column label="社会统一信用代码" prop="creditCode" align="center" />
+        <el-table-column label="社会统一信用代码" prop="unifiedSocialCreditCode" align="center" />
         <!-- 法人代表 -->
         <el-table-column label="法人代表" prop="legalPerson" align="center" />
         <!-- 许可设备名称 -->
-        <el-table-column label="许可设备名称" prop="deviceName" align="center" />
+        <el-table-column label="许可设备名称" prop="licenseDeviceName" align="center" />
         <!-- 生产企业 -->
-        <el-table-column label="生产企业" prop="productionCompany" align="center" />
+        <el-table-column label="生产企业" prop="productionEnterprise" align="center" />
         <!-- 具体型号 -->
-        <el-table-column label="具体型号" prop="model" align="center" />
+        <el-table-column label="具体型号" prop="specificModel" align="center" />
         <!-- 装机日期 -->
-        <el-table-column label="装机日期" prop="installDate" align="center" />
+        <el-table-column label="装机日期" prop="installationDate" align="center" />
         <!-- 操作 -->
         <el-table-column label="操作" width="220" align="center">
           <template #default="scope">
             <el-button type="primary" size="small" @click="editFn(scope.row)">编辑</el-button>
             <el-button type="primary" size="small" @click="viewFn(scope.row)">查看</el-button>
-            <el-button type="danger" size="small">删除</el-button>
+            <el-button type="danger" size="small" @click="deleteFn(scope.row)">删除</el-button>
           </template>
         </el-table-column>
       </el-table>
@@ -66,19 +66,25 @@
     <Dialog v-model="dialogVisible" v-bind="dialogBind">
       <AddMedicalDevice ref="addMedicalDeviceRef" v-bind="dialogComponentProps" />
       <template #footer v-if="dialogComponentProps.type !== 'view'">
-        <el-button type="primary" @click="submitFormFn" :loading="addMedicalDeviceLoading">
-          提交
-        </el-button>
-        <el-button type="info" :disabled="addMedicalDeviceLoading" @click="dialogVisible = false">
-          取消
-        </el-button>
+        <div style="display: flex; justify-content: center">
+          <el-button type="primary" @click="submitFormFn" :loading="addMedicalDeviceLoading">
+            提交
+          </el-button>
+          <el-button type="info" :disabled="addMedicalDeviceLoading" @click="dialogVisible = false">
+            取消
+          </el-button>
+        </div>
       </template>
     </Dialog>
   </div>
 </template>
 
 <script setup lang="ts">
+import { getEquipmentPage, deleteEquipment } from '@/api/biz/basisManagement'
+import { formatDate } from '@/utils/formatTime'
+import { jsonParse } from '@/utils/index'
 import { CirclePlusFilled, Search, RefreshRight } from '@element-plus/icons-vue'
+import { ElMessageBox, ElMessage } from 'element-plus'
 import AddMedicalDevice from './components/addMedicalDevice.vue'
 let loading = ref(false)
 interface ParamsType {
@@ -112,53 +118,53 @@ interface UsePersonType {
 }
 interface TableDataType {
   id?: number
-  unitName: string
-  creditCode: string
-  legalPerson: string
-  // 所有制性质
-  ownershipNature: string
-  // 联系人
-  contactPerson: string
-  // 联系电话
-  contactPhone: string
-
-  deviceName: string
-  // 设备配置地址
-  deviceConfigAddress: string
-  productionCompany: string
-  model: string
-  installDate: string
-  // 采购价格
-  purchasePrice: number
-  //特殊说明
-  remark: string
-  usePersonList: UsePersonType[]
+  configUnitName: string //配置单位名称
+  unifiedSocialCreditCode: string //社会统一信用代码
+  legalPerson: string //法人代表
+  ownershipNature: string // 所有制性质
+  contactPerson: string // 联系人
+  contactPhone: string // 联系电话
+  licenseDeviceName: string // 许可设备名称
+  equipmentConfigAddress: string // 设备配置地址
+  productionEnterprise: string // 生产企业
+  specificModel: string // 具体型号
+  installationDate: string // 装机日期
+  purchasePrice: number // 采购价格
+  specialDescription: string //设备特殊说明
+  equipmentUsers?: UsePersonType[] | string // 使用人员
+  status?: number // 状态
+  createTime?: string // 创建时间
 }
 
-let tableData = ref<any[]>([])
+let tableData = ref<TableDataType[]>([])
 const getList = () => {
   loading.value = true
-  setTimeout(() => {
-    loading.value = false
-    tableData.value = [
-      {
-        id: 1,
-        unitName: '单位1',
-        creditCode: '123456789012345678',
-        legalPerson: '张三',
-        ownershipNature: '国有企业',
-        contactPerson: '李四',
-        contactPhone: '13800000000',
-        deviceName: '设备1',
-        deviceConfigAddress: '地址1',
-        productionCompany: '企业1',
-        model: '型号1',
-        installDate: '2023-01-01',
-        purchasePrice: 10000,
-        remark: '备注1'
-      }
-    ]
-  }, 1000)
+  let params = {
+    pageNo: paramsValue.pageNum,
+    pageSize: paramsValue.pageSize,
+    keyword: paramsValue.keyword
+  }
+  getEquipmentPage(params)
+    .then((res) => {
+      tableData.value = (res.list || []).map((eg) => {
+        return {
+          ...eg,
+          installationDate: eg.installationDate.length
+            ? formatDate(eg.installationDate.join('-'), 'YYYY-MM-DD')
+            : '',
+          createTime: eg.createTime ? formatDate(eg.createTime) : '',
+          equipmentUsers: jsonParse(eg.equipmentUsers) || []
+        }
+      })
+      paramsValue.total = res.total
+    })
+    .catch((err) => {
+      console.log(err)
+      tableData.value = []
+    })
+    .finally(() => {
+      loading.value = false
+    })
 }
 const resetSearch = () => {
   paramsValue = Object.assign(paramsValue, {
@@ -205,13 +211,40 @@ const viewFn = (row) => {
   dialogComponentProps.type = 'view'
   dialogVisible.value = true
 }
+const deleteFn = (row) => {
+  ElMessageBox.confirm('确定删除吗？', '提示', {
+    confirmButtonText: '确定',
+    cancelButtonText: '取消',
+    type: 'warning'
+  })
+    .then(() => {
+      return deleteEquipment(row.id)
+    })
+    .then(() => {
+      ElMessage({
+        type: 'success',
+        message: '删除成功!'
+      })
+      getList()
+    })
+    .catch((err) => {
+      console.log(err)
+      ElMessage({
+        type: 'info',
+        message: err?.msg || '删除失败'
+      })
+    })
+}
 const addMedicalDeviceRef = ref<InstanceType<typeof AddMedicalDevice> | null>(null)
 let addMedicalDeviceLoading = computed(() => {
   return addMedicalDeviceRef.value?.loading || false
 })
-const submitFormFn = () => {
-  // dialogVisible.value = false
-  addMedicalDeviceRef.value?.submitFormFn()
+const submitFormFn = async () => {
+  let bool = await addMedicalDeviceRef.value?.submitFormFn()
+  if (bool) {
+    dialogVisible.value = false
+    getList()
+  }
 }
 onMounted(() => {
   getList()

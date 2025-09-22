@@ -20,14 +20,14 @@
             placeholder="请选择 企业状态"
             style="width: 180px"
           >
-            <el-option label="启用" value="0" />
-            <el-option label="禁用" value="1" />
+            <el-option label="启用" :value="1" />
+            <el-option label="禁用" :value="0" />
           </el-select>
         </el-form-item>
         <!-- 设备类型 -->
         <el-form-item label="设备类型">
           <el-select
-            v-model="paramsValue.deviceType"
+            v-model="paramsValue.mainEquipmentType"
             placeholder="请选择 设备类型"
             style="width: 180px"
           >
@@ -61,24 +61,24 @@
         <!-- 企业名称 -->
         <el-table-column label="企业名称" prop="companyName" align="center" />
         <!-- 简称 -->
-        <el-table-column label="简称" prop="shortName" align="center" />
+        <!-- <el-table-column label="简称" prop="abbreviation" align="center" /> -->
         <!-- 主要设备类型 -->
         <el-table-column
           label="主要设备类型"
-          prop="mainDeviceType"
+          prop="mainEquipmentType"
           align="center"
           show-overflow-tooltip
         >
           <template #default="scope">
-            {{ licenseDeiviceLabel(scope.row.mainDeviceType) }}
+            {{ licenseDeiviceLabel(scope.row.mainEquipmentType) }}
           </template>
         </el-table-column>
         <!-- 注册日期 -->
-        <el-table-column label="注册日期" prop="registrationDate" align="center" />
+        <el-table-column label="注册日期" prop="createTime" align="center" />
         <!-- 状态 -->
         <el-table-column label="状态" prop="status" align="center">
           <template #default="scope">
-            <el-tag :type="scope.row.status === '0' ? 'success' : 'danger'">
+            <el-tag :type="scope.row.status === 1 ? 'success' : 'danger'">
               {{ statusType[scope.row.status] }}
             </el-tag>
           </template>
@@ -107,7 +107,7 @@
     <Dialog v-model="dialogVisible" v-bind="dialogBind">
       <AddDevProCom ref="dialogComponentRef" v-bind="dialogComponentProps" />
       <template #footer v-if="dialogComponentProps.type !== 'view'">
-        <el-button type="primary"> 提交 </el-button>
+        <el-button type="primary" @click.stop="submitFormFn"> 提交 </el-button>
         <el-button type="info" @click="dialogVisible = false"> 取消 </el-button>
       </template>
     </Dialog>
@@ -115,6 +115,8 @@
 </template>
 
 <script setup lang="ts">
+import { formatDate } from '@/utils/formatTime'
+import { getproductionCompanyList, deleteproductionCompany } from '@/api/biz/basisManagement'
 import { CirclePlusFilled, Search, RefreshRight } from '@element-plus/icons-vue'
 import AddDevProCom from './components/addDevProCom.vue'
 import { getDictOptions } from '@/utils/dict'
@@ -129,8 +131,8 @@ const licenseDeiviceLabel = (v) => {
   return licenseDeviceOptions.value.find((item) => item.value === v)?.label || '--'
 }
 let statusType = {
-  0: '启用',
-  1: '禁用'
+  1: '启用',
+  0: '禁用'
 }
 
 let loading = ref(false)
@@ -142,7 +144,7 @@ interface ParamsType {
   // 状态
   status: string
   // 设备类型
-  deviceType: string
+  mainEquipmentType: string
 }
 let paramsValue = reactive<ParamsType>({
   pageNum: 1,
@@ -150,7 +152,7 @@ let paramsValue = reactive<ParamsType>({
   total: 0,
   keyword: '',
   status: '',
-  deviceType: ''
+  mainEquipmentType: ''
 })
 const changeIndex = (index: number) => {
   return paramsValue.pageSize * (paramsValue.pageNum - 1) + index + 1
@@ -158,55 +160,45 @@ const changeIndex = (index: number) => {
 interface tableDataType {
   id?: number | string
   companyName: string
-  shortName: string
-  mainDeviceType: string
-  registrationDate: string
+  abbreviation?: string
+  mainEquipmentType: string
+  createTime: string
   status: string
-  remarks: string
+  remark: string
 }
 let tableData = ref<tableDataType[]>([])
 const getList = () => {
   loading.value = true
-  setTimeout(() => {
-    loading.value = false
-    tableData.value = [
-      {
-        id: 1,
-        companyName: '企业名称',
-        shortName: '简称',
-        mainDeviceType: '1',
-        registrationDate: '2023-01-01',
-        status: '0',
-        remarks: '备注'
-      },
-      {
-        id: 2,
-        companyName: '企业名称2',
-        shortName: '简称2',
-        mainDeviceType: '2',
-        registrationDate: '2023-01-02',
-        status: '1',
-        remarks: '备注2'
-      },
-      {
-        id: 3,
-        companyName: '企业名称3',
-        shortName: '简称3',
-        mainDeviceType: '3',
-        registrationDate: '2023-01-03',
-        status: '0',
-        remarks: '备注3'
-      }
-    ]
-    paramsValue.total = 3
-  }, 1000)
+  let params = {
+    pageNo: paramsValue.pageNum,
+    pageSize: paramsValue.pageSize,
+    companyName: paramsValue.keyword,
+    status: paramsValue.status,
+    mainEquipmentType: paramsValue.mainEquipmentType
+  }
+  getproductionCompanyList(params)
+    .then((res) => {
+      tableData.value = (res.list || []).map((item) => {
+        return {
+          ...item,
+          createTime: formatDate(item.createTime, 'YYYY-MM-DD HH:mm:ss')
+        }
+      })
+      paramsValue.total = res.total
+    })
+    .catch((err) => {
+      tableData.value = []
+    })
+    .finally(() => {
+      loading.value = false
+    })
 }
 const resetSearch = () => {
   paramsValue = Object.assign(paramsValue, {
     pageNum: 1,
     keyword: '',
     status: '',
-    deviceType: ''
+    mainEquipmentType: ''
   })
   getList()
 }
@@ -229,7 +221,7 @@ let dialogComponentProps = reactive({
   row: {},
   type: 'view'
 })
-let dialogComponentRef = ref(null)
+let dialogComponentRef = ref<InstanceType<typeof AddDevProCom> | null>(null)
 
 const addFn = () => {
   dialogBind.title = '新增设备生产企业'
@@ -257,13 +249,25 @@ const delFn = (row) => {
   })
     .then(() => {
       // 发送删除请求
+      return deleteproductionCompany(row.id)
     })
     .then(() => {
       // 删除成功后刷新列表
+      ElMessage.success('删除成功')
       getList()
+    })
+    .catch((err) => {
+      ElMessage.error(err.msg || '删除失败')
     })
 }
 
+const submitFormFn = async () => {
+  let bool = await dialogComponentRef.value?.submitFormFn()
+  if (bool) {
+    dialogVisible.value = false
+    getList()
+  }
+}
 onMounted(() => {
   getList()
 })

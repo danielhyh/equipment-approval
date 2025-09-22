@@ -9,16 +9,21 @@
       :disabled="loading || isView"
     >
       <!-- 机构名称 -->
-      <el-form-item label="机构名称" prop="orgName">
-        <el-input v-model="formData.orgName" placeholder="请输入机构名称" />
+      <el-form-item label="机构名称" prop="institutionName">
+        <el-input v-model="formData.institutionName" placeholder="请输入机构名称" />
       </el-form-item>
       <!-- 法定代表 -->
       <el-form-item label="法定代表人" prop="legalPerson">
         <el-input v-model="formData.legalPerson" placeholder="请输入法定代表" />
       </el-form-item>
       <!-- 社会统一信用代码 -->
-      <el-form-item label="社会统一信用代码" prop="creditCode">
-        <el-input v-model="formData.creditCode" placeholder="请输入社会统一信用代码" />
+      <el-form-item label="社会统一信用代码" prop="unifiedSocialCreditCode">
+        <el-input
+          v-model="formData.unifiedSocialCreditCode"
+          placeholder="请输入社会统一信用代码"
+          show-word-limit
+          maxlength="18"
+        />
       </el-form-item>
       <!-- 联系人 -->
       <el-form-item label="联系人" prop="contactPerson">
@@ -29,8 +34,8 @@
         <el-input v-model="formData.contactPhone" placeholder="请输入联系电话" />
       </el-form-item>
       <!-- 机构级别 -->
-      <el-form-item label="机构级别" prop="orgLevel">
-        <el-select v-model="formData.orgLevel" placeholder="请选择机构类型">
+      <el-form-item label="机构级别" prop="institutionLevel">
+        <el-select v-model="formData.institutionLevel" placeholder="请选择机构类型">
           <el-option
             v-for="item in orgLevelOptions"
             :key="item.value"
@@ -40,8 +45,8 @@
         </el-select>
       </el-form-item>
       <!-- 机构类型 -->
-      <el-form-item label="机构类型" prop="orgType">
-        <el-select v-model="formData.orgType" placeholder="请选择机构类型">
+      <el-form-item label="机构类型" prop="institutionType">
+        <el-select v-model="formData.institutionType" placeholder="请选择机构类型">
           <el-option
             v-for="item in orgTypeOptions"
             :key="item.value"
@@ -51,8 +56,8 @@
         </el-select>
       </el-form-item>
       <!-- 所有制性质 -->
-      <el-form-item label="所有制性质" prop="ownershipType">
-        <el-select v-model="formData.ownershipType" placeholder="请选择所有制性质">
+      <el-form-item label="所有制性质" prop="ownershipNature">
+        <el-select v-model="formData.ownershipNature" placeholder="请选择所有制性质">
           <el-option
             v-for="item in ownershipTypeOptions"
             :key="item.value"
@@ -62,8 +67,8 @@
         </el-select>
       </el-form-item>
       <!-- 所属区域 -->
-      <el-form-item label="所属区域" prop="area">
-        <el-select v-model="formData.area" placeholder="请选择所属区域">
+      <el-form-item label="所属区域" prop="region">
+        <el-select v-model="formData.region" placeholder="请选择所属区域">
           <el-option
             v-for="item in areaOptions"
             :key="item.value"
@@ -73,16 +78,27 @@
         </el-select>
       </el-form-item>
       <!-- 设备数量 -->
-      <el-form-item label="设备数量" prop="deviceCount">
-        <el-input v-model="formData.deviceCount" placeholder="请输入设备数量" />
+      <el-form-item label="设备数量" prop="deviceNum">
+        <el-input v-model="formData.deviceNum" type="number" min="0" placeholder="请输入设备数量" />
       </el-form-item>
       <!-- 详情地址 -->
       <el-form-item class="el-form-item--span-row" label="详情地址" prop="detailAddress">
         <el-input
           v-model="formData.detailAddress"
           type="textarea"
-          :autosize="{ minRows: 7 }"
+          :autosize="{ minRows: 5 }"
           placeholder="请输入详情地址"
+        />
+      </el-form-item>
+      <!-- 营业执照 -->
+      <el-form-item class="el-form-item--span-row" label="营业执照" prop="businessLicensePic">
+        <UploadFile
+          v-model:model-value="formData.businessLicensePic"
+          :fileType="['png', 'jpg', 'jpeg']"
+          :drag="true"
+          :file-size="10"
+          :limit="1"
+          :auto-upload="true"
         />
       </el-form-item>
     </el-form>
@@ -90,6 +106,7 @@
 </template>
 
 <script setup lang="ts">
+import { createHospital, editHospital } from '@/api/biz/basisManagement'
 import { getDictOptions } from '@/utils/dict'
 import type { DictDataType } from '@/utils/dict'
 import type { FormInstance } from 'element-plus'
@@ -114,21 +131,21 @@ const areaOptions = computed<DictDataType[]>(() => getDictOptions('biz_area_list
 interface tableDataType {
   id?: number | string
   // 机构名称
-  orgName: string
+  institutionName: string
   // 法定代表
   legalPerson: string
   // 社会统一信用代码
-  creditCode: string
+  unifiedSocialCreditCode: string
   // 机构级别
-  orgLevel: string
+  institutionLevel: string
   // 机构类型
-  orgType?: string
+  institutionType?: string | number
   // 所有制性质
-  ownershipType: string
+  ownershipNature: string
   // 所属区域
-  area: string
+  region: string
   // 设备数量
-  deviceCount: number | string
+  deviceNum: number | string
   // 上级机构
   parentOrg?: string
   // 详情地址
@@ -138,44 +155,62 @@ interface tableDataType {
   // 联系电话
   contactPhone?: string
   // 营业执照
-  businessLicense?: string | string[]
+  businessLicensePic: string | string[]
 }
 let formData = reactive<tableDataType>({
-  orgName: '',
+  institutionName: '',
   legalPerson: '',
-  creditCode: '',
-  orgLevel: '',
-  orgType: '',
-  ownershipType: '',
-  area: '',
-  deviceCount: '',
-  parentOrg: '',
+  unifiedSocialCreditCode: '',
+  institutionLevel: '',
+  institutionType: '',
+  ownershipNature: '',
+  region: '',
+  deviceNum: '',
   detailAddress: '',
   contactPerson: '',
-  businessLicense: ''
+  businessLicensePic: []
 })
 let rules = ref({
-  orgName: [{ required: true, message: '请输入机构名称', trigger: 'blur' }],
+  institutionName: [{ required: true, message: '请输入机构名称', trigger: 'blur' }],
   legalPerson: [{ required: true, message: '请输入法定代表', trigger: 'blur' }],
-  creditCode: [{ required: true, message: '请输入社会统一信用代码', trigger: 'blur' }],
-  orgLevel: [{ required: true, message: '请选择机构级别', trigger: 'change' }],
-  ownershipType: [{ required: true, message: '请选择所有制性质', trigger: 'change' }],
-  area: [{ required: true, message: '请选择所属区域', trigger: 'change' }],
-  deviceCount: [{ required: true, message: '请输入设备数量', trigger: 'blur' }],
-  parentOrg: [{ required: true, message: '请选择上级机构', trigger: 'change' }],
-  detailAddress: [{ required: true, message: '请输入详情地址', trigger: 'blur' }],
-  contactPerson: [{ required: true, message: '请输入联系人', trigger: 'blur' }],
-  businessLicense: [{ required: true, message: '请上传营业执照', trigger: 'change' }]
+  unifiedSocialCreditCode: [
+    { required: true, message: '请输入社会统一信用代码', trigger: 'blur' },
+    { pattern: /^[0-9A-Z]{18}$/, message: '请输入正确的社会统一信用代码', trigger: 'blur' }
+  ],
+  institutionLevel: [{ required: true, message: '请选择机构级别', trigger: 'change' }],
+  ownershipNature: [{ required: true, message: '请选择所有制性质', trigger: 'change' }],
+  region: [{ required: true, message: '请选择所属区域', trigger: 'change' }],
+  deviceNum: [{ required: true, message: '请输入设备数量', trigger: 'blur' }],
+  detailAddress: [{ required: false, message: '请输入详情地址', trigger: 'blur' }],
+  contactPerson: [{ required: false, message: '请输入联系人', trigger: 'blur' }],
+  contactPhone: [
+    { required: false, message: '请输入联系电话', trigger: 'blur' },
+    { pattern: /^1[3456789]\d{9}$/, message: '请输入正确的联系电话', trigger: 'blur' }
+  ],
+  businessLicensePic: [{ required: false, message: '请上传营业执照', trigger: 'change' }]
 })
 
 let formRef = ref<FormInstance | null>(null)
 let submitFormFn = async () => {
   await formRef.value?.validate()
-  loading.value = true
-  setTimeout(() => {
-    // 发送数据
+  try {
+    loading.value = true
+    let params: tableDataType = {
+      ...formData,
+      institutionType: formData?.institutionType ? Number(formData.institutionType) : ''
+    }
+    if (isEdit.value) {
+      await editHospital(params)
+    } else {
+      await createHospital(params)
+    }
+    ElMessage.success('操作成功')
+    return true
+  } catch (e) {
+    return false
+  } finally {
     loading.value = false
-  }, 3000)
+  }
 }
 onMounted(() => {
   if (isView || isEdit) {
@@ -200,6 +235,14 @@ defineExpose({
     }
     .el-form-item--span-row {
       grid-column: 1/3;
+      &:deep(.upload-file) {
+        width: 100%;
+        .upload-file-tip {
+          > div {
+            font-size: 12px !important;
+          }
+        }
+      }
     }
   }
 }

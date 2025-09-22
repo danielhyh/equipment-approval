@@ -8,12 +8,12 @@
       label-position="top"
       :disabled="isView || loading"
     >
-      <el-form-item label="配置单位名称" prop="unitName">
-        <el-input v-model="formData.unitName" placeholder="请输入配置单位名称" />
+      <el-form-item label="配置单位名称" prop="configUnitName">
+        <el-input v-model="formData.configUnitName" placeholder="请输入配置单位名称" />
       </el-form-item>
       <!-- 社会统一信用代码 -->
-      <el-form-item label="社会统一信用代码" prop="creditCode">
-        <el-input v-model="formData.creditCode" placeholder="请输入社会统一信用代码" />
+      <el-form-item label="社会统一信用代码" prop="unifiedSocialCreditCode">
+        <el-input v-model="formData.unifiedSocialCreditCode" placeholder="请输入社会统一信用代码" />
       </el-form-item>
       <!-- 法人代表 -->
       <el-form-item label="法人代表（或主要负责人）" prop="legalPerson">
@@ -32,38 +32,53 @@
         <el-input v-model="formData.contactPhone" placeholder="请输入联系电话" />
       </el-form-item>
       <!-- 许可设备名称 -->
-      <el-form-item label="许可设备名称" prop="deviceName">
-        <el-input v-model="formData.deviceName" placeholder="请输入许可设备名称" />
+      <el-form-item label="许可设备名称" prop="licenseDeviceName">
+        <el-input v-model="formData.licenseDeviceName" placeholder="请输入许可设备名称" />
       </el-form-item>
       <!-- 设备配置地址 -->
-      <el-form-item label="设备配置地址" prop="deviceConfigAddress">
-        <el-input v-model="formData.deviceConfigAddress" placeholder="请输入设备配置地址" />
+      <el-form-item label="设备配置地址" prop="equipmentConfigAddress">
+        <el-input v-model="formData.equipmentConfigAddress" placeholder="请输入设备配置地址" />
       </el-form-item>
       <!-- 生产企业 -->
-      <el-form-item label="生产企业" prop="productionCompany">
-        <el-input v-model="formData.productionCompany" placeholder="请输入生产企业" />
+      <el-form-item label="生产企业" prop="productionEnterprise">
+        <el-input v-model="formData.productionEnterprise" placeholder="请输入生产企业" />
       </el-form-item>
       <!-- 具体型号 -->
-      <el-form-item label="具体型号" prop="model">
-        <el-input v-model="formData.model" placeholder="请输入具体型号" />
+      <el-form-item label="具体型号" prop="specificModel">
+        <el-input v-model="formData.specificModel" placeholder="请输入具体型号" />
       </el-form-item>
       <!-- 装机日期 -->
-      <el-form-item label="装机日期" prop="installDate">
+      <el-form-item label="装机日期" prop="installationDate">
         <el-date-picker
-          v-model="formData.installDate"
+          v-model="formData.installationDate"
           type="date"
           value-format="YYYY-MM-DD"
           placeholder="请选择装机日期"
         />
       </el-form-item>
       <!-- 采购价格 -->
-      <el-form-item label="采购价格" prop="purchasePrice">
-        <el-input v-model="formData.purchasePrice" placeholder="请输入采购价格" />
+      <el-form-item label="采购价格(￥:元)" prop="purchasePrice">
+        <el-input
+          v-model="formData.purchasePrice"
+          type="number"
+          :min="0"
+          placeholder="请输入采购价格"
+        />
+      </el-form-item>
+      <!-- 状态 -->
+      <el-form-item label="状态" prop="status">
+        <el-switch
+          v-model="formData.status"
+          :active-value="1"
+          :inactive-value="0"
+          active-text="正常"
+          inactive-text="停用"
+        />
       </el-form-item>
       <!-- 特殊说明 -->
-      <el-form-item label="特殊说明" prop="remark" class="el-form-item--span-row">
+      <el-form-item label="特殊说明" prop="specialDescription" class="el-form-item--span-row">
         <el-input
-          v-model="formData.remark"
+          v-model="formData.specialDescription"
           type="textarea"
           :auto-size="{ minRows: 5 }"
           placeholder="请输入特殊说明"
@@ -84,7 +99,7 @@
         </el-button>
       </div>
 
-      <el-table :data="formData.usePersonList" style="width: 100%" class="el-form-item--span-row">
+      <el-table :data="formData.equipmentUsers" style="width: 100%" class="el-form-item--span-row">
         <el-table-column label="姓名" prop="name" align="center" />
         <el-table-column label="联系电话" prop="phone" show-overflow-tooltip align="center" />
         <el-table-column label="身份证号" prop="idCard" show-overflow-tooltip align="center" />
@@ -108,14 +123,17 @@
     <Dialog v-model="dialogVisible" v-bind="dialogBind" @closed="resetUsePersonForm">
       <AddUsePerson ref="usePersonRef" />
       <template #footer>
-        <el-button type="primary" @click="submitUsePerson"> 提交 </el-button>
-        <el-button type="info" @click="resetUsePersonForm"> 取消 </el-button>
+        <div style="display: flex; justify-content: center">
+          <el-button type="primary" @click="submitUsePerson"> 提交 </el-button>
+          <el-button type="info" @click="resetUsePersonForm"> 取消 </el-button>
+        </div>
       </template>
     </Dialog>
   </div>
 </template>
 
 <script setup lang="ts" name="AddMedicalDevice">
+import { createEquipment, editEquipment } from '@/api/biz/basisManagement'
 import { ElMessageBox } from 'element-plus'
 import { CirclePlus } from '@element-plus/icons-vue'
 import type { FormInstance } from 'element-plus'
@@ -148,8 +166,8 @@ interface UsePersonType {
 }
 interface TableDataType {
   id?: number
-  unitName: string
-  creditCode: string
+  configUnitName: string
+  unifiedSocialCreditCode: string
   legalPerson: string
   // 所有制性质
   ownershipNature: string
@@ -158,55 +176,84 @@ interface TableDataType {
   // 联系电话
   contactPhone: string
 
-  deviceName: string
+  licenseDeviceName: string
   // 设备配置地址
-  deviceConfigAddress: string
-  productionCompany: string
-  model: string
-  installDate: string
+  equipmentConfigAddress: string
+  productionEnterprise: string
+  specificModel: string
+  installationDate: string
   // 采购价格
   purchasePrice: number
   //特殊说明
-  remark: string
-  usePersonList: UsePersonType[]
+  specialDescription: string
+  equipmentUsers: UsePersonType[]
+  status: number
 }
 let formData = reactive<TableDataType>({
-  unitName: '',
-  creditCode: '',
+  configUnitName: '',
+  unifiedSocialCreditCode: '',
   legalPerson: '',
   ownershipNature: '',
   contactPerson: '',
   contactPhone: '',
-  deviceName: '',
-  deviceConfigAddress: '',
-  productionCompany: '',
-  model: '',
-  installDate: '',
+  licenseDeviceName: '',
+  equipmentConfigAddress: '',
+  productionEnterprise: '',
+  specificModel: '',
+  installationDate: '',
   purchasePrice: 0,
-  remark: '',
-  usePersonList: [
-    {
-      name: '张三',
-      phone: '13800000000',
-      idCard: '44030019900101001X',
-      gender: '男',
-      birthDate: '1990-01-01',
-      contactPhone: '13800000000',
-      careerTitle: '医生'
-    }
+  specialDescription: '',
+  status: 1,
+  equipmentUsers: [
+    // {
+    //   name: '张三',
+    //   phone: '13800000000',
+    //   idCard: '44030019900101001X',
+    //   gender: '男',
+    //   birthDate: '1990-01-01',
+    //   contactPhone: '13800000000',
+    //   careerTitle: '医生'
+    // }
   ]
 })
 let rules = ref({
-  unitName: [{ required: true, message: '请输入配置单位名称', trigger: 'blur' }]
+  configUnitName: [{ required: true, message: '请输入配置单位名称', trigger: 'blur' }],
+  contactPhone: [
+    { required: true, message: '请输入联系电话', trigger: 'blur' },
+    {
+      pattern: /^1[3-9]\d{9}$/,
+      message: '请输入正确的手机号',
+      trigger: 'blur'
+    }
+  ],
+  installationDate: [{ required: true, message: '请选择装机日期', trigger: 'blur' }]
 })
 let formRef = ref<FormInstance | null>(null)
 let submitFormFn = async () => {
   await formRef.value?.validate()
-  loading.value = true
-  setTimeout(() => {
-    // 发送数据
+  try {
+    if (isEdit.value) {
+      loading.value = true
+      await editEquipment({
+        id: props.row.id,
+        ...formData,
+        equipmentUsers: JSON.stringify(formData.equipmentUsers)
+      })
+      ElMessage.success('编辑成功')
+    } else {
+      loading.value = true
+      await createEquipment({
+        ...formData,
+        equipmentUsers: JSON.stringify(formData.equipmentUsers)
+      })
+      ElMessage.success('新增成功')
+    }
+    return true
+  } catch (err) {
+    return false
+  } finally {
     loading.value = false
-  }, 3000)
+  }
 }
 
 let dialogVisible = ref(false)
@@ -227,9 +274,9 @@ const submitUsePerson = () => {
     .submit()
     .then(({ value, isEditIndex }) => {
       if (isEditIndex) {
-        formData.usePersonList.push(value)
+        formData.equipmentUsers.push(value)
       } else {
-        formData.usePersonList.splice(isEditIndex, 1, value)
+        formData.equipmentUsers.splice(isEditIndex, 1, value)
       }
       resetUsePersonForm()
     })
@@ -254,7 +301,7 @@ const deleteUsePerson = ($index) => {
     cancelButtonText: '取消',
     type: 'warning'
   }).then(() => {
-    formData.usePersonList.splice($index, 1)
+    formData.equipmentUsers.splice($index, 1)
   })
 }
 onMounted(() => {

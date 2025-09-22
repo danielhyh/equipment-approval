@@ -16,7 +16,7 @@
         <!-- 机构级别 -->
         <el-form-item label="机构级别">
           <el-select
-            v-model="paramsValue.orgLevel"
+            v-model="paramsValue.institutionLevel"
             placeholder="请选择 机构级别"
             style="width: 180px"
           >
@@ -31,12 +31,12 @@
         <!-- 所有制性质 -->
         <el-form-item label="所有制性质">
           <el-select
-            v-model="paramsValue.ownershipType"
+            v-model="paramsValue.ownershipNature"
             placeholder="请选择 所有制性质"
             style="width: 180px"
           >
             <el-option
-              v-for="item in ownershipTypeOptions"
+              v-for="item in ownershipNatureOptions"
               :key="item.value"
               :label="item.label"
               :value="item.value"
@@ -45,7 +45,11 @@
         </el-form-item>
         <!-- 所属区域 -->
         <el-form-item label="所属区域">
-          <el-select v-model="paramsValue.area" placeholder="请选择 所属区域" style="width: 180px">
+          <el-select
+            v-model="paramsValue.region"
+            placeholder="请选择 所属区域"
+            style="width: 180px"
+          >
             <el-option
               v-for="item in areaOptions"
               :key="item.value"
@@ -74,41 +78,55 @@
       <el-table :data="tableData" row-key="id" style="min-height: 570px">
         <el-table-column label="序号" type="index" width="54" align="center" :index="changeIndex" />
         <!-- 机构名称 -->
-        <el-table-column label="机构名称" prop="orgName" align="center" />
+        <el-table-column label="机构名称" prop="institutionName" align="center" />
         <!-- 法人代表 -->
         <el-table-column label="法人代表" prop="legalPerson" align="center" />
         <!-- 社会统一信用代码 -->
-        <el-table-column label="社会统一信用代码" prop="creditCode" align="center" />
-        <!-- 机构类别 -->
-        <el-table-column label="机构类别" prop="orgLevel" align="center">
+        <el-table-column label="社会统一信用代码" prop="unifiedSocialCreditCode" align="center" />
+        <!-- 机构级别 -->
+        <el-table-column label="机构级别" prop="institutionLevel" align="center">
           <template #default="scope">
             {{
-              scope.row.orgLevel
-                ? orgLevelOptions.find((item) => item.value === scope.row.orgLevel)?.label
+              scope.row.institutionLevel
+                ? orgLevelOptions.find((item) => item.value === scope.row.institutionLevel)?.label
+                : ''
+            }}
+          </template>
+        </el-table-column>
+        <!-- 机构类型 -->
+        <el-table-column label="机构类型" prop="institutionType" align="center">
+          <template #default="scope">
+            {{
+              scope.row.institutionType
+                ? institutionTypeOptions.find((item) => item.value === scope.row.institutionType)
+                    ?.label
                 : ''
             }}
           </template>
         </el-table-column>
         <!-- 所有制性质 -->
-        <el-table-column label="所有制性质" prop="ownershipType" align="center">
+        <el-table-column label="所有制性质" prop="ownershipNature" align="center">
           <template #default="scope">
             {{
-              scope.row.ownershipType
-                ? ownershipTypeOptions.find((item) => item.value === scope.row.ownershipType)?.label
+              scope.row.ownershipNature
+                ? ownershipNatureOptions.find((item) => item.value === scope.row.ownershipNature)
+                    ?.label
                 : ''
             }}
           </template>
         </el-table-column>
         <!-- 所属区域 -->
-        <el-table-column label="所属区域" prop="area" align="center">
+        <el-table-column label="所属区域" prop="region" align="center">
           <template #default="scope">
             {{
-              scope.row.area ? areaOptions.find((item) => item.value === scope.row.area)?.label : ''
+              scope.row.region
+                ? areaOptions.find((item) => item.value === scope.row.region)?.label
+                : ''
             }}
           </template>
         </el-table-column>
         <!-- 设备数量 -->
-        <el-table-column label="设备数量" prop="deviceCount" align="center" />
+        <el-table-column label="设备数量" prop="deviceNum" align="center" />
         <!-- 操作 -->
         <el-table-column label="操作" width="220" align="center">
           <template #default="scope">
@@ -139,6 +157,7 @@
 </template>
 
 <script setup lang="ts">
+import { getHospitalList, deleteHospital } from '@/api/biz/basisManagement'
 import { CirclePlusFilled, Search, RefreshRight } from '@element-plus/icons-vue'
 import addMedicalAgency from './components/addMedicalAgency.vue'
 import { getDictOptions } from '@/utils/dict'
@@ -149,9 +168,15 @@ import { ElMessageBox } from 'element-plus'
 const orgLevelOptions = computed<DictDataType[]>(() => getDictOptions('biz_institution_level'))
 
 // 所有制性质
-const ownershipTypeOptions = computed<DictDataType[]>(() => getDictOptions('biz_ownership_nature'))
+const ownershipNatureOptions = computed<DictDataType[]>(() =>
+  getDictOptions('biz_ownership_nature')
+)
 // 所属区域
 const areaOptions = computed<DictDataType[]>(() => getDictOptions('biz_area_list'))
+// 机构类型
+const institutionTypeOptions = computed<DictDataType[]>(() =>
+  getDictOptions('biz_institution_type')
+)
 
 let loading = ref(false)
 interface ParamsType {
@@ -160,20 +185,20 @@ interface ParamsType {
   total: number
   keyword: string
   // 机构类别
-  orgLevel: string
+  institutionLevel: string
   // 所有制性质
-  ownershipType: string
+  ownershipNature: string
   // 所属区域
-  area: string
+  region: string
 }
 let paramsValue = reactive<ParamsType>({
   pageNum: 1,
   pageSize: 10,
   total: 0,
   keyword: '',
-  orgLevel: '',
-  ownershipType: '',
-  area: ''
+  institutionLevel: '',
+  ownershipNature: '',
+  region: ''
 })
 const changeIndex = (index: number) => {
   return paramsValue.pageSize * (paramsValue.pageNum - 1) + index + 1
@@ -181,19 +206,21 @@ const changeIndex = (index: number) => {
 interface tableDataType {
   id?: number | string
   // 机构名称
-  orgName: string
+  institutionName: string
   // 法定代表
   legalPerson: string
   // 社会统一信用代码
-  creditCode: string
+  unifiedSocialCreditCode: string
+  // 机构级别
+  institutionLevel: string
   // 机构类型
-  orgLevel: string
+  institutionType?: string
   // 所有制性质
-  ownershipType: string
+  ownershipNature: string
   // 所属区域
-  area: string
+  region: string
   // 设备数量
-  deviceCount: number | string
+  deviceNum: number | string
   // 上级机构
   parentOrg?: string
   // 详情地址
@@ -207,31 +234,34 @@ interface tableDataType {
 }
 let tableData = ref<tableDataType[]>([])
 const getList = () => {
+  let params = {
+    pageNo: paramsValue.pageNum,
+    pageSize: paramsValue.pageSize,
+    institutionName: paramsValue.keyword,
+    institutionLevel: paramsValue.institutionLevel,
+    ownershipNature: paramsValue.ownershipNature,
+    region: paramsValue.region
+  }
   loading.value = true
-  setTimeout(() => {
-    loading.value = false
-    tableData.value = [
-      {
-        id: 1,
-        orgName: '医疗机构1',
-        legalPerson: '张三',
-        creditCode: '123456789012345678',
-        orgLevel: '1',
-        ownershipType: '1',
-        area: '1',
-        deviceCount: 10
-      }
-    ]
-    paramsValue.total = tableData.value.length
-  }, 1000)
+  getHospitalList(params)
+    .then((res) => {
+      tableData.value = res.list || []
+      paramsValue.total = res.total
+    })
+    .catch((err) => {
+      tableData.value = []
+    })
+    .finally(() => {
+      loading.value = false
+    })
 }
 const resetSearch = () => {
   paramsValue = Object.assign(paramsValue, {
     pageNum: 1,
     keyword: '',
-    orgLevel: '',
-    ownershipType: '',
-    area: ''
+    institutionLevel: '',
+    ownershipNature: '',
+    region: ''
   })
   getList()
 }
@@ -275,17 +305,23 @@ const viewFn = (row) => {
   dialogVisible.value = true
 }
 const delFn = (row) => {
-  ElMessageBox.confirm('确定删除 ' + row.orgName + ' 吗？', '提示', {
+  ElMessageBox.confirm('确定删除 ' + row.institutionName + ' 吗？', '提示', {
     confirmButtonText: '确定',
     cancelButtonText: '取消',
     type: 'warning'
   })
     .then(() => {
       // 发送删除请求
+      return deleteHospital(row.id)
     })
     .then(() => {
       // 删除成功后刷新列表
+      ElMessage.success('删除成功')
       getList()
+    })
+    .catch((err) => {
+      // 删除失败后的处理
+      ElMessage.error('删除失败')
     })
 }
 const submitFormFn = () => {

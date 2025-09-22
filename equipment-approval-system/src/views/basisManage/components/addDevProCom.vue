@@ -18,21 +18,20 @@
         />
       </el-form-item>
       <!-- 企业简称 -->
-      <el-form-item label="企业简称" prop="shortName">
+      <el-form-item label="企业简称" prop="abbreviation">
         <el-input
-          v-model="formData.shortName"
+          v-model="formData.abbreviation"
           placeholder="请输入企业简称"
           style="width: 100%"
           clearable
         />
       </el-form-item>
       <!-- 设备类型 -->
-      <el-form-item class="el-form-item--span-row" label="主要设备类型" prop="mainDeviceType">
+      <el-form-item class="el-form-item--span-row" label="主要设备类型" prop="mainEquipmentType">
         <el-select
-          v-model="formData.mainDeviceType"
+          v-model="formData.mainEquipmentType"
           placeholder="请选择设备类型"
           style="width: 100%"
-          multiple
           clearable
         >
           <el-option
@@ -44,11 +43,11 @@
         </el-select>
       </el-form-item>
       <!-- 备注信息 -->
-      <el-form-item class="el-form-item--span-row" label="备注信息" prop="remarks">
+      <el-form-item class="el-form-item--span-row" label="备注信息" prop="remark">
         <el-input
           type="textarea"
           :autosize="{ minRows: 8, maxRows: 12 }"
-          v-model="formData.remarks"
+          v-model="formData.remark"
           placeholder="请输入备注信息"
           style="width: 100%"
           clearable
@@ -58,8 +57,8 @@
       <el-form-item label="企业状态" prop="status">
         <el-switch
           v-model="formData.status"
-          active-value="0"
-          inactive-value="1"
+          :active-value="1"
+          :inactive-value="0"
           active-text="启用"
           inactive-text="禁用"
           :disabled="isView"
@@ -70,6 +69,7 @@
 </template>
 
 <script setup lang="ts">
+import { createproductionCompany, editproductionCompany } from '@/api/biz/basisManagement'
 import { getDictOptions } from '@/utils/dict'
 import type { DictDataType } from '@/utils/dict'
 import type { FormInstance } from 'element-plus'
@@ -91,35 +91,44 @@ const licenseDeviceOptions = computed<DictDataType[]>(() =>
 interface tableDataType {
   id?: number | string
   companyName: string
-  shortName: string
-  mainDeviceType: string | string[]
-  registrationDate?: string
-  status: string
-  remarks: string
+  abbreviation: string
+  mainEquipmentType: string | string[]
+  createTime?: string
+  status: string | number
+  remark: string
 }
 let formData = reactive<tableDataType>({
   companyName: '',
-  shortName: '',
-  mainDeviceType: '',
+  abbreviation: '',
+  mainEquipmentType: '',
   status: '',
-  remarks: ''
+  remark: ''
 })
 let rules = ref({
   companyName: [{ required: true, message: '请输入企业名称', trigger: 'blur' }],
-  shortName: [{ required: true, message: '请输入企业简称', trigger: 'blur' }],
-  mainDeviceType: [{ required: true, message: '请选择主要设备类型', trigger: 'change' }],
+  abbreviation: [{ required: false, message: '请输入企业简称', trigger: 'blur' }],
+  mainEquipmentType: [{ required: true, message: '请选择主要设备类型', trigger: 'change' }],
   status: [{ required: true, message: '请选择企业状态', trigger: 'change' }],
-  remarks: [{ required: true, message: '请输入备注信息', trigger: 'blur' }]
+  remark: [{ required: false, message: '请输入备注信息', trigger: 'blur' }]
 })
 
 let formRef = ref<FormInstance | null>(null)
 let submitFormFn = async () => {
   await formRef.value?.validate()
-  loading.value = true
-  setTimeout(() => {
-    // 发送数据
+  try {
+    loading.value = true
+    if (isEdit.value) {
+      await editproductionCompany(formData)
+    } else {
+      await createproductionCompany(formData)
+    }
+    ElMessage.success('操作成功')
+    return true
+  } catch (err) {
+    return false
+  } finally {
     loading.value = false
-  }, 3000)
+  }
 }
 onMounted(() => {
   if (isView || isEdit) {
