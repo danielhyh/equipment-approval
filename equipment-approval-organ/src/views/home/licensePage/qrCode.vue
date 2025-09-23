@@ -2,7 +2,7 @@
   <div v-loading="loading">
     <div v-if="qrcodeInit" class="flex justify-center items-center m-b-30" style="flex-direction: column">
       <div class="m-b-10 flex justify-center items-center" style="position: relative; height: 250px; width: 100%" ref="qrcodeRef">
-        <Qrcode tag="canvas" :text="qrcodeText" :width="230"  id="QRCODEIMAGE" />
+        <Qrcode tag="canvas" :text="qrcodeText" :width="230" id="QRCODEIMAGE" />
       </div>
       <div class="flex justify-center">
         <el-button type="primary" size="small" @click="handlerDownlod">下载</el-button>
@@ -43,8 +43,14 @@ let listMsg = reactive([
   { label: "扫码说明", value: "使用手机扫描二维码可快速访问证书在线验证页面", key: "" },
 ]);
 let qrcodeText = computed(() => {
-  let arr = listMsg.filter((item) => !!item.key);
-  return arr.map((item) => `${item.label}：${item.value}`).join("\n");
+  let text = window.location.origin + "/#/mobile/qrcode?";
+  if (licenseBasis.value.originalId) {
+    text += `originId=${licenseBasis.value.originalId}&`;
+  }
+  if (licenseBasis.value.duplicateId) {
+    text += `duplicateId=${licenseBasis.value.duplicateId}`;
+  }
+  return text;
 });
 let qrcodeInit = ref(false);
 const init = async () => {
@@ -93,13 +99,13 @@ const handlerDownlod = async () => {
 
 const handlPrint = () => {
   if (qrcodeRef.value) {
-    loading.value = true
+    loading.value = true;
     new VuePrintNext({
       el: "#QRCODEIMAGE",
       standard: "html5",
       orientation: "landscape",
     });
-    loading.value = false
+    loading.value = false;
   }
 };
 

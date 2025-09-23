@@ -116,6 +116,8 @@ let licenseProps = reactive({
   licenseData: [],
   stampUit: "",
   stampDate: "",
+  originalId: "",
+  duplicateId: "",
 });
 // 副本
 let hideCopy = ref(true);
@@ -137,7 +139,7 @@ const getCopyInfo = () => {
       let [originRes, copyRes] = resArr;
       formData = Object.assign(formData, copyRes.data);
       let data = { ...originRes.data, ...copyRes.data };
-      let arr = []
+      let arr = [];
       arr.push(data.configUnitName);
       arr.push(data.productionEnterprise);
       arr.push(data.legalPerson);
@@ -151,10 +153,13 @@ const getCopyInfo = () => {
       arr.push(data.licenseDeviceName);
       arr.push(data.remark);
       arr.push(data.ladderConfigModel);
-      licenseProps.licenseData = arr
+      licenseProps.licenseData = arr;
       licenseProps.code = licenseBasis.value.licenseNo;
       licenseProps.stampUit = data.duplicateIssuingAuthority;
       licenseProps.stampDate = data.duplicateIssueDate;
+      
+      licenseProps.originalId = licenseBasis.value.originalId;
+      licenseProps.duplicateId = licenseBasis.value.duplicateId;
     })
     .finally(() => {
       loading.value = false;

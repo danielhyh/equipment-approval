@@ -98,8 +98,9 @@
           <template #default="scope">
             {{
               scope.row.institutionType
-                ? institutionTypeOptions.find((item) => item.value === scope.row.institutionType)
-                    ?.label
+                ? institutionTypeOptions.find(
+                    (item) => item.value === scope.row.institutionType + ''
+                  )?.label
                 : ''
             }}
           </template>
@@ -157,7 +158,7 @@
 </template>
 
 <script setup lang="ts">
-import { getHospitalList, deleteHospital } from '@/api/biz/basisManagement'
+import { getHospitalList, deleteHospital, getHospitalDetail } from '@/api/biz/basisManagement'
 import { CirclePlusFilled, Search, RefreshRight } from '@element-plus/icons-vue'
 import addMedicalAgency from './components/addMedicalAgency.vue'
 import { getDictOptions } from '@/utils/dict'
@@ -245,7 +246,9 @@ const getList = () => {
   loading.value = true
   getHospitalList(params)
     .then((res) => {
-      tableData.value = res.list || []
+      tableData.value = (res.list || []).map((item) => {
+        return { ...item, businessLicense: item.businessLicense ? [item.businessLicense] : [] }
+      })
       paramsValue.total = res.total
     })
     .catch((err) => {
@@ -292,17 +295,27 @@ const addFn = () => {
   dialogComponentProps.type = 'add'
   dialogVisible.value = true
 }
-const editFn = (row) => {
-  dialogBind.title = '医疗机构-编辑'
-  dialogComponentProps.row = row
-  dialogComponentProps.type = 'edit'
-  dialogVisible.value = true
+const editFn = async (row) => {
+  try {
+    dialogBind.title = '医疗机构-编辑'
+    dialogComponentProps.type = 'edit'
+    let res = await getHospitalDetail(row.id)
+    dialogComponentProps.row = Object.assign(res, row)
+    dialogVisible.value = true
+  } catch (e) {
+    ElMessage.error('获取详情失败')
+  }
 }
-const viewFn = (row) => {
-  dialogBind.title = '医疗机构-查看'
-  dialogComponentProps.row = row
-  dialogComponentProps.type = 'view'
-  dialogVisible.value = true
+const viewFn = async (row) => {
+  try {
+    dialogBind.title = '医疗机构-查看'
+    dialogComponentProps.type = 'view'
+    let res = await getHospitalDetail(row.id)
+    dialogComponentProps.row = Object.assign(res, row)
+    dialogVisible.value = true
+  } catch (e) {
+    ElMessage.error('获取详情失败')
+  }
 }
 const delFn = (row) => {
   ElMessageBox.confirm('确定删除 ' + row.institutionName + ' 吗？', '提示', {
@@ -324,8 +337,12 @@ const delFn = (row) => {
       ElMessage.error('删除失败')
     })
 }
-const submitFormFn = () => {
-  dialogComponentRef.value?.submitFormFn()
+const submitFormFn = async () => {
+  let bool = await dialogComponentRef.value?.submitFormFn()
+  if (bool) {
+    dialogVisible.value = false
+    getList()
+  }
 }
 onMounted(() => {
   getList()

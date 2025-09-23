@@ -32,8 +32,9 @@
           </div>
         </div>
         <!-- 二维码 -->
-        <div class="licence-qr-code" v-show="!isBLicenceSub">
-          <Qrcode :width="83" tag="canvas" ref="qrcodeRef" />
+        <!-- <div class="licence-qr-code" v-show="!isBLicenceSub"> -->
+          <div class="licence-qr-code" >
+          <Qrcode :width="83" :text="qrocodeText" tag="canvas" ref="qrcodeRef" />
         </div>
         <!-- 签发机关 年月日盖章 -->
         <div class="licence-stamp-date">
@@ -85,6 +86,9 @@ let props = defineProps({
   stampUit: { type: [String, null, undefined], default: "陕西省卫生健康委员会" }, // 签发单位
   stampDate: { type: [String, null, undefined], default: "2023年01月01日" }, // 签发日期
   seal: { type: [String, null, undefined], default: "" }, // 盖章
+
+  originalId: { type: [String, Number, null, undefined], default: "" },
+  duplicateId: { type: [String, Number, null, undefined], default: "" },
 });
 
 let licenceTitle = computed(() => {
@@ -141,7 +145,16 @@ let isBLicenceSub = computed(() => {
   // 是否是副本
   return props.licenceSubtitle === "B";
 });
-
+let qrocodeText = computed(() => {
+  let text = window.location.origin + "/#/mobile/qrcode?";
+  if (props.originalId) {
+    text += `originId=${props.originalId}&`;
+  }
+  if (props.duplicateId) {
+    text += `duplicateId=${props.duplicateId}`;
+  }
+  return text;
+});
 let licenceIDRef = ref(null);
 let loading = ref(false);
 let imageload = ref(true);

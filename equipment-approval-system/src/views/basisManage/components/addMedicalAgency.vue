@@ -178,6 +178,7 @@ let rules = ref({
     { pattern: /^[0-9A-Z]{18}$/, message: '请输入正确的社会统一信用代码', trigger: 'blur' }
   ],
   institutionLevel: [{ required: true, message: '请选择机构级别', trigger: 'change' }],
+  institutionType: [{ required: true, message: '请选择机构类型', trigger: 'change' }],
   ownershipNature: [{ required: true, message: '请选择所有制性质', trigger: 'change' }],
   region: [{ required: true, message: '请选择所属区域', trigger: 'change' }],
   deviceNum: [{ required: true, message: '请输入设备数量', trigger: 'blur' }],
@@ -197,7 +198,8 @@ let submitFormFn = async () => {
     loading.value = true
     let params: tableDataType = {
       ...formData,
-      institutionType: formData?.institutionType ? Number(formData.institutionType) : ''
+      institutionType: formData?.institutionType ? Number(formData.institutionType) : '',
+      businessLicensePic: formData?.businessLicensePic
     }
     if (isEdit.value) {
       await editHospital(params)
@@ -214,7 +216,10 @@ let submitFormFn = async () => {
 }
 onMounted(() => {
   if (isView || isEdit) {
-    formData = Object.assign(formData, props.row)
+    let row = JSON.parse(JSON.stringify(props.row))
+    row.businessLicensePic = row.businessLicensePic ? row.businessLicensePic : ''
+    console.log(row)
+    formData = Object.assign(formData, row)
   }
 })
 defineExpose({

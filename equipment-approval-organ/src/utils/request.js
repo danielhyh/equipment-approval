@@ -12,7 +12,11 @@ const instance = axios.create({
   withCredentials: false,
 });
 // 白名单接口
-let noNeedTokenReq = ["/admin-api/system/auth/login"];
+let noNeedTokenReq = [
+  "/admin-api/system/auth/login",
+  "/app-api/biz/license/getOriginalById",
+  "/app-api/biz/license/getDuplicateById",
+];
 // 前置拦截器（发起请求之前的拦截）
 instance.interceptors.request.use(
   (config) => {

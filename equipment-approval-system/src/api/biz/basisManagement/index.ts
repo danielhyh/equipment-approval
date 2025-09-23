@@ -101,3 +101,11 @@ export function deleteHospital(id: string) {
     params: { id }
   })
 }
+
+// 获取医疗机构详情
+export function getHospitalDetail(id: string) {
+  return request.get({
+    url: '/biz/institution-ext/get',
+    params: { id }
+  })
+}

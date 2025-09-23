@@ -187,7 +187,7 @@ const getOriginWidth = async (content, options) => {
 // 对于内容少的QrCode，增大容错率
 const getErrorCorrectionLevel = (content) => {
   if (content.length > 36) {
-    return "M";
+    return "L";
   } else if (content.length > 16) {
     return "Q";
   } else {

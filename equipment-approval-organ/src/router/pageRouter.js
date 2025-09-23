@@ -66,6 +66,13 @@ export default [
       },
     ],
   },
+  // 移动端 二维码内容展示页
+  {
+    path: "/mobile/qrcode",
+    name: "Qrcode",
+    component: () => import("@/views/mobile/index.vue"),
+    meta: { title: "乙类大型医用设备配置许可证" },
+  },
   // 404路由配置 - 必须放在所有路由的最后
   {
     path: "/:pathMatch(.*)*", // 通配符路由，匹配任何未定义的路径

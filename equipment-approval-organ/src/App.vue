@@ -10,9 +10,7 @@
 import zhCn from "element-plus/dist/locale/zh-cn.mjs";
 const language = computed(() => zhCn);
 
-
 onMounted(() => {
-  
 });
 // import gsap from "gsap"
 // const target = ref(null);
