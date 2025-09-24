@@ -10,6 +10,8 @@ import java.util.Date;
 @Data
 public class OriginalLicenseVO {
 
+    private Long id;
+
     @Schema(description = "单位名称", example = "某某医院")
     private String configUnitName;
 
@@ -40,4 +42,10 @@ public class OriginalLicenseVO {
     @Schema(description = "发证日期", example = "2025-01-01")
     @JsonFormat(pattern = "yyyy-MM-dd")
     private Date issueDate;
+
+    @Schema(description = "证书编号")
+    private String licenseNo;
+
+    @Schema(description = "状态：1-有效，2-已注销，3-已变更")
+    private Integer status;
 }

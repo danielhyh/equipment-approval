@@ -22,4 +22,10 @@ public interface LicenseMapper {
     DuplicateLicenseVO getDuplicateById(@Param("id") Long id);
 
     int insertDuplicateLicense(@Param("vo") AppDuplicateSubmitRequest vo, @Param("creator") Long id);
+
+    int insertOriginalLicense(@Param("vo") OriginalLicenseVO vo, @Param("creator") Long id, @Param("appId") Long appId);
+
+    int updateOriginalLicense(@Param("vo") OriginalLicenseVO vo);
+
+    int updateDuplicateLicense(@Param("vo") DuplicateLicenseVO vo);
 }

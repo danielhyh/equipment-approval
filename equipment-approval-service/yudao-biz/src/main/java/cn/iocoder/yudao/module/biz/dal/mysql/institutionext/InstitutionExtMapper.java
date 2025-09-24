@@ -9,6 +9,7 @@ import cn.iocoder.yudao.module.biz.dal.dataobject.institutionext.InstitutionExtD
 import org.apache.ibatis.annotations.Mapper;
 import cn.iocoder.yudao.module.biz.controller.admin.institutionext.vo.*;
 import org.apache.ibatis.annotations.Param;
+import org.apache.ibatis.annotations.Select;
 
 /**
  * 机构扩展信息 Mapper
@@ -29,5 +30,14 @@ public interface InstitutionExtMapper extends BaseMapperX<InstitutionExtDO> {
     }
 
     InstitutionExtDetailsVO getDetails(@Param("id") Long id);
+
+    @Select("""
+            SELECT
+            COUNT(u.id) AS user_count
+            FROM biz_institution_ext i
+            LEFT JOIN system_users u ON i.dept_id = u.dept_id
+            WHERE i.dept_id = #{id} and i.deleted = b'0'
+        """)
+    Long inUse(@Param("id") Long id);
 
 }

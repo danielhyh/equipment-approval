@@ -9,6 +9,8 @@ import java.util.Date;
 @Schema(description = "副本响应体")
 @Data
 public class DuplicateLicenseVO {
+    private Long id;
+
     @Schema(description = "生产企业", example = "上海医疗器械有限公司")
     private String productionEnterprise;
 

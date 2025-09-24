@@ -1,5 +1,6 @@
 package cn.iocoder.yudao.module.biz.controller.admin.institutionext;
 
+import cn.iocoder.yudao.framework.common.exception.ServiceException;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -61,6 +62,9 @@ public class InstitutionExtController {
     @Parameter(name = "id", description = "编号", required = true)
     //@PreAuthorize("@ss.hasPermission('biz:institution-ext:delete')")
     public CommonResult<Boolean> deleteInstitutionExt(@RequestParam("id") Long id) {
+        if (institutionExtService.inUse(id)) {
+            throw new ServiceException(1111, "此部门已被用户绑定");
+        }
         institutionExtService.deleteInstitutionExt(id);
         return success(true);
     }

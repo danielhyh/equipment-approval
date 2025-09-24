@@ -14,4 +14,6 @@ import static cn.iocoder.yudao.framework.common.util.date.DateUtils.FORMAT_YEAR_
 @Data
 public class ClassAEquipmentPageReqVO extends PageParam {
 
+    @Schema(description = "配置单位或社会信用代码")
+    private String keyword;
 }

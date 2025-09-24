@@ -2,10 +2,7 @@ package cn.iocoder.yudao.module.biz.controller.admin.license;
 
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
-import cn.iocoder.yudao.module.biz.controller.admin.license.vo.DuplicateLicenseVO;
-import cn.iocoder.yudao.module.biz.controller.admin.license.vo.LicensePageRequestVO;
-import cn.iocoder.yudao.module.biz.controller.admin.license.vo.LicensePageVO;
-import cn.iocoder.yudao.module.biz.controller.admin.license.vo.OriginalLicenseVO;
+import cn.iocoder.yudao.module.biz.controller.admin.license.vo.*;
 import cn.iocoder.yudao.module.biz.service.license.LicenseService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -14,10 +11,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.annotation.Resource;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @Tag(name = "管理后台 - 许可证中心")
 @RestController
@@ -54,6 +48,28 @@ public class LicenseController {
     @GetMapping("/getDuplicateById")
     public CommonResult<DuplicateLicenseVO> getDuplicateById(@RequestParam("id") Long id) {
         return CommonResult.success(licenseService.getDuplicateById(id));
+    }
+
+    @PostMapping("/offline-process")
+    @Operation(summary = "线下办理许可证")
+    @io.swagger.v3.oas.annotations.parameters.RequestBody
+    public CommonResult<Boolean> offlineProcess(@RequestBody OfflineLicenseInsertRequest req) {
+        licenseService.offlineProcessLicense(req);
+        return CommonResult.success(true);
+    }
+
+    @PostMapping("/update-original")
+    @Operation(summary = "修改正本")
+    @io.swagger.v3.oas.annotations.parameters.RequestBody
+    public CommonResult<Boolean> updateOriginal(@RequestBody OriginalLicenseVO req) {
+        return CommonResult.success(licenseService.updateOriginal(req));
+    }
+
+    @PostMapping("/update-duplicate")
+    @Operation(summary = "修改副本")
+    @io.swagger.v3.oas.annotations.parameters.RequestBody
+    public CommonResult<Boolean> updateDuplicate(@RequestBody DuplicateLicenseVO req) {
+        return CommonResult.success(licenseService.updateDuplicate(req));
     }
 
 }

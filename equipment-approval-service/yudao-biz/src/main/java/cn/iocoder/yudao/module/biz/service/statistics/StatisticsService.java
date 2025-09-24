@@ -24,8 +24,14 @@ public class StatisticsService {
 
     public Map<String, Object> equipmentSummary(Integer year) {
         Map<String, Object> map = new HashMap<>();
-        List<Map<String, Object>> maps = convertKeysToCamelCase(statisticsMapper.equipmentSummary(year));
-        map.put("total", maps.size());
+        List<Map<String, Object>> maps = statisticsMapper.equipmentSummary(year);
+        Map<String, Object> row = maps.get(0);
+        if (row != null) {
+            int sum = row.values().stream().mapToInt(val -> Integer.parseInt(val.toString())).sum();
+            map.put("total", sum);
+        } else {
+            map.put("total", 0);
+        }
         map.put("list", maps);
         return map;
     }

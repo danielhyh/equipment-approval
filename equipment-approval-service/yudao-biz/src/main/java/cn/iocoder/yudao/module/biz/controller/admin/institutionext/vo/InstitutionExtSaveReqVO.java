@@ -43,4 +43,6 @@ public class InstitutionExtSaveReqVO {
     @Schema(description = "机构性质：1-社会办医，2-筹建或在建，3-自贸区内社会办医，4-筹建或在建自贸区", example = "2")
     private Integer institutionType;
 
+    @Schema(description = "营业执照图片")
+    private String businessLicensePic;
 }

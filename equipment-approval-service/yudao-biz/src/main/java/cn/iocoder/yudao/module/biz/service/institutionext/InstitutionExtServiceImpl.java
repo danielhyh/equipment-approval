@@ -1,23 +1,23 @@
 package cn.iocoder.yudao.module.biz.service.institutionext;
 
-import cn.hutool.core.collection.CollUtil;
+import cn.iocoder.yudao.framework.common.exception.ServiceException;
+import org.springframework.jdbc.core.simple.JdbcClient;
+import org.springframework.jdbc.support.GeneratedKeyHolder;
+import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Service;
 import jakarta.annotation.Resource;
-import org.springframework.validation.annotation.Validated;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.validation.annotation.Validated;
 
 import java.util.*;
 import cn.iocoder.yudao.module.biz.controller.admin.institutionext.vo.*;
 import cn.iocoder.yudao.module.biz.dal.dataobject.institutionext.InstitutionExtDO;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
-import cn.iocoder.yudao.framework.common.pojo.PageParam;
 import cn.iocoder.yudao.framework.common.util.object.BeanUtils;
 
 import cn.iocoder.yudao.module.biz.dal.mysql.institutionext.InstitutionExtMapper;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
-import static cn.iocoder.yudao.framework.common.util.collection.CollectionUtils.convertList;
-import static cn.iocoder.yudao.framework.common.util.collection.CollectionUtils.diffList;
 import static cn.iocoder.yudao.module.biz.enums.ErrorCodeConstants.*;
 
 /**
@@ -32,14 +32,32 @@ public class InstitutionExtServiceImpl implements InstitutionExtService {
     @Resource
     private InstitutionExtMapper institutionExtMapper;
 
+    @Resource
+    private JdbcClient jdbcClient;
+
     @Override
+    @Transactional
     public Long createInstitutionExt(InstitutionExtSaveReqVO createReqVO) {
         // 插入
         InstitutionExtDO institutionExt = BeanUtils.toBean(createReqVO, InstitutionExtDO.class);
+        Long deptId = insertDept(institutionExt);
+        institutionExt.setDeptId(deptId);
         institutionExtMapper.insert(institutionExt);
 
         // 返回
         return institutionExt.getId();
+    }
+
+    private Long insertDept(InstitutionExtDO extDO) {
+
+        KeyHolder keyHolder = new GeneratedKeyHolder();
+        jdbcClient.sql("insert into system_dept (name, phone, `status`) values (?, ?, ?)")
+                .params(extDO.getInstitutionName(), extDO.getContactPhone(), 0)
+                .update(keyHolder);
+        return Optional.ofNullable(keyHolder.getKey()).map(Number::longValue)
+                .orElseThrow(() -> new ServiceException(1111, "插入dept部门失败"));
+
+
     }
 
     @Override
@@ -85,6 +103,11 @@ public class InstitutionExtServiceImpl implements InstitutionExtService {
     @Override
     public InstitutionExtDetailsVO getDetails(Long id) {
         return institutionExtMapper.getDetails(id);
+    }
+
+    @Override
+    public Boolean inUse(Long id) {
+        return institutionExtMapper.inUse(id) > 0;
     }
 
 }
