@@ -1,11 +1,13 @@
 export interface licenseProfileType {
-  licenceType: string // 证书类型 A B
-  licenceSubtitle: string // 证书副标题 A B
+  licenceType?: string // 证书类型 A B
+  licenceSubtitle?: string // 证书副标题 A B
   code?: string | null | undefined // 证书编号
   licenseData?: (string | null | undefined)[] // 证书内容 string  每项数据值
   stampUit?: string | null | undefined // 签发单位
   stampDate?: string | null | undefined // 签发日期
   seal?: string | null | undefined // 印章
+  originalId?: string | null | undefined // 正本id
+  duplicateId?: string | null | undefined // 副本id
 }
 export interface originalProfile {
   code?: string | null | undefined

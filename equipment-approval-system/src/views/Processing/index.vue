@@ -160,7 +160,7 @@
     </div>
 
     <!-- <Qrcode text="http://113.45.143.70:8899/institution/index.html" /> -->
-    <Dialog v-model="liscenceVisible" v-bind="licenceDialogBind">
+    <Dialog v-model:modelValue="liscenceVisible" v-bind="licenceDialogBind">
       <div class="dialog-licence-content">
         <div class="row">
           <el-button size="small" type="success" :icon="Printer" @click.stop="printFn">
@@ -178,12 +178,16 @@
 
 <script setup lang="ts" name="ProcessingCenter">
 import { Dialog } from '@/components/Dialog/index'
+import { View, Search, Avatar, Download, Printer } from '@element-plus/icons-vue'
 import licence from './components/license.vue'
 import { getDictOptions } from '@/utils/dict'
 import type { DictDataType } from '@/utils/dict'
-import { View, Search, Avatar, Download, Printer } from '@element-plus/icons-vue'
 import { ApplicationApi } from '@/api/biz/application'
-import type { originalProfile, copyProfile } from '../licenseCenter/components/licenseProfile'
+import type {
+  licenseProfileType,
+  originalProfile,
+  copyProfile
+} from '../licenseCenter/components/licenseProfile'
 import { dayTimeFormate } from '../licenseCenter/components/licenseProfile'
 import { LicenseApi } from '@/api/biz/license/index'
 
@@ -379,15 +383,19 @@ let licenceDialogBind = computed(() => {
     fullscreen: true
   }
 })
-let licenceData = ref<any>({})
+let licenceData = ref<licenseProfileType>({})
 
 let licenceRef = ref<InstanceType<typeof licence> | null>(null)
 const showLicenceFn = (row, type) => {
+  console.log(row, 'row')
   licenceTitle.value = type === 'A' ? '正本' : '副本'
   licenceData.value = {
     licenceType: 'B',
     licenceSubtitle: type,
-    code: row.licenseNo
+    code: row.licenseNo,
+    licenseData: [],
+    originalId: String(row.originalId),
+    duplicateId: String(row.duplicateId)
   }
   if (type === 'A') beforeLicenseRequest(row.originalId, row.duplicateId, type)
   else beforeLicenseRequest(row.originalId, row.duplicateId, type)

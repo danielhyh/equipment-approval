@@ -330,7 +330,9 @@ let dialogComponentProps = ref<licenseProfileType>({
   licenseData: [],
   stampUit: '',
   stampDate: '',
-  seal: ''
+  seal: '',
+  originalId: '',
+  duplicateId: ''
 })
 let dialogComponentRef = ref<InstanceType<typeof License> | null>(null)
 let isLicense = ref(true)
@@ -346,6 +348,8 @@ const openLicense = async (row, type) => {
     dialogBind.title = '许可证-副本'
     dialogComponentProps.value = { licenceType: 'B', licenceSubtitle: 'B' }
   }
+  dialogComponentProps.value.originalId = String(row.originalId)
+  dialogComponentProps.value.duplicateId = String(row.duplicateId)
   dialogComponentProps.value.code = row.licenseNo
 
   dialogComponent.value = markRaw(License)

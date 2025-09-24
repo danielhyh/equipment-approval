@@ -38,7 +38,6 @@
               @click.stop="handlerType(item)"
             >
               <Icon :icon="item.icon" />
-              <!-- <el-icon><component :is="item.icon" class="el-icon" /></el-icon> -->
               <span>{{ item.label }}</span>
             </div>
           </div>
@@ -86,6 +85,8 @@ const originalId = route.query.originalId
 const duplicateId = route.query.duplicateId
 let loading = ref(false)
 provide('licenseId', licenseId)
+provide('originalId', originalId)
+provide('duplicateId', duplicateId)
 let title = ref('陕西省大型医用设备在线审批归档系统')
 // 基础数据
 let basice = reactive({

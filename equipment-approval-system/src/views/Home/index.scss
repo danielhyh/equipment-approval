@@ -1,0 +1,297 @@
+.c-ef4444 {
+  color: #ef4444;
+}
+.c-06b6d4 {
+  color: #06b6d4;
+}
+.c-059669 {
+  color: #059669;
+}
+.c-d97706 {
+  color: #d97706;
+}
+.card-box {
+  border-radius: 16px;
+  &:deep(.el-card__header) {
+    padding: 10px 20px;
+    background-color: #f1f1f1;
+    border-bottom: 1px solid #e5e7eb;
+  }
+  & + .card-box {
+    margin-top: 20px;
+  }
+}
+.header-section {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  .page-title {
+    font-size: 16px;
+    font-weight: 500;
+    color: #333;
+    margin: 0;
+    display: flex;
+    align-items: center;
+  }
+
+  .year-selector {
+    width: 120px;
+  }
+}
+.stats-cards-container {
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+  padding: 20px;
+  background-color: #fff;
+
+  .total-equipment-card {
+    background: linear-gradient(135deg, #165dff 0%, #06b6d4 100%);
+    border-radius: 12px;
+    padding: 30px;
+    color: white;
+    min-width: 280px;
+    flex: 1;
+    display: flex;
+    align-items: center;
+    position: relative;
+    overflow: hidden;
+    &::after {
+      content: '';
+      position: absolute;
+      right: -50px;
+      bottom: -50px;
+      width: 200px;
+      height: 200px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 50%;
+    }
+  }
+
+  .card-content {
+    z-index: 1;
+  }
+
+  .total-count {
+    font-size: 32px;
+    font-weight: bold;
+    margin-bottom: 10px;
+  }
+
+  .count-label {
+    font-size: 14px;
+    margin-bottom: 5px;
+    opacity: 0.9;
+  }
+
+  .growth-rate {
+    font-size: 14px;
+    opacity: 0.8;
+  }
+
+  .equipment-type-card {
+    background: white;
+    border-radius: 12px;
+    padding: 20px;
+    flex: 2;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    min-width: 300px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .card-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .card-title {
+    font-size: 16px;
+    font-weight: 500;
+    margin: 0;
+    flex: 1;
+  }
+
+  .star-icon {
+    color: #f59e0b;
+  }
+
+  .total-type-count {
+    font-size: 24px;
+    font-weight: bold;
+    margin-bottom: 20px;
+  }
+
+  .equipment-list {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px 15px;
+  }
+
+  .equipment-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 0;
+    border-bottom: 1px solid #f0f0f0;
+  }
+
+  .equipment-item:last-child {
+    border-bottom: none;
+  }
+
+  .equipment-name {
+    font-size: 14px;
+    color: #666;
+  }
+
+  .equipment-count {
+    font-size: 14px;
+    font-weight: 500;
+  }
+  .logo {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: absolute;
+    top: -10px;
+    right: -5px;
+    background-color: #80a5fc65;
+  }
+}
+
+// 待办通知相关样式
+.todo-tabs {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.todo-type-badge-group {
+  display: flex;
+  gap: 8px;
+}
+
+.todo-type-badge {
+  display: flex;
+  align-items: center;
+  padding: 10px 12px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  color: #fff;
+  background-color: #94a3b8;
+  border: 2px solid #f6f6f6c4;
+  cursor: default;
+  transition: all 0.2s ease;
+}
+
+.todo-type-badge:nth-child(1) {
+  background-color: #165dff;
+}
+
+.todo-type-badge:nth-child(2) {
+  background-color: #059669;
+}
+
+.todo-type-badge:nth-child(3) {
+  background-color: #d97706;
+}
+
+.todo-type-badge:nth-child(4) {
+  background-color: #ef4444;
+}
+
+.todo-type-badge:nth-child(5) {
+  background-color: #64748b;
+  font-weight: 600;
+}
+
+.todo-list-box {
+  padding: 20px;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  &.empty {
+    grid-template-columns: repeat(1, 1fr);
+  }
+}
+
+.todo-item {
+  padding: 16px;
+  border-radius: 8px;
+  background-color: #fff;
+  border: 1px solid #e5e7eb;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  transition: all 0.3s ease;
+}
+
+.todo-item:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+// 不同紧急程度的卡片边框颜色
+.todo-item-primary {
+  border-color: #165dff;
+}
+
+.todo-item-success {
+  border-color: #059669;
+}
+
+.todo-item-warning {
+  border-color: #d97706;
+}
+
+.todo-item-danger {
+  border-color: #ef4444;
+}
+
+.todo-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 12px;
+}
+
+.hospital-name {
+  font-size: 16px;
+  font-weight: 500;
+  color: #333;
+  flex: 1;
+  margin-bottom: 10px;
+}
+
+.todo-date {
+  font-size: 14px;
+  color: #999;
+  white-space: nowrap;
+}
+
+.equipment-info {
+  font-size: 14px;
+  color: #666;
+  margin-bottom: 12px;
+  line-height: 1.5;
+}
+
+.todo-remark {
+  font-size: 13px;
+  color: #999;
+  margin-bottom: 12px;
+  padding: 8px 12px;
+  background-color: #f9fafb;
+  border-radius: 4px;
+}
+
+.todo-actions {
+  display: flex;
+  justify-content: center;
+}
+
+.handle-btn {
+  font-size: 13px;
+}

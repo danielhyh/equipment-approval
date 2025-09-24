@@ -13,6 +13,9 @@
 import License from '@/views/Processing/components/license.vue'
 import type { licenseProfileType, copyProfile } from './licenseProfile'
 import { dayTimeFormate } from './licenseProfile'
+
+let originalId = inject('originalId', '')
+let duplicateId = inject('duplicateId', '')
 // 基本信息
 let props = defineProps({
   list: {
@@ -42,7 +45,9 @@ let basicData = ref({}) // 基本信息
 
 let licenseProps = ref<licenseProfileType>({
   licenceType: 'B',
-  licenceSubtitle: 'B'
+  licenceSubtitle: 'B',
+  originalId,
+  duplicateId
 })
 const formateDialogLicense = (data: copyProfile) => {
   let arr: any[] = []

@@ -12,6 +12,8 @@
 <script setup lang="ts" name="Original">
 import License from '@/views/Processing/components/license.vue'
 import type { licenseProfileType, originalProfile } from './licenseProfile'
+let originalId = inject('originalId', '')
+let duplicateId = inject('duplicateId', '')
 // 基本信息
 let props = defineProps({
   list: { type: Object || null, default: () => {} }
@@ -42,7 +44,9 @@ let basicData = ref({})
 
 let licenseProps = ref<licenseProfileType>({
   licenceType: 'B',
-  licenceSubtitle: 'A'
+  licenceSubtitle: 'A',
+  originalId,
+  duplicateId
 })
 const formateDialogLicense = (data: originalProfile) => {
   let arr: any[] = []

@@ -1,422 +1,354 @@
 <template>
   <div>
-    <el-card shadow="never">
-      <el-skeleton :loading="loading" animated>
-        <el-row :gutter="16" justify="space-between">
-          <el-col :lg="12" :md="12" :sm="24" :xl="12" :xs="24">
-            <div class="flex items-center">
-              <el-avatar :size="70" :src="avatar" class="mr-16px">
-                <img alt="" src="@/assets/imgs/avatar.gif" />
-              </el-avatar>
-              <div>
-                <div class="text-20px">
-                  {{ t('workplace.welcome') }} {{ username }} {{ t('workplace.happyDay') }}
-                </div>
-                <div class="mt-10px text-14px text-gray-500">
-                  {{ t('workplace.toady') }}，20℃ - 32℃！
-                </div>
+    <el-card class="card-box">
+      <!-- 头部区域 -->
+      <template #header>
+        <div class="header-section">
+          <h2 class="page-title">
+            <Icon icon="fa-solid:chart-pie" :size="18" color="#165DFF" style="margin-right: 5px" />
+            <span>设备汇总统计</span>
+          </h2>
+          <el-select v-model="selectedYear" class="year-selector" @change="getEquipmentSummaryData">
+            <el-option
+              v-for="item in selectYearList"
+              :key="item.value"
+              :label="item.label"
+              :value="item.value"
+            />
+          </el-select>
+        </div>
+      </template>
+      <!-- 统计卡片区域 -->
+      <div class="stats-cards-container">
+        <!-- 设备总数卡片 -->
+        <div class="total-equipment-card">
+          <div class="card-content">
+            <div class="total-count">{{ totalEquipment }}</div>
+            <div class="count-label">设备总数量</div>
+            <div class="growth-rate">同比增长: 18.3%</div>
+          </div>
+          <div class="logo">
+            <Icon icon="fa-solid:procedures" :size="40" color="#fff" />
+          </div>
+        </div>
+
+        <!-- 甲类大型医用设备卡片 -->
+        <div class="equipment-type-card">
+          <div class="card-header">
+            <h3 class="card-title c-ef4444">甲类大型医用设备</h3>
+          </div>
+          <div class="total-type-count c-ef4444">{{ equipmentATotal }} 台</div>
+          <div class="equipment-list">
+            <div class="equipment-item" v-for="item in equipmentA" :key="item.key">
+              <span class="equipment-name">{{ item.label }}</span>
+              <span class="equipment-count c-ef4444">{{ item.value }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 乙类大型医用设备卡片 -->
+        <div class="equipment-type-card">
+          <div class="card-header">
+            <h3 class="card-title c-06b6d4">乙类大型医用设备</h3>
+          </div>
+          <div class="total-type-count c-06b6d4">{{ equipmentBTotal }} 台</div>
+          <div class="equipment-list">
+            <div class="equipment-item" v-for="item in equipmentB" :key="item.key">
+              <span class="equipment-name">{{ item.label }}</span>
+              <span class="equipment-count c-ef4444">{{ item.value }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </el-card>
+
+    <!-- 代办通知 -->
+    <el-card class="card-box">
+      <template #header>
+        <div class="header-section">
+          <h2 class="page-title">
+            <Icon icon="tabler:bell-filled" :size="18" color="#165DFF" style="margin-right: 5px" />
+            <span>待办通知</span>
+          </h2>
+          <div class="todo-tabs">
+            <!-- 修改为仅展示的标签组 -->
+            <div class="todo-type-badge-group">
+              <div class="todo-type-badge" v-for="item in todoType" :key="item.key">
+                <Icon :icon="item.icon" :size="18" color="#fff" style="margin-right: 5px" />
+                <span>{{ item.name }}： {{ item.value || '--' }}</span>
               </div>
             </div>
-          </el-col>
-          <el-col :lg="12" :md="12" :sm="24" :xl="12" :xs="24">
-            <div class="h-70px flex items-center justify-end lt-sm:mt-10px">
-              <div class="px-8px text-right">
-                <div class="mb-16px text-14px text-gray-400">{{ t('workplace.project') }}</div>
-                <CountTo
-                  :duration="2600"
-                  :end-val="totalSate.project"
-                  :start-val="0"
-                  class="text-20px"
-                />
+          </div>
+        </div>
+      </template>
+
+      <div class="todo-list-box" :class="{ empty: todoList.length === 0 }">
+        <template v-if="todoList.length > 0">
+          <div
+            class="todo-item"
+            :class="getTodoItemClass(item.status)"
+            v-for="item in todoList"
+            :key="item.id"
+          >
+            <!-- 顶部信息：医院名称和日期 -->
+            <div class="todo-header">
+              <!-- 状态标签 -->
+              <div class="todo-tags">
+                <span :class="getTodoTagClass(item.status)">
+                  <Icon :icon="getTodoIcon(item.type)" :size="14" style="margin-right: 5px" />
+                  {{ item.statusText }}
+                </span>
               </div>
-              <el-divider direction="vertical" />
-              <div class="px-8px text-right">
-                <div class="mb-16px text-14px text-gray-400">{{ t('workplace.toDo') }}</div>
-                <CountTo
-                  :duration="2600"
-                  :end-val="totalSate.todo"
-                  :start-val="0"
-                  class="text-20px"
-                />
-              </div>
-              <el-divider border-style="dashed" direction="vertical" />
-              <div class="px-8px text-right">
-                <div class="mb-16px text-14px text-gray-400">{{ t('workplace.access') }}</div>
-                <CountTo
-                  :duration="2600"
-                  :end-val="totalSate.access"
-                  :start-val="0"
-                  class="text-20px"
-                />
-              </div>
+
+              <div class="todo-date">{{ item.date }}</div>
             </div>
-          </el-col>
-        </el-row>
-      </el-skeleton>
+            <div class="hospital-name">{{ item.hospitalName }}</div>
+            <!-- 设备信息 -->
+            <div class="equipment-info">{{ item.equipmentInfo }}</div>
+
+            <!-- 截止信息或其他备注 -->
+            <div class="todo-remark" v-if="item.remainingTime || item.reason">
+              {{ item.remainingTime || item.reason }}
+            </div>
+
+            <!-- 底部操作按钮 -->
+            <div class="todo-actions">
+              <el-button type="primary" size="small" class="handle-btn" @click.stop="jumpTo(item)">
+                立即办理
+              </el-button>
+            </div>
+          </div>
+        </template>
+        <el-empty v-else :image-size="130" description="暂无待办通知" />
+      </div>
     </el-card>
   </div>
-
-  <el-row :gutter="8" class="mt-8px" justify="space-between">
-    <el-col :lg="16" :md="24" :sm="24" :xl="16" :xs="24" class="mb-8px">
-      <el-card shadow="never">
-        <template #header>
-          <div class="h-3 flex justify-between">
-            <span>{{ t('workplace.project') }}</span>
-            <el-link
-              :underline="false"
-              href="https://github.com/yudaocode"
-              target="_blank"
-              type="primary"
-            >
-              {{ t('action.more') }}
-            </el-link>
-          </div>
-        </template>
-        <el-skeleton :loading="loading" animated>
-          <el-row>
-            <el-col
-              v-for="(item, index) in projects"
-              :key="`card-${index}`"
-              :lg="8"
-              :md="8"
-              :sm="24"
-              :xl="8"
-              :xs="24"
-            >
-              <el-card
-                class="mr-5px mt-5px cursor-pointer"
-                shadow="hover"
-                @click="handleProjectClick(item.message)"
-              >
-                <div class="flex items-center">
-                  <Icon
-                    :icon="item.icon"
-                    :size="25"
-                    :style="{ color: item.color }"
-                    class="mr-8px"
-                  />
-                  <span class="text-16px">{{ item.name }}</span>
-                </div>
-                <div class="mt-12px text-12px text-gray-400">{{ t(item.message) }}</div>
-                <div class="mt-12px flex justify-between text-12px text-gray-400">
-                  <span>{{ item.personal }}</span>
-                  <span>{{ formatTime(item.time, 'yyyy-MM-dd') }}</span>
-                </div>
-              </el-card>
-            </el-col>
-          </el-row>
-        </el-skeleton>
-      </el-card>
-
-      <el-card class="mt-8px" shadow="never">
-        <el-skeleton :loading="loading" animated>
-          <el-row :gutter="20" justify="space-between">
-            <el-col :lg="10" :md="24" :sm="24" :xl="10" :xs="24">
-              <el-card class="mb-8px" shadow="hover">
-                <el-skeleton :loading="loading" animated>
-                  <Echart :height="280" :options="pieOptionsData" />
-                </el-skeleton>
-              </el-card>
-            </el-col>
-            <el-col :lg="14" :md="24" :sm="24" :xl="14" :xs="24">
-              <el-card class="mb-8px" shadow="hover">
-                <el-skeleton :loading="loading" animated>
-                  <Echart :height="280" :options="barOptionsData" />
-                </el-skeleton>
-              </el-card>
-            </el-col>
-          </el-row>
-        </el-skeleton>
-      </el-card>
-    </el-col>
-    <el-col :lg="8" :md="24" :sm="24" :xl="8" :xs="24" class="mb-8px">
-      <el-card shadow="never">
-        <template #header>
-          <div class="h-3 flex justify-between">
-            <span>{{ t('workplace.shortcutOperation') }}</span>
-          </div>
-        </template>
-        <el-skeleton :loading="loading" animated>
-          <el-row>
-            <el-col v-for="item in shortcut" :key="`team-${item.name}`" :span="8" class="mb-8px">
-              <div class="flex items-center">
-                <Icon :icon="item.icon" :style="{ color: item.color }" class="mr-8px" />
-                <el-link :underline="false" type="default" @click="handleShortcutClick(item.url)">
-                  {{ item.name }}
-                </el-link>
-              </div>
-            </el-col>
-          </el-row>
-        </el-skeleton>
-      </el-card>
-      <el-card class="mt-8px" shadow="never">
-        <template #header>
-          <div class="h-3 flex justify-between">
-            <span>{{ t('workplace.notice') }}</span>
-            <el-link :underline="false" type="primary">{{ t('action.more') }}</el-link>
-          </div>
-        </template>
-        <el-skeleton :loading="loading" animated>
-          <div v-for="(item, index) in notice" :key="`dynamics-${index}`">
-            <div class="flex items-center">
-              <el-avatar :size="35" :src="avatar" class="mr-16px">
-                <img alt="" src="@/assets/imgs/avatar.gif" />
-              </el-avatar>
-              <div>
-                <div class="text-14px">
-                  <Highlight :keys="item.keys.map((v) => t(v))">
-                    {{ item.type }} : {{ item.title }}
-                  </Highlight>
-                </div>
-                <div class="mt-16px text-12px text-gray-400">
-                  {{ formatTime(item.date, 'yyyy-MM-dd') }}
-                </div>
-              </div>
-            </div>
-            <el-divider />
-          </div>
-        </el-skeleton>
-      </el-card>
-    </el-col>
-  </el-row>
 </template>
+
 <script lang="ts" setup>
-import { set } from 'lodash-es'
-import { EChartsOption } from 'echarts'
-import { formatTime } from '@/utils'
+import { getEquipmentSummary, getTodoType, getTodoList } from '@/api/biz/home/index'
 
-import { useUserStore } from '@/store/modules/user'
-// import { useWatermark } from '@/hooks/web/useWatermark'
-import type { WorkplaceTotal, Project, Notice, Shortcut } from './types'
-import { pieOptions, barOptions } from './echarts-data'
-import { useRouter } from 'vue-router'
-
-defineOptions({ name: 'Index' })
-
-const { t } = useI18n()
 const router = useRouter()
-const userStore = useUserStore()
-// const { setWatermark } = useWatermark()
-const loading = ref(true)
-const avatar = userStore.getUser.avatar
-const username = userStore.getUser.nickname
-const pieOptionsData = reactive<EChartsOption>(pieOptions) as EChartsOption
-// 获取统计数
-let totalSate = reactive<WorkplaceTotal>({
-  project: 0,
-  access: 0,
-  todo: 0
+// 年份选择器的响应式数据
+const selectedYear = ref('2024')
+interface SelectYearItem {
+  label: string
+  value: string
+}
+const selectYearList = computed<SelectYearItem[]>(() => {
+  let currentYear = new Date().getFullYear()
+  let arr: SelectYearItem[] = []
+  for (let i = 0; i < 4; i++) {
+    arr.push({
+      label: currentYear - i + '年',
+      value: String(currentYear - i)
+    })
+  }
+  arr.push({
+    label: '全部',
+    value: 'all'
+  })
+  return arr
 })
 
-const getCount = async () => {
-  const data = {
-    project: 40,
-    access: 2340,
-    todo: 10
+interface EquipmentItem {
+  label: string
+  value: number | string
+  key?: string
+}
+// 甲类大型医疗设备 数据
+let equipmentA = ref<EquipmentItem[]>([
+  {
+    label: '重离子质子放射治疗系统',
+    value: 12,
+    key: 'a1'
+  },
+  {
+    label: '高端放射治疗设备',
+    value: 28,
+    key: 'a2'
+  },
+  {
+    label: '曾强型体外冲击波碎石机',
+    value: 49,
+    key: 'a3'
   }
-  totalSate = Object.assign(totalSate, data)
+])
+let equipmentATotal = computed<number>(() => {
+  return equipmentA.value.reduce((pre, cur) => pre + Number(cur.value), 0)
+})
+// 乙类大型医疗设备 数据
+let equipmentB = ref<EquipmentItem[]>([
+  {
+    label: '医用电子直线加速器(含后装)',
+    value: 45,
+    key: 'b1'
+  },
+  {
+    label: 'X线电子计算机断层扫描装置',
+    value: 67,
+    key: 'b2'
+  },
+  {
+    label: '核医学治疗系统',
+    value: 38,
+    key: 'b3'
+  },
+  {
+    label: '伽玛射线立体定向治疗设备',
+    value: 52,
+    key: 'b4'
+  },
+  {
+    label: '高强度聚焦超声治疗系统',
+    value: 45,
+    key: 'b5'
+  }
+])
+let equipmentBTotal = computed<number>(() => {
+  return equipmentB.value.reduce((pre, cur) => pre + Number(cur.value), 0)
+})
+// 设备总数量
+let totalEquipment = computed<number>(() => {
+  return equipmentATotal.value + equipmentBTotal.value
+})
+
+const getEquipmentSummaryData = async () => {
+  try {
+    const res = await getEquipmentSummary(Number(selectedYear.value))
+    console.log(res)
+  } catch (e) {
+    console.log(e)
+  }
 }
-
-// 获取项目数
-let projects = reactive<Project[]>([])
-const getProject = async () => {
-  const data = [
-    {
-      name: 'ruoyi-vue-pro',
-      icon: 'simple-icons:springboot',
-      message: 'github.com/YunaiV/ruoyi-vue-pro',
-      personal: 'Spring Boot 单体架构',
-      time: new Date('2025-01-02'),
-      color: '#6DB33F'
-    },
-    {
-      name: 'yudao-ui-admin-vue3',
-      icon: 'ep:element-plus',
-      message: 'github.com/yudaocode/yudao-ui-admin-vue3',
-      personal: 'Vue3 + element-plus 管理后台',
-      time: new Date('2025-02-03'),
-      color: '#409EFF'
-    },
-    {
-      name: 'yudao-ui-mall-uniapp',
-      icon: 'icon-park-outline:mall-bag',
-      message: 'github.com/yudaocode/yudao-ui-mall-uniapp',
-      personal: 'Vue3 + uniapp 商城手机端',
-      time: new Date('2025-03-04'),
-      color: '#ff4d4f'
-    },
-    {
-      name: 'yudao-cloud',
-      icon: 'material-symbols:cloud-outline',
-      message: 'github.com/YunaiV/yudao-cloud',
-      personal: 'Spring Cloud 微服务架构',
-      time: new Date('2025-04-05'),
-      color: '#1890ff'
-    },
-    {
-      name: 'yudao-ui-admin-vben',
-      icon: 'devicon:antdesign',
-      message: 'github.com/yudaocode/yudao-ui-admin-vben',
-      personal: 'Vue3 + vben5(antd) 管理后台',
-      time: new Date('2025-05-06'),
-      color: '#e18525'
-    },
-    {
-      name: 'yudao-ui-admin-uniapp',
-      icon: 'ant-design:mobile',
-      message: 'github.com/yudaocode/yudao-ui-admin-uniapp',
-      personal: 'Vue3 + uniapp 管理手机端',
-      time: new Date('2025-06-01'),
-      color: '#2979ff'
-    }
-  ]
-  projects = Object.assign(projects, data)
+getEquipmentSummaryData()
+// 待办通知相关代码
+// 待办事项类型定义 - 重新定义数据结构
+interface TodoItem {
+  id: string
+  hospitalName: string
+  date: string
+  equipmentInfo: string
+  type: 'certApply' | 'certReissue' | 'certChange' | 'locationChange'
+  status: 'primary' | 'success' | 'warning' | 'danger'
+  statusText: string
+  appType?: string
+  remainingTime?: string
+  reason?: string
 }
-
-// 获取通知公告
-let notice = reactive<Notice[]>([])
-const getNotice = async () => {
-  const data = [
-    {
-      title: '系统支持 JDK 8/17/21，Vue 2/3',
-      type: '技术兼容性',
-      keys: ['JDK', 'Vue'],
-      date: new Date()
-    },
-    {
-      title: '后端提供 Spring Boot 2.7/3.2 + Cloud 双架构',
-      type: '架构灵活性',
-      keys: ['Boot', 'Cloud'],
-      date: new Date()
-    },
-    {
-      title: '全部开源，个人与企业可 100% 直接使用，无需授权',
-      type: '开源免授权',
-      keys: ['无需授权'],
-      date: new Date()
-    },
-    {
-      title: '国内使用最广泛的快速开发平台，远超 10w+ 企业使用',
-      type: '广泛企业认可',
-      keys: ['最广泛', '10w+'],
-      date: new Date()
-    }
-  ]
-  notice = Object.assign(notice, data)
+interface TodoType {
+  icon: string
+  bColor?: string
+  name: string
+  key: string
+  value: string
 }
-
-// 获取快捷入口
-let shortcut = reactive<Shortcut[]>([])
-
-const getShortcut = async () => {
-  const data = [
-    {
-      name: '首页',
-      icon: 'ion:home-outline',
-      url: '/',
-      color: '#1fdaca'
-    },
-    {
-      name: '商城中心',
-      icon: 'ep:shop',
-      url: '/mall/home',
-      color: '#ff6b6b'
-    },
-    {
-      name: 'AI 大模型',
-      icon: 'tabler:ai',
-      url: '/ai/chat',
-      color: '#7c3aed'
-    },
-    {
-      name: 'ERP 系统',
-      icon: 'simple-icons:erpnext',
-      url: '/erp/home',
-      color: '#3fb27f'
-    },
-    {
-      name: 'CRM 系统',
-      icon: 'simple-icons:civicrm',
-      url: '/crm/backlog',
-      color: '#4daf1bc9'
-    },
-    {
-      name: 'IoT 物联网',
-      icon: 'fa-solid:hdd',
-      url: '/iot/home',
-      color: '#1a73e8'
-    }
-  ]
-  shortcut = Object.assign(shortcut, data)
+// 待办类型数据
+let todoType = reactive<TodoType[]>([
+  { icon: 'zondicons:add-solid', name: '证书申请', key: 'apply', value: '' },
+  { icon: 'fa-solid:redo', name: '证书补办', key: 'renew', value: '' },
+  { icon: 'mingcute:edit-4-fill', name: '证书变更', key: 'change', value: '' },
+  { icon: 'bxs:message-edit', name: '信息变更', key: 'infoChange', value: '' },
+  { icon: 'uiw:tag', name: '总计', key: 'total', value: '' }
+])
+const getTodoTypeData = async () => {
+  try {
+    const res = await getTodoType()
+    console.log(res)
+  } catch (e) {
+    console.log(e)
+  }
 }
-
-// 用户来源
-const getUserAccessSource = async () => {
-  const data = [
-    { value: 335, name: 'analysis.directAccess' },
-    { value: 310, name: 'analysis.mailMarketing' },
-    { value: 234, name: 'analysis.allianceAdvertising' },
-    { value: 135, name: 'analysis.videoAdvertising' },
-    { value: 1548, name: 'analysis.searchEngines' }
-  ]
-  set(
-    pieOptionsData,
-    'legend.data',
-    data.map((v) => t(v.name))
-  )
-  pieOptionsData!.series![0].data = data.map((v) => {
-    return {
-      name: t(v.name),
-      value: v.value
+getTodoTypeData()
+// 待办事项列表数据
+let todoList = ref<TodoItem[]>([
+  // {
+  //   id: 'todo1',
+  //   hospitalName: '西安交通大学第一附属医院',
+  //   date: '2024-12-20',
+  //   equipmentInfo: '医用电子加速器增配申请（临床试用）',
+  //   status: 'primary',
+  //   statusText: '证书申请',
+  //   remainingTime: '距离办理截止时间还剩3天',
+  //   type: 'certApply'
+  // }
+])
+const getTodoListData = async () => {
+  try {
+    const res = await getTodoList()
+    todoList.value = res.data.map((item, index) => ({
+      id: `todo_${index}`,
+      hospitalName: item.title,
+      date: item.publishTime || 'xxxx-xx-xx',
+      equipmentInfo: item.content || '--',
+      appType: item.appType,
+      // remainingTime: '距离办理截止时间还剩3天',
+      ...getTodoTypeStatus(item.appType)
+    }))
+  } catch (e) {
+    console.log(e)
+  }
+}
+getTodoListData()
+// 跳转到办件中心
+const jumpTo = (item) => {
+  router.push({
+    path: '/processing',
+    query: {
+      type: item.appType
     }
   })
 }
-const barOptionsData = reactive<EChartsOption>(barOptions) as EChartsOption
-
-// 周活跃量
-const getWeeklyUserActivity = async () => {
-  const data = [
-    { value: 13253, name: 'analysis.monday' },
-    { value: 34235, name: 'analysis.tuesday' },
-    { value: 26321, name: 'analysis.wednesday' },
-    { value: 12340, name: 'analysis.thursday' },
-    { value: 24643, name: 'analysis.friday' },
-    { value: 1322, name: 'analysis.saturday' },
-    { value: 1324, name: 'analysis.sunday' }
-  ]
-  set(
-    barOptionsData,
-    'xAxis.data',
-    data.map((v) => t(v.name))
-  )
-  set(barOptionsData, 'series', [
-    {
-      name: t('analysis.activeQuantity'),
-      data: data.map((v) => v.value),
-      type: 'bar'
-    }
-  ])
+// 根据数据返回状态、类型
+const getTodoTypeStatus = (
+  appType: string
+): { status: string; type: string; statusText: string } => {
+  switch (appType) {
+    case '1':
+      return { status: 'primary', type: 'certApply', statusText: '证书申请' }
+    case '2':
+      return { status: 'success', type: 'certReissue', statusText: '证书补办' }
+    case '3':
+      return { status: 'warning', type: 'certChange', statusText: '证书变更' }
+    case '4':
+      return { status: 'danger', type: 'locationChange', statusText: '信息变更' }
+    default:
+      return { status: 'primary', type: 'certApply', statusText: '证书申请' }
+  }
 }
-
-const getAllApi = async () => {
-  await Promise.all([
-    getCount(),
-    getProject(),
-    getNotice(),
-    getShortcut(),
-    getUserAccessSource(),
-    getWeeklyUserActivity()
-  ])
-  loading.value = false
+// 根据状态获取标签样式类
+const getTodoTagClass = (status: string) => {
+  const tagClassMap: Record<string, string> = {
+    primary: 'el-tag--primary',
+    success: 'el-tag--success',
+    warning: 'el-tag--warning',
+    danger: 'el-tag--danger'
+  }
+  return `el-tag ${tagClassMap[status] || ''}`
 }
-
-const handleProjectClick = (message: string) => {
-  window.open(`https://${message}`, '_blank')
+// 根据状态获取卡片边框样式类
+const getTodoItemClass = (status: string) => {
+  const borderClassMap: Record<string, string> = {
+    primary: 'todo-item-primary',
+    success: 'todo-item-success',
+    warning: 'todo-item-warning',
+    danger: 'todo-item-danger'
+  }
+  return borderClassMap[status] || ''
 }
-
-const handleShortcutClick = (url: string) => {
-  router.push(url)
+// 根据状态配置icon
+const getTodoIcon = (type: string) => {
+  const iconMap: Record<string, string> = {
+    certApply: 'zondicons:add-solid',
+    certReissue: 'fa-solid:redo',
+    certChange: 'mingcute:edit-4-fill',
+    infoChange: 'bxs:message-edit',
+    total: 'uiw:tag'
+  }
+  return iconMap[type] || 'uiw:tag'
 }
-
-getAllApi()
 </script>
+
+<style lang="scss" scoped>
+@use './index.scss';
+</style>
