@@ -21,31 +21,21 @@
         FROM biz_application;
     </select>
 
-    <select id="equipmentSummary" resultType="java.util.Map">
-        WITH expected_devices AS (
-            SELECT '重离子质子放射治疗系统' AS license_device_name, '甲类' AS type_name UNION ALL
-            SELECT '高端放射治疗类设备', '甲类' UNION ALL
-            SELECT '首次配置的大型医疗器械', '甲类' UNION ALL
-            SELECT '64排及以上X线计算机断层扫描仪', '乙类' UNION ALL
-            SELECT '1.5T及以上磁共振成像系统', '乙类' UNION ALL
-            SELECT '内窥镜手术器械控制系统', '乙类' UNION ALL
-            SELECT '直线加速器', '乙类' UNION ALL
-            SELECT '伽玛射线立体定向放射治疗系统', '乙类' UNION ALL
-            SELECT 'X线正电子发射断层扫描仪', '乙类'
-        )
+    <select id="equipmentSummary" resultType="map">
         SELECT
-            ed.license_device_name,
-            COALESCE(COUNT(b.id), 0) AS count,
-            ed.type_name
-        FROM expected_devices ed
-        LEFT JOIN biz_class_a_equipment b ON ed.license_device_name = b.license_device_name AND b.deleted = 0
-        <where>
-            <if test="year != null">
-                AND create_time >= DATE_FORMAT(#{year}, '%Y-01-01')
-                AND create_time &lt; DATE_ADD(DATE_FORMAT(#{year}, '%Y-01-01'), INTERVAL 1 YEAR)
-            </if>
-        </where>
-        GROUP BY ed.license_device_name, ed.type_name
-        ORDER BY ed.type_name, ed.license_device_name
+        IFNULL(SUM(IF(license_device_name = 'X线正电子发射断层扫描仪', 1, 0)), 0) AS petCtScanner,
+        IFNULL(SUM(IF(license_device_name = '伽玛射线立体定向放射治疗系统', 1, 0)), 0) AS gammaRayStereotacticRtSystem,
+        IFNULL(SUM(IF(license_device_name = '直线加速器', 1, 0)), 0) AS linearAccelerator,
+        IFNULL(SUM(IF(license_device_name = '内窥镜手术器械控制系统', 1, 0)), 0) AS endoscopicSurgicalSystem,
+        IFNULL(SUM(IF(license_device_name = '1.5T及以上磁共振成像系统', 1, 0)), 0) AS mriSystem1_5tPlus,
+        IFNULL(SUM(IF(license_device_name = '64排及以上X线计算机断层扫描仪', 1, 0)), 0) AS ctScanner64SlicePlus,
+        IFNULL(SUM(IF(license_device_name = '首次配置的大型医疗器械', 1, 0)), 0) AS firstTimeLargeMedicalDevice,
+        IFNULL(SUM(IF(license_device_name = '高端放射治疗类设备', 1, 0)), 0) AS highEndRtEquipment,
+        IFNULL(SUM(IF(license_device_name = '重离子质子放射治疗系统', 1, 0)), 0) AS heavyIonProtonRtSystem
+        FROM biz_class_a_equipment
+        WHERE deleted = b'0'
+        <if test="year != null and year != ''">
+            AND YEAR(create_time) = #{year, jdbcType=VARCHAR}
+        </if>
     </select>
 </mapper>

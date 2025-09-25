@@ -64,5 +64,13 @@ public class EquipmentManufacturerDO extends BaseDO {
      */
     private Integer status;
 
+    /**
+     * 备注
+     */
+    private String remark;
 
-}
+    /**
+     * 简称
+     */
+    private String abbreviation;
+}

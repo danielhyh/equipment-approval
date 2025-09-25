@@ -32,8 +32,20 @@ public class EquipmentManufacturerRespVO {
     @ExcelProperty("状态：1-启用，0-禁用")
     private Integer status;
 
+    /**
+     * 备注
+     */
+    @Schema(description = "备注")
+    private String remark;
+
+    /**
+     * 简称
+     */
+    @Schema(description = "简称")
+    private String abbreviation;
+
     @Schema(description = "创建时间", requiredMode = Schema.RequiredMode.REQUIRED)
     @ExcelProperty("创建时间")
     private LocalDateTime createTime;
 
-}
+}

@@ -61,4 +61,6 @@ public interface InstitutionExtService {
 
     InstitutionExtDetailsVO getDetails(Long id);
 
+    Boolean inUse(Long id);
+
 }

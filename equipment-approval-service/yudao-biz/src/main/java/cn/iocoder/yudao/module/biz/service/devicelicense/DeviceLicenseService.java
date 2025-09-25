@@ -75,7 +75,7 @@ public class DeviceLicenseService {
         }
 
         // 优先查找“可复用”的编号（已生成但未使用）
-        List<DeviceLicenseDO> reusable = deviceLicenseMapper.findReusableByProvinceCategoryStep(provinceName, categoryName, stepType);
+        List<DeviceLicenseDO> reusable = deviceLicenseMapper.findReusableByProvinceCategoryStep( categoryName, stepType);
         DeviceLicenseDO licenseToUse = null;
 
         if (!reusable.isEmpty()) {
@@ -87,21 +87,19 @@ public class DeviceLicenseService {
         }
 
 
-        // 查询当前已配置数量（同省、同类、同阶梯）
-        int count = deviceLicenseMapper.countByProvinceAndCategoryAndStep(
-                provinceName, categoryName, stepType);
+//        // 查询当前已配置数量（同省、同类、同阶梯）
+        int count = deviceLicenseMapper.countByProvinceAndCategoryAndStep(categoryName, stepType);
+//
+//        if (count >= 5) {
+//            throw new ServiceException(1111,"该设备在本地区已达最大配置数量（5台），无法继续申请。");
+//        }
 
-        if (count >= 5) {
-            throw new ServiceException(1111,"该设备在本地区已达最大配置数量（5台），无法继续申请。");
-        }
-
-        //  查询该厂家已配置数量
-        int manufacturerCount = deviceLicenseMapper.countByProvinceAndCategoryAndStepAndManufacturer(
-                provinceName, categoryName, stepType);
-
-        if (manufacturerCount >= 3) {
-            throw new ServiceException(1111,"该厂家在本地区此类设备已达上限（3台），无法继续申请。");
-        }
+//        //  查询该厂家已配置数量
+//        int manufacturerCount = deviceLicenseMapper.countByProvinceAndCategoryAndStepAndManufacturer(categoryName, stepType);
+//
+//        if (manufacturerCount >= 3) {
+//            throw new ServiceException(1111,"该厂家在本地区此类设备已达上限（3台），无法继续申请。");
+//        }
         if (licenseToUse != null) {
             // 复用已有编号
             deviceLicenseMapper.insertOrUpdate(licenseToUse); // 更新厂家

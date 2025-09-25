@@ -32,11 +32,11 @@ public class NotificationController {
     public CommonResult<Map<String, String>> notificationSummary() {
         String sql = """
                 SELECT
-                    COALESCE(SUM(IF(b.app_type = 1, 1, 0)), 0) as '证书申请',
-                    COALESCE(SUM(IF(b.app_type = 2, 1, 0)), 0) as '证书补办',
-                    COALESCE(SUM(IF(b.app_type = 3, 1, 0)), 0) as '证书变更',
-                    COALESCE(SUM(IF(b.app_type = 4, 1, 0)), 0) as '信息变更',
-                    COUNT(b.app_type) as '总数'
+                    COALESCE(SUM(IF(b.app_type = 1, 1, 0)), 0) as 'apply',
+                    COALESCE(SUM(IF(b.app_type = 2, 1, 0)), 0) as 'renew',
+                    COALESCE(SUM(IF(b.app_type = 3, 1, 0)), 0) as 'change',
+                    COALESCE(SUM(IF(b.app_type = 4, 1, 0)), 0) as 'info_change',
+                    COUNT(b.app_type) as 'total'
                 FROM
                     biz_notifications a
                 LEFT JOIN biz_application b on a.app_id = b.id

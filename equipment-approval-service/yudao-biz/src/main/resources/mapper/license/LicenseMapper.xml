@@ -1,6 +1,39 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="cn.iocoder.yudao.module.biz.dal.mysql.license.LicenseMapper">
+    <update id="updateOriginalLicense">
+        UPDATE biz_license_original
+        <set>
+            <if test="vo.licenseNo != null and vo.licenseNo != ''">license_no = #{vo.licenseNo},</if>
+            <if test="vo.configUnitName != null and vo.configUnitName != ''">config_unit_name = #{vo.configUnitName},</if>
+            <if test="vo.ownershipNature != null and vo.ownershipNature != ''">ownership_nature = #{vo.ownershipNature},</if>
+            <if test="vo.issuingAuthority != null and vo.issuingAuthority != ''">issuing_authority = #{vo.issuingAuthority},</if>
+            <if test="vo.unifiedSocialCreditCode != null and vo.unifiedSocialCreditCode != ''">unified_social_credit_code = #{vo.unifiedSocialCreditCode},</if>
+            <if test="vo.ladderConfigModel != null and vo.ladderConfigModel != ''">ladder_config_model = #{vo.ladderConfigModel},</if>
+            <if test="vo.issueDate != null">issue_date = #{vo.issueDate},</if>
+            <if test="vo.legalPerson != null and vo.legalPerson != ''">legal_person = #{vo.legalPerson},</if>
+            <if test="vo.equipmentConfigAddress != null and vo.equipmentConfigAddress != ''">equipment_config_address = #{vo.equipmentConfigAddress},</if>
+            <if test="vo.licenseDeviceName != null and vo.licenseDeviceName != ''">license_device_name = #{vo.licenseDeviceName},</if>
+            <if test="vo.detailedAddress != null and vo.detailedAddress != ''">detailed_address = #{vo.detailedAddress},</if>
+        </set>
+        WHERE id = #{id}
+    </update>
+
+    <update id="updateDuplicateLicense">
+        UPDATE biz_license_duplicate
+        <set>
+            <if test="vo.productionEnterprise != null and vo.productionEnterprise != ''">production_enterprise = #{vo.productionEnterprise},</if>
+            <if test="vo.infoSubmitDate != null">info_submit_date = #{vo.infoSubmitDate},</if>
+            <if test="vo.specificModel != null and vo.specificModel != ''">specific_model = #{vo.specificModel},</if>
+            <if test="vo.duplicateIssuingAuthority != null and vo.duplicateIssuingAuthority != ''">duplicate_issuing_authority = #{vo.duplicateIssuingAuthority},</if>
+            <if test="vo.productSerialNo != null and vo.productSerialNo != ''">product_serial_no = #{vo.productSerialNo},</if>
+            <if test="vo.duplicateIssueDate != null">duplicate_issue_date = #{vo.duplicateIssueDate},</if>
+            <if test="vo.installationDate != null">installation_date = #{vo.installationDate},</if>
+            <if test="vo.originalPosition != null and vo.originalPosition != ''">original_position = #{vo.originalPosition},</if>
+            <if test="vo.remark != null and vo.remark != ''">remark = #{vo.remark}</if>
+        </set>
+        WHERE id = #{id}
+    </update>
 
 
     <select id="page" resultType="cn.iocoder.yudao.module.biz.controller.admin.license.vo.LicensePageVO">
@@ -56,7 +89,8 @@
             equipment_config_address,
             detailed_address,
             issuing_authority,
-            issue_date
+            issue_date,
+            license_no
         from biz_license_original
         where id = #{id}
     </select>
@@ -142,6 +176,42 @@
                         #{creator},
                         #{vo.originalPosition}
 
+                 )
+    </insert>
+    <insert id="insertOriginalLicense" parameterType="cn.iocoder.yudao.module.biz.controller.admin.license.vo.OriginalLicenseVO"
+    useGeneratedKeys="true" keyProperty="vo.id">
+        INSERT INTO biz_license_original (
+            application_id,
+            license_no,
+            config_unit_name,
+            ownership_nature,
+            issuing_authority,
+            unified_social_credit_code,
+            ladder_config_model,
+            issue_date,
+            legal_person,
+            equipment_config_address,
+            license_device_name,
+            detailed_address,
+            valid_date,
+            status,
+            creator
+        ) VALUES (
+                  #{appId},
+                     #{vo.licenseNo},
+                     #{vo.configUnitName},
+                     #{vo.ownershipNature},
+                     #{vo.issuingAuthority},
+                     #{vo.unifiedSocialCreditCode},
+                     #{vo.ladderConfigModel},
+                     #{vo.issueDate},
+                     #{vo.legalPerson},
+                     #{vo.equipmentConfigAddress},
+                     #{vo.licenseDeviceName},
+                     #{vo.detailedAddress},
+                     DATE_ADD(NOW(), INTERVAL 10 YEAR),
+                     #{vo.status},
+                     #{creator}
                  )
     </insert>
 </mapper>
