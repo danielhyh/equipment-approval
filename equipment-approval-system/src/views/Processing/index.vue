@@ -190,7 +190,8 @@ import type {
 } from '../licenseCenter/components/licenseProfile'
 import { dayTimeFormate } from '../licenseCenter/components/licenseProfile'
 import { LicenseApi } from '@/api/biz/license/index'
-
+import { useApplicationDataStore } from '@/store/applicationData'
+const applicationDataStore = useApplicationDataStore()
 const router = useRouter()
 type TypeList = {
   label: string
@@ -216,7 +217,7 @@ let typeList = ref<TypeList[]>([
     value: 2,
     size: 0,
     type: 'reissue',
-    status: 'biz_review_result',
+    status: 'biz_app_status',
     equipment: 'biz_main_equipment_type',
     key: 'cert_renew_count'
   },
@@ -225,7 +226,7 @@ let typeList = ref<TypeList[]>([
     size: 0,
     value: 3,
     type: 'change',
-    status: 'biz_review_result',
+    status: 'biz_app_status',
     equipment: 'biz_main_equipment_type',
     key: 'cert_change_count'
   },
@@ -234,7 +235,7 @@ let typeList = ref<TypeList[]>([
     size: 0,
     value: 4,
     type: 'basicInfoChange',
-    status: 'biz_review_result',
+    status: 'biz_app_status',
     key: 'info_change_count'
   }
 ])
@@ -303,30 +304,30 @@ let tableConfig = computed(() => {
     case 'change':
       return {
         columns: [
-          { title: '申请单位', dataIndex: 'applyCompany' },
-          { title: '设备名称', dataIndex: 'equipmentName' },
-          { title: '申请日期', dataIndex: 'applyTime' },
-          { title: '状态', dataIndex: 'status' }
+          { title: '申请单位', dataIndex: 'institutionName' },
+          { title: '设备名称', dataIndex: 'licenseDeviceName' },
+          { title: '申请日期', dataIndex: 'createTime' },
+          { title: '状态', dataIndex: 'appStatus' }
         ]
       }
     case 'reissue':
       return {
         columns: [
-          { title: '申请单位', dataIndex: 'applyCompany' },
-          { title: '设备名称', dataIndex: 'equipmentName' },
-          { title: '阶梯配置机型', dataIndex: 'applyType' },
-          { title: '申请日期', dataIndex: 'applyTime' },
-          { title: '状态', dataIndex: 'status' },
-          { title: '剩余时间', dataIndex: 'remainTime' }
+          { title: '申请单位', dataIndex: 'institutionName' },
+          { title: '设备名称', dataIndex: 'licenseDeviceName' },
+          { title: '阶梯配置机型', dataIndex: 'ladderConfigModel' },
+          { title: '申请日期', dataIndex: 'createTime' },
+          { title: '状态', dataIndex: 'appStatus' },
+          { title: '剩余时间', dataIndex: 'remainingDays' }
         ]
       }
     case 'basicInfoChange':
       return {
         columns: [
-          { title: '申请单位', dataIndex: 'applyCompany' },
+          { title: '申请单位', dataIndex: 'institutionName' },
           { title: '变更内容', dataIndex: 'changeContent' },
-          { title: '申请日期', dataIndex: 'applyTime' },
-          { title: '状态', dataIndex: 'status' }
+          { title: '申请日期', dataIndex: 'createTime' },
+          { title: '状态', dataIndex: 'appStatus' }
         ]
       }
     default:
@@ -456,6 +457,7 @@ const downloadFn = () => {
 
 // 查看 审核 专家审批
 const gotoDetailFn = (row, type) => {
+  applicationDataStore.updateProcessingType(activeType.value) //当前类型
   router.push({ path: '/process-other', query: { id: row.id, type: type, status: row.appStatus } })
 }
 
@@ -471,6 +473,12 @@ const getCount = async () => {
   }
 }
 onMounted(() => {
+  const processingType = applicationDataStore.getProcessingType
+  if (processingType) {
+    let item: TypeList | undefined = typeList.value.find((item) => item.type === processingType)
+    item && changeTypeFn(item)
+    return
+  }
   getList()
 })
 </script>

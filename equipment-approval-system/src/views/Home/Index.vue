@@ -127,6 +127,8 @@
 
 <script lang="ts" setup>
 import { getEquipmentSummary, getTodoType, getTodoList } from '@/api/biz/home/index'
+import { useApplicationDataStore } from '@/store/applicationData'
+const applicationDataStore = useApplicationDataStore()
 
 const router = useRouter()
 // 年份选择器的响应式数据
@@ -289,12 +291,24 @@ const getTodoListData = async () => {
 getTodoListData()
 // 跳转到办件中心
 const jumpTo = (item) => {
+  applicationDataStore.updateProcessingType(getProcessType(item.appType + ''))
   router.push({
-    path: '/processing',
-    query: {
-      type: item.appType
-    }
+    path: '/processing'
   })
+}
+const getProcessType = (appType: string) => {
+  switch (appType) {
+    case '1':
+      return 'apply'
+    case '2':
+      return 'reissue'
+    case '3':
+      return 'change'
+    case '4':
+      return 'basicInfoChange'
+    default:
+      return 'apply'
+  }
 }
 // 根据数据返回状态、类型
 const getTodoTypeStatus = (

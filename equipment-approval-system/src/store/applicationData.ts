@@ -28,11 +28,13 @@ export const useApplicationDataStore = defineStore('appDataStore', {
       initialReviewTime: '', //初审日期
       expertList: [], //专家列表，
       expertReviewTime: '' //专家审核日期
-    }
+    },
+    processingType: ''
   }),
   getters: {
     getApplicationData: (state) => state.basicInfo,
-    getReviewDetails: (state) => state.reviewDetails
+    getReviewDetails: (state) => state.reviewDetails,
+    getProcessingType: (state) => state.processingType
   },
   actions: {
     updateApplicationData(newData: Partial<typeof this.basicInfo>) {
@@ -46,6 +48,9 @@ export const useApplicationDataStore = defineStore('appDataStore', {
         return
       }
       this.reviewDetails = Object.assign(this.reviewDetails, newData)
+    },
+    updateProcessingType(type: string) {
+      this.processingType = type
     }
   }
 })
