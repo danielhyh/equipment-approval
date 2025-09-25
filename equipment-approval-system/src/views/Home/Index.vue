@@ -25,7 +25,7 @@
           <div class="card-content">
             <div class="total-count">{{ totalEquipment }}</div>
             <div class="count-label">设备总数量</div>
-            <div class="growth-rate">同比增长: 18.3%</div>
+            <!-- <div class="growth-rate">同比增长: 18.3%</div> -->
           </div>
           <div class="logo">
             <Icon icon="fa-solid:procedures" :size="40" color="#fff" />
@@ -130,7 +130,7 @@ import { getEquipmentSummary, getTodoType, getTodoList } from '@/api/biz/home/in
 
 const router = useRouter()
 // 年份选择器的响应式数据
-const selectedYear = ref('2024')
+const selectedYear = ref(new Date().getFullYear() + '')
 interface SelectYearItem {
   label: string
   value: string
@@ -144,10 +144,6 @@ const selectYearList = computed<SelectYearItem[]>(() => {
       value: String(currentYear - i)
     })
   }
-  arr.push({
-    label: '全部',
-    value: 'all'
-  })
   return arr
 })
 
@@ -160,18 +156,18 @@ interface EquipmentItem {
 let equipmentA = ref<EquipmentItem[]>([
   {
     label: '重离子质子放射治疗系统',
-    value: 12,
-    key: 'a1'
+    value: 0,
+    key: 'heavyIonProtonRtSystem'
   },
   {
     label: '高端放射治疗设备',
-    value: 28,
-    key: 'a2'
+    value: 0,
+    key: 'highEndRtEquipment'
   },
   {
-    label: '曾强型体外冲击波碎石机',
-    value: 49,
-    key: 'a3'
+    label: '首次配置的大型医疗器械',
+    value: 0,
+    key: 'firstTimeLargeMedicalDevice'
   }
 ])
 let equipmentATotal = computed<number>(() => {
@@ -180,29 +176,34 @@ let equipmentATotal = computed<number>(() => {
 // 乙类大型医疗设备 数据
 let equipmentB = ref<EquipmentItem[]>([
   {
-    label: '医用电子直线加速器(含后装)',
-    value: 45,
-    key: 'b1'
+    label: 'X线正电子发射断层扫描仪',
+    value: 0,
+    key: 'petCtScanner'
   },
   {
-    label: 'X线电子计算机断层扫描装置',
-    value: 67,
-    key: 'b2'
+    label: '伽玛射线立体定向放射治疗系统',
+    value: 0,
+    key: 'gammaRayStereotacticRtSystem'
   },
   {
-    label: '核医学治疗系统',
-    value: 38,
-    key: 'b3'
+    label: '直线加速器',
+    value: 0,
+    key: 'linearAccelerator'
   },
   {
-    label: '伽玛射线立体定向治疗设备',
-    value: 52,
-    key: 'b4'
+    label: '内窥镜手术器械控制系统',
+    value: 0,
+    key: 'endoscopicSurgicalSystem'
   },
   {
-    label: '高强度聚焦超声治疗系统',
-    value: 45,
-    key: 'b5'
+    label: '1.5T及以上磁共振成像系统',
+    value: 0,
+    key: 'mriSystem1_5tPlus'
+  },
+  {
+    label: '64排及以上X线计算机断层扫描仪',
+    value: 0,
+    key: 'ctScanner64SlicePlus'
   }
 ])
 let equipmentBTotal = computed<number>(() => {
@@ -215,14 +216,19 @@ let totalEquipment = computed<number>(() => {
 
 const getEquipmentSummaryData = async () => {
   try {
-    const res = await getEquipmentSummary(Number(selectedYear.value))
-    console.log(res)
+    const response = await getEquipmentSummary(Number(selectedYear.value))
+    let res = response.list[0] || {}
+    equipmentA.value.forEach((item: EquipmentItem) => {
+      item.value = item.key ? res[item?.key] : 0
+    })
+    equipmentB.value.forEach((item: EquipmentItem) => {
+      item.value = item.key ? res[item?.key] : 0
+    })
   } catch (e) {
     console.log(e)
   }
 }
 getEquipmentSummaryData()
-// 待办通知相关代码
 // 待办事项类型定义 - 重新定义数据结构
 interface TodoItem {
   id: string
@@ -254,32 +260,23 @@ let todoType = reactive<TodoType[]>([
 const getTodoTypeData = async () => {
   try {
     const res = await getTodoType()
-    console.log(res)
+    todoType.forEach((item) => {
+      item.value = res[item.key] || ''
+    })
   } catch (e) {
     console.log(e)
   }
 }
 getTodoTypeData()
 // 待办事项列表数据
-let todoList = ref<TodoItem[]>([
-  // {
-  //   id: 'todo1',
-  //   hospitalName: '西安交通大学第一附属医院',
-  //   date: '2024-12-20',
-  //   equipmentInfo: '医用电子加速器增配申请（临床试用）',
-  //   status: 'primary',
-  //   statusText: '证书申请',
-  //   remainingTime: '距离办理截止时间还剩3天',
-  //   type: 'certApply'
-  // }
-])
+let todoList = ref<TodoItem[]>([])
 const getTodoListData = async () => {
   try {
     const res = await getTodoList()
-    todoList.value = res.data.map((item, index) => ({
+    todoList.value = res.map((item, index) => ({
       id: `todo_${index}`,
       hospitalName: item.title,
-      date: item.publishTime || 'xxxx-xx-xx',
+      date: item.publishTime || '--',
       equipmentInfo: item.content || '--',
       appType: item.appType,
       // remainingTime: '距离办理截止时间还剩3天',

@@ -3,6 +3,9 @@
     <h3 class="c-165DFF m-b-15 f-w-700">
       {{ headTitle }}
     </h3>
+    <div class=" f-s-16 c-64748b">许可设备名称:</div>
+    <div class="m-b-10 f-s-20 c-333 f-w-700">{{Note.deviceName}}</div>
+
     <h4 class="c-165DFF m-b-10">审批条件</h4>
     <p class="l-h-1_5 c-64748b f-s-16 m-b-10 text-indent-2em">{{ NoteRemark }}</p>
     <div v-for="(item, index) in NoteList" :key="index" class="m-b-10">
@@ -23,14 +26,13 @@
 import { computed } from "vue";
 import applyForMsg from "../index";
 let formAllData = inject("formAllData");
-let deviceType = formAllData.value?.licenseDeviceName; // 许可设备名称
+let deviceType = formAllData.value?.licenseDeviceName; // 许可设备名称 （为设备编号）
 
-let route = useRoute();
-let type = route.query.type;
+// let route = useRoute();
+// let type = route.query.type; // 申请类型 
 let headTitle = inject("headTitle");
 
-let entity = computed(() => applyForMsg[type]);
-let Note = computed(() => entity.value?.note[deviceType]);
+let Note = computed(() => applyForMsg.note[deviceType]);
 let NoteRemark = computed(() => Note.value.remark);
 let NoteList = computed(() => Note.value.list);
 

@@ -115,13 +115,24 @@
 
 <script setup>
 import { Download, View } from "@element-plus/icons-vue";
+import { useDictStore } from "@/pinia/modules/dict.js";
+import { useUserStore } from "@/pinia/modules/user.js";
+import { getApplyReviewedList } from "@/apis/applyFor";
 import applyForMsg from "../applyFor/index.js";
 const route = useRoute();
 const router = useRouter();
+const dictStore = useDictStore();
+const userStore = useUserStore();
+
+const institutionDict = computed(() => dictStore.getDictTypeList("biz_institution_type"));
 const type = route.query.type;
-let dept = "shby"; // todo 后续从pinia 取值转化
+let dept = computed(() => {
+  let userInfo = userStore.getUser;
+  let deptMsg = institutionDict.value.find((item) => item.value === userInfo?.institutionType);
+  return deptMsg || { cssClass: "shby", label: "社会办医", value: "1" };
+});
 // 部门名称
-let deptName = computed(() => applyForMsg.dept[dept]);
+let deptName = computed(() => applyForMsg.dept[dept.value.cssClass]);
 // 标题
 const title = computed(() => applyForMsg[type].title);
 
@@ -132,18 +143,30 @@ const processInfo = computed(() => entity.value.processInfo);
 const basisInfo = computed(() => entity.value.basisInfo);
 // 申请材料
 const material = computed(() => {
-  if (type === "issue") {
-    return entity.value.material.dept[dept].list;
-  }
+  return entity.value.material.dept[dept.value.cssClass].list;
 });
 
-const goApplyFor = () => {
-  router.replace({
-    path: "/deputy/apply-for",
-    query: {
-      type: type,
-    },
-  });
+const goApplyFor = async () => {
+  if (type === "issue") {
+    router.replace({
+      path: "/deputy/apply-for",
+      query: {
+        type: type,
+      },
+    });
+    return;
+  }
+  const { data } = await getApplyReviewedList();
+  if (data && data?.length) {
+    router.replace({
+      path: "/deputy/apply-for",
+      query: {
+        type: type,
+      },
+    });
+    return;
+  }
+  ElMessage.error("您暂无可操作数据");
 };
 // 下载文件
 const downloadFn = (url) => {

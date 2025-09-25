@@ -45,5 +45,10 @@ export const createApplyMaterial = (data) => {
 
 // 获取资料
 export const getApplyMaterial = (id) => {
-  return get("/app-api/biz/appMaterial/list",{id});
+  return get("/app-api/biz/appMaterial/list", { id });
 };
+
+// 查询 补办变更申请数据
+export function getApplyReviewedList() {
+  return get("/app-api/biz/application/reviewed-list");
+}

@@ -49,7 +49,6 @@ import Review from "./components/review.vue";
 import reviewEnd from "./components/reviewEnd.vue";
 import { useDictStore } from "@/pinia/modules/dict.js";
 import { useUserStore } from "@/pinia/modules/user.js";
-import { computed, onMounted, provide } from "vue";
 const dictStore = useDictStore();
 const userStore = useUserStore();
 const applyTypeDict = computed(() => dictStore.getDictTypeList("biz_app_type"));
@@ -60,7 +59,7 @@ let deviceOptions = computed(() => dictStore.getDictTypeList("biz_main_equipment
 let modelOptions = computed(() => dictStore.getDictTypeList("biz_ladder_config_model"));
 const route = useRoute();
 const applyId = route.query.id;
-const type = route.query.type; // todo 后续优化传入子组件
+const type = route.query.type; 
 const handle = route.query.handle;
 provide("disabled", handle === "detail");
 let dept = computed(() => {

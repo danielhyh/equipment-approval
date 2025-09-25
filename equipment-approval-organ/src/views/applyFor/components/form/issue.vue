@@ -65,11 +65,10 @@
 import { isEmptyObject } from "@/utils/tools";
 import { useUserStore } from "@/pinia/modules/user";
 import { useDictStore } from "@/pinia/modules/dict";
-import { createApply, updateApply } from "@/apis/applyFor";
+import { createApply, updateApply, getApplyReviewedList } from "@/apis/applyFor";
 let userStore = useUserStore();
 let dictStore = useDictStore();
 const appType = inject("applyType"); // 申请类型
-
 let formAllData = inject("formAllData");
 let disabled = inject("disabled");
 let formRef = ref(null);
@@ -109,8 +108,24 @@ watch(
   },
   { immediate: true }
 );
+let applyListData = ref([]);
+const getChangeReviewedList = async () => {
+  let { data } = await getApplyReviewedList();
+  applyListData.value = data;
+};
 // 许可设备
-let deviceOptions = computed(() => dictStore.getDictTypeList("biz_main_equipment_type"));
+let deviceOptions = computed(() => {
+  if (appType === 1) {
+    return dictStore.getDictTypeList("biz_main_equipment_type");
+  }
+  return dictStore.getDictTypeList("biz_main_equipment_type").map((item) => {
+    let apply = applyListData.value.find((apply) => apply.licenseDeviceName === item.label) || null;
+    return {
+      ...item,
+      disabled: !apply,
+    };
+  });
+});
 // 阶梯配置机型
 let modelOptions = computed(() => dictStore.getDictTypeList("biz_ladder_config_model"));
 
@@ -155,7 +170,7 @@ const submit = () => {
       loading.value = true;
       let response = await (formData.id ? updateApply(params) : createApply(params));
       formData.appNoId = formData.id ? formData.id : response.data; // 申请Id 资料上传需要
-      formData.appStatus = 1 // 前端状态
+      formData.appStatus = 1; // 前端状态 待初审
       loading.value = false;
       submitSuccess.value = true;
       resolve(JSON.parse(JSON.stringify(formData)));
@@ -165,6 +180,11 @@ const submit = () => {
     }
   });
 };
+onMounted(() => {
+  if (appType !== 1) {
+    getChangeReviewedList();
+  }
+});
 defineExpose({
   validor,
   submit,

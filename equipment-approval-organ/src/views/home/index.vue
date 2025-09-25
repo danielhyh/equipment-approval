@@ -100,7 +100,7 @@ import { useBasisStore } from "@/pinia/modules/basis";
 import { useDictStore } from "@/pinia/modules/dict";
 import { getApplyList } from "@/apis/home";
 import { formatDate } from "@/utils/tools";
-import { onMounted, reactive } from "vue";
+import { getApplyReviewedList } from "@/apis/applyFor";
 
 const dictStore = useDictStore();
 const basisStore = useBasisStore();
@@ -109,13 +109,23 @@ const router = useRouter();
 // 创建卡片数据数组
 const cardList = computed(() => basisStore.getModelList);
 // 处理按钮点击事件的函数
-const handleOnlineApply = (card) => {
-  if (card.id) {
+const handleOnlineApply = async (card) => {
+  if (card.id === "issue") {
     router.push({
       path: "/deputy/apply-for",
       query: { type: card.id },
     });
+    return;
   }
+  const { data } = await getApplyReviewedList();
+  if (data && data?.length) {
+    router.push({
+      path: "/deputy/apply-for",
+      query: { type: card.id },
+    });
+    return;
+  }
+  ElMessage.error("您暂无可操作数据");
 };
 
 const handleGuide = (card) => {
@@ -147,7 +157,7 @@ const getToDoListFn = () => {
   getApplyList(params)
     .then((res) => {
       let {
-        data: { list, total},
+        data: { list, total },
       } = res;
       paramsValue.total = total;
       toDoList.value = (list || []).map((item) => {
@@ -219,7 +229,7 @@ const handleEdit = (row) => {
     query: { id, type: applyType },
   });
 };
-
+// 查询
 onMounted(() => {
   getToDoListFn();
 });
