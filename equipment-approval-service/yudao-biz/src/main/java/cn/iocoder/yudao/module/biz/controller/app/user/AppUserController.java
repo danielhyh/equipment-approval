@@ -80,14 +80,15 @@ public class AppUserController {
     @Operation(summary = "修改机构基本信息")
     @io.swagger.v3.oas.annotations.parameters.RequestBody
     public CommonResult<?> updateUserInfo(@RequestBody UpdateInstitutionReq userInstitutionInfo) {
-        LambdaUpdateWrapper<InstitutionExtDO> wrapper = Wrappers.lambdaUpdate(InstitutionExtDO.class)
-                .set(userInstitutionInfo.getContactPerson() != null, InstitutionExtDO::getContactPerson, userInstitutionInfo.getContactPerson())
-                .set(userInstitutionInfo.getContactPhone() != null, InstitutionExtDO::getContactPhone, userInstitutionInfo.getContactPhone())
-                .set(userInstitutionInfo.getLegalPerson() != null, InstitutionExtDO::getLegalPerson, userInstitutionInfo.getLegalPerson())
-                .set(userInstitutionInfo.getDetailedAddress() != null, InstitutionExtDO::getDetailedAddress, userInstitutionInfo.getDetailedAddress())
-                .set(userInstitutionInfo.getBusinessLicensePic() != null, InstitutionExtDO::getBusinessLicensePic, userInstitutionInfo.getBusinessLicensePic())
-                .eq(InstitutionExtDO::getDeptId, userInstitutionInfo.getInstitutionId());
-        institutionExtMapper.update(wrapper);
+//        LambdaUpdateWrapper<InstitutionExtDO> wrapper = Wrappers.lambdaUpdate(InstitutionExtDO.class)
+//                .set(userInstitutionInfo.getContactPerson() != null, InstitutionExtDO::getContactPerson, userInstitutionInfo.getContactPerson())
+//                .set(userInstitutionInfo.getContactPhone() != null, InstitutionExtDO::getContactPhone, userInstitutionInfo.getContactPhone())
+//                .set(userInstitutionInfo.getLegalPerson() != null, InstitutionExtDO::getLegalPerson, userInstitutionInfo.getLegalPerson())
+//                .set(userInstitutionInfo.getDetailedAddress() != null, InstitutionExtDO::getDetailedAddress, userInstitutionInfo.getDetailedAddress())
+//                .set(userInstitutionInfo.getBusinessLicensePic() != null, InstitutionExtDO::getBusinessLicensePic, userInstitutionInfo.getBusinessLicensePic())
+//                .eq(InstitutionExtDO::getDeptId, userInstitutionInfo.getInstitutionId());
+//        institutionExtMapper.update(wrapper);
+        //TODO 新建申请 基本变更
         return success(true);
     }
 

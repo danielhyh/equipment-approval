@@ -41,7 +41,7 @@
                 and app_type = #{reqVO.appType}
             </if>
             <if test="reqVO.licenseDeviceName != null and reqVO.licenseDeviceName != ''">
-                and license_device_name = #{reqVO.licenseDeviceName}
+                and ba.license_device_name = #{reqVO.licenseDeviceName}
             </if>
             <if test="reqVO.appStatus != null and reqVO.appStatus != ''">
                 and app_status = #{reqVO.appStatus}
@@ -88,7 +88,7 @@
                 and app_type = #{reqVO.appType}
             </if>
             <if test="reqVO.licenseDeviceName != null and reqVO.licenseDeviceName != ''">
-                and license_device_name = #{reqVO.licenseDeviceName}
+                and ba.license_device_name = #{reqVO.licenseDeviceName}
             </if>
             <if test="reqVO.appStatus != null and reqVO.appStatus != ''">
                 and app_status = #{reqVO.appStatus}
@@ -158,5 +158,32 @@
             biz_application a
         left join system_users b on a.initial_reviewer_id = b.id
         where a.id = #{id}
+    </select>
+    <select id="list"
+            resultType="cn.iocoder.yudao.module.biz.controller.admin.application.vo.ApplicationPageRespVO">
+        SELECT
+            ba.id,
+            bie.institution_name,
+            ba.license_device_name,
+            ba.ladder_config_model,
+            ba.create_time,
+            ba.app_status,
+            ba.deadline,
+            ba.app_type,
+            ba.app_no,
+            ba.institution_id,
+            GREATEST(DATEDIFF(ba.deadline, NOW()), 0) AS remaining_days,
+            blo.id as original_id,
+            blo.license_no,
+            bld.id as duplicate_id
+        FROM
+            biz_application ba
+                LEFT JOIN
+            biz_institution_ext bie ON ba.institution_id = bie.dept_id
+                left join
+            biz_license_original blo ON ba.id = blo.application_id
+                LEFT JOIN
+            biz_license_duplicate bld ON blo.id = bld.original_id
+        where ba.deleted = b'0' and ba.app_status = 5 and ba.creator = #{id}
     </select>
 </mapper>

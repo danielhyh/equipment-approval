@@ -43,8 +43,7 @@ public class ApplicationController {
 
     @Resource
     private ApplicationService applicationService;
-    @Autowired
-    private JdbcTemplate jdbcTemplate;
+
     @Autowired
     private JdbcClient jdbcClient;
 
