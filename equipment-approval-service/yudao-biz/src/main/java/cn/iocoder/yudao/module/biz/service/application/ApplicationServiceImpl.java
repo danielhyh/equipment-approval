@@ -5,6 +5,7 @@ import cn.iocoder.yudao.framework.common.exception.ServiceException;
 import cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils;
 import cn.iocoder.yudao.module.biz.controller.app.application.vo.AppApplicationSaveReqVO;
 import cn.iocoder.yudao.module.biz.controller.app.application.vo.ApplicationRecreateRequest;
+import cn.iocoder.yudao.module.biz.dal.mysql.institutionext.InstitutionExtMapper;
 import cn.iocoder.yudao.module.biz.service.devicelicense.DeviceLicenseService;
 import cn.iocoder.yudao.module.biz.service.notification.CreateNotificationRequest;
 import cn.iocoder.yudao.module.biz.service.notification.NotificationService;
@@ -13,6 +14,10 @@ import cn.iocoder.yudao.module.biz.service.utils.JdbcClientHelper;
 import com.alibaba.fastjson.JSON;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.fasterxml.jackson.databind.type.TypeFactory;
 import com.google.common.collect.Lists;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -61,15 +66,21 @@ public class ApplicationServiceImpl implements ApplicationService {
     @Resource
     private OperationLogService operationService;
 
+    @Resource
+    private InstitutionExtMapper  institutionExtMapper;
+
     @Resource(name = "bizExecutor")
     private Executor bizExecutor;
+
+    @Resource
+    private ObjectMapper objectMapper;
 
     @Resource
     private NotificationService notificationService;
 
     private final DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("yyyyMMddHHmmss");
 
-    private final Map<Integer, String> actionDescMap = Map.of(1, "许可证申请", 2, "许可证补办", 3, "许可证变更");
+    private final Map<Integer, String> actionDescMap = Map.of(1, "许可证申请", 2, "许可证补办", 3, "许可证变更", 4, "基本信息变更");
 
     @Override
     public Long createApplication(AppApplicationSaveReqVO createReqVO) {
@@ -200,10 +211,9 @@ public class ApplicationServiceImpl implements ApplicationService {
         String expertAttachments = reviewVO.getExpertAttachments();
         ApplicationDO update = new ApplicationDO();
         update.setId(id);
-        Integer appType = jdbcClient.sql("select app_type from biz_application where id = ?")
-                .param(id)
-                .query(Integer.class).single();
-        String actionDescPrefix = "您发起的" + actionDescMap.get(appType);
+        ApplicationDO applicationDO = applicationMapper.selectById(id);
+        String actionDescPrefix = "您发起的" + actionDescMap.get(applicationDO.getAppType());
+
         if ("INITIAL".equals(reviewType)) {
             update.setInitialReviewResult(result);
             update.setInitialReviewTime(LocalDateTime.now());
@@ -211,6 +221,15 @@ public class ApplicationServiceImpl implements ApplicationService {
             update.setInitialReviewOpinion(opinion);
             update.setAppStatus(result == 1 ? 3 : 2);
             String res = result ==1 ? "初步审核已通过,待专家审核。": "初步审核未通过。";
+
+            //如果是基本信息变更 并且审核通过
+            if (4 == applicationDO.getAppType()) {
+                ObjectNode extra = applicationDO.getExtra();
+                extra.put("id", applicationDO.getInstitutionId());
+                Map<String, String> map = objectMapper.convertValue(extra, new TypeReference<>() {});
+                institutionExtMapper.updateBasicInfo(map);
+                res = result ==1 ? "审核已通过": "审核未通过。";
+            }
             publisherNotification(id, loginUserId, res, opinion);
             operationService.log(reviewVO.getId(), loginUserId, loginUserNickname, actionDescPrefix + res);
         } else if ("EXPERT".equals(reviewType)) {

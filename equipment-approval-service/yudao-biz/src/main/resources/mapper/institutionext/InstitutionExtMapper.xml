@@ -33,4 +33,26 @@
             b1.deleted = b'0'
           AND d1.deleted = b'0'
     </select>
+
+    <update id="updateBasicInfo" parameterType="map">
+        update biz_institution_ext
+        <set>
+            <if test="contactPerson != null and contactPerson != ''">
+                contact_person = #{contactPerson},
+            </if>
+            <if test="contactPhone != null and contactPhone != ''">
+                contact_phone = #{contactPhone},
+            </if>
+            <if test="legalPerson != null and legalPerson != ''">
+                legal_person = #{legalPerson},
+            </if>
+            <if test="detailedAddress != null and detailedAddress != ''">
+                detailed_address = #{detailedAddress},
+            </if>
+            <if test="businessLicensePic != null and businessLicensePic != ''">
+                business_license_pic = #{businessLicensePic},
+            </if>
+        </set>
+        where dept_id = #{id} and deleted = b'0'
+    </update>
 </mapper>

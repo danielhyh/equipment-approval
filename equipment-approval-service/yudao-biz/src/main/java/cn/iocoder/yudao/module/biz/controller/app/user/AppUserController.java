@@ -6,20 +6,26 @@ import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils;
 import cn.iocoder.yudao.module.biz.controller.app.user.vo.UpdateInstitutionReq;
 import cn.iocoder.yudao.module.biz.controller.app.user.vo.UserInstitutionInfo;
-import cn.iocoder.yudao.module.biz.dal.dataobject.institutionext.InstitutionExtDO;
-import cn.iocoder.yudao.module.biz.dal.mysql.institutionext.InstitutionExtMapper;
-import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
-import com.baomidou.mybatisplus.core.toolkit.Wrappers;
+import cn.iocoder.yudao.module.biz.dal.dataobject.application.ApplicationDO;
+import cn.iocoder.yudao.module.biz.dal.mysql.application.ApplicationMapper;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.node.JsonNodeFactory;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.annotation.Resource;
-import jakarta.validation.Valid;
 import org.springframework.jdbc.core.simple.JdbcClient;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.HashMap;
+import java.util.Map;
 
 import static cn.iocoder.yudao.framework.common.pojo.CommonResult.success;
 
@@ -32,8 +38,12 @@ public class AppUserController {
     @Resource
     private JdbcClient jdbcClient;
 
+
     @Resource
-    private InstitutionExtMapper institutionExtMapper;
+    private ApplicationMapper applicationMapper;
+
+
+    private final DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("yyyyMMddHHmmss");
 
     @GetMapping("/getUserInfo")
     @Operation(summary = "根据用户id查询机构基本信息",
@@ -79,7 +89,7 @@ public class AppUserController {
     @PostMapping("update")
     @Operation(summary = "修改机构基本信息")
     @io.swagger.v3.oas.annotations.parameters.RequestBody
-    public CommonResult<?> updateUserInfo(@RequestBody UpdateInstitutionReq userInstitutionInfo) {
+    public CommonResult<?> updateUserInfo(@RequestBody UpdateInstitutionReq userInstitutionInfo) throws JsonProcessingException {
 //        LambdaUpdateWrapper<InstitutionExtDO> wrapper = Wrappers.lambdaUpdate(InstitutionExtDO.class)
 //                .set(userInstitutionInfo.getContactPerson() != null, InstitutionExtDO::getContactPerson, userInstitutionInfo.getContactPerson())
 //                .set(userInstitutionInfo.getContactPhone() != null, InstitutionExtDO::getContactPhone, userInstitutionInfo.getContactPhone())
@@ -88,6 +98,20 @@ public class AppUserController {
 //                .set(userInstitutionInfo.getBusinessLicensePic() != null, InstitutionExtDO::getBusinessLicensePic, userInstitutionInfo.getBusinessLicensePic())
 //                .eq(InstitutionExtDO::getDeptId, userInstitutionInfo.getInstitutionId());
 //        institutionExtMapper.update(wrapper);
+        ApplicationDO applicationDO = new ApplicationDO();
+        applicationDO.setInstitutionId(userInstitutionInfo.getInstitutionId());
+        applicationDO.setAppType(4);
+        applicationDO.setAppNo("SQ"+ timeFormatter.format(LocalDateTime.now()));
+        applicationDO.setDeadline(LocalDate.now().plusDays(45));
+        ObjectNode extra = JsonNodeFactory.instance.objectNode();
+        extra.put("changeDesc", userInstitutionInfo.generateChangeDescription());
+        extra.put("contactPerson", userInstitutionInfo.getContactPerson());
+        extra.put("contactPhone", userInstitutionInfo.getContactPhone());
+        extra.put("legalPerson", userInstitutionInfo.getLegalPerson());
+        extra.put("detailedAddress", userInstitutionInfo.getDetailedAddress());
+        extra.put("businessLicensePic", userInstitutionInfo.getBusinessLicensePic());
+        applicationDO.setExtra(extra);
+        applicationMapper.insert(applicationDO);
         //TODO 新建申请 基本变更
         return success(true);
     }
