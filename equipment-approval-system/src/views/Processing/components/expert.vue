@@ -74,6 +74,7 @@
           :data="expertList"
           row-key="id"
           style="width: 100%"
+          max-height="320px"
           ref="multipleTableRef"
           @row-click="handleRowClick"
           @selection-change="handleSelectionChange"
@@ -102,7 +103,13 @@
               <div class="info">
                 <span>{{ item.hospital }}</span> <span>{{ item.typeName }}</span>
               </div>
-              <Icon icon="ep:close" :size="18" color="#fb3939" @click="removeItem(item)" />
+              <Icon
+                v-show="!isDisabled"
+                icon="ep:close"
+                :size="18"
+                color="#fb3939"
+                @click="removeItem(item)"
+              />
             </div>
           </div>
         </div>
@@ -149,7 +156,6 @@ let props = defineProps({
 let isDisabled = computed(() => {
   return props.disabled
 })
-
 let formValue = ref({
   reviewResult: '',
   reviewOpinion: '',
@@ -167,16 +173,20 @@ const updateFormValue = () => {
   formValue.value.licenseCode = getReviewDetails.value.licenseNo
   formValue.value.createDate = getReviewDetails.value.licenseGenerateDate
   formValue.value.expertAttachments = getReviewDetails.value.expertAttachments
-  formValue.value.expertIds = getReviewDetails.value.expertId
+  // todo 需要修改
+  formValue.value.expertIds =
+    getReviewDetails.value.expertList && Array.isArray(getReviewDetails.value.expertList)
+      ? getReviewDetails.value.expertList.join(',')
+      : ''
   // 文件回显处理
   if (getReviewDetails.value.expertAttachments) {
     fileList.value = getReviewDetails.value.expertAttachments.split(',')
   }
   // 列表回显处理
   if (expertList.value.length) {
-    let expertIdArr = formValue.value.expertIds?.split(',') || []
+    let expertIdArr = formValue.value.expertIds.split(',') || []
     expertIdArr.forEach((eg) => {
-      let item = expertList.value.find((eg) => eg.id === Number(eg))
+      let item = expertList.value.find((item) => item.id === Number(eg))
       if (item) {
         selectMultiple.value.push(item)
       }
@@ -189,21 +199,6 @@ let formRef = ref<FormInstance | null>(null)
 let rules = reactive({
   reviewResult: [{ required: true, message: '请选择审核结果', trigger: 'blur' }],
   reviewOpinion: [{ required: false, message: '请输入审核备注', trigger: 'blur' }],
-  // licenseCode: [
-  //   { required: false, message: '请输入专家证书编号', trigger: 'blur' },
-  //   { min: 11, max: 11, message: '请输入11位专家证书编号', trigger: 'blur' },
-  //   {
-  //     validator: (rule: any, value: string, callback: any) => {
-  //       // 第一个字符是 甲或者乙 剩余字符都是0-9数字 正则表达式
-  //       if (!/^[甲乙][0-9]{10}$/.test(value)) {
-  //         callback(new Error('请输入正确的专家证书编号'))
-  //       } else {
-  //         callback()
-  //       }
-  //     },
-  //     trigger: 'blur'
-  //   }
-  // ],
   createDate: [{ required: true, message: '请选择日期', trigger: 'blur' }]
 })
 
@@ -216,7 +211,7 @@ interface listDataType {
   type: number
   remark: string
 }
-let expertList = ref([])
+let expertList = ref<any[]>([])
 let multipleTableRef = ref<TableInstance | null>(null)
 let selectMultiple = ref<listDataType[]>([])
 let maxLimit = 3
@@ -247,18 +242,17 @@ const handleSelectionChange = (val: listDataType[]) => {
   formValue.value.expertIds = expertIdArr.join(',')
   selectMultiple.value = val
 }
-const handleRowClick = (row, col, event) => {
+const handleRowClick = (row) => {
   if (multipleTableRef.value && selectableFn(row)) {
     multipleTableRef.value.toggleRowSelection(row)
   }
 }
-
 const removeItem = (item: listDataType) => {
   if (isDisabled.value) {
     return
   }
 
-  handleRowClick(item, null, null)
+  handleRowClick(item)
 }
 
 // 附件
@@ -269,11 +263,7 @@ const submitFn = async () => {
     return
   }
   try {
-    let valid = await formRef.value.validate()
-    if (!valid) {
-      ElMessage.error('请填写完整信息')
-      return
-    }
+    await formRef.value.validate()
     //调用接口
     formValue.value.expertAttachments = fileList.value.join(',')
     formValue.value.licenseGenerateDate = formValue.value.createDate
@@ -281,6 +271,7 @@ const submitFn = async () => {
     ElMessage.success('提交成功')
     return { success: true }
   } catch (err) {
+    ElMessage.error('请填写完整信息')
     console.log(err)
   }
 }

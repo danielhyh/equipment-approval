@@ -80,8 +80,7 @@ import {
   Connection,
   Search,
   Avatar,
-  Check,
-  Checked
+  Check
 } from '@element-plus/icons-vue'
 import { useRouter, useRoute } from 'vue-router'
 import { markRaw } from 'vue'
