@@ -3,6 +3,7 @@ package cn.iocoder.yudao.module.biz.service.application;
 import java.util.*;
 
 import cn.iocoder.yudao.module.biz.controller.app.application.vo.AppApplicationSaveReqVO;
+import cn.iocoder.yudao.module.biz.controller.app.application.vo.ApplicationRecreateRequest;
 import jakarta.validation.*;
 import cn.iocoder.yudao.module.biz.controller.admin.application.vo.*;
 import cn.iocoder.yudao.module.biz.dal.dataobject.application.ApplicationDO;
@@ -89,4 +90,8 @@ public interface ApplicationService {
     String getLicenseNumber(Long id);
 
     ApprovalDetailsVO approvalDetails( Long id);
+
+    List<ApplicationPageRespVO> list();
+
+    Long recreate(ApplicationRecreateRequest req);
 }

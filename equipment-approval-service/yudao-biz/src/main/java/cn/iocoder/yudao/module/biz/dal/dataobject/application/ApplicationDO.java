@@ -2,6 +2,9 @@ package cn.iocoder.yudao.module.biz.dal.dataobject.application;
 
 import cn.iocoder.yudao.framework.mybatis.core.type.LongListTypeHandler;
 import cn.iocoder.yudao.framework.mybatis.core.type.StringListTypeHandler;
+import com.baomidou.mybatisplus.extension.handlers.JacksonTypeHandler;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import lombok.*;
 
 import java.time.*;
@@ -41,7 +44,7 @@ public class ApplicationDO extends BaseDO {
      */
     private Long institutionId;
     /**
-     * 申请类型：1-乙类许可证申请，2-乙类许可证补办，3-乙类许可证变更，4-基本信息变更
+     * 申请类型：1-乙类许可证申请，2-乙类许可证补办，3-乙类许可证变更，4-基本信息变更，5-线下变更
      */
     private Integer appType;
     /**
@@ -115,6 +118,12 @@ public class ApplicationDO extends BaseDO {
      * 截止日期
      */
     private LocalDate deadline;
+
+    /**
+     * 扩展字段
+     */
+    @TableField(typeHandler = JacksonTypeHandler.class)
+    private ObjectNode extra;
 
 
 }

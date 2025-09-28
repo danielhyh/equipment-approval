@@ -52,6 +52,12 @@ public class AppApplicationController {
         return success(applicationService.createApplication(createReqVO));
     }
 
+//    @PostMapping("/recreate")
+//    @Operation(summary = "补办和变更申请")
+//    public CommonResult<Long> renewOrChange(@Valid @RequestBody ApplicationRecreateRequest req) {
+//        return success(applicationService.recreate(req));
+//    }
+
     @PutMapping("/update")
     @Operation(summary = "更新申请")
     public CommonResult<Boolean> updateApplication(@Valid @RequestBody AppApplicationSaveReqVO updateReqVO) {
@@ -93,6 +99,13 @@ public class AppApplicationController {
     public CommonResult<PageResult<AppApplicationRespVO>> getApplicationPage(@Valid AppApplicationPageReqVO pageReqVO) {
         PageResult<ApplicationPageRespVO> pageResult = applicationService.getAppApplicationPage(BeanUtils.toBean(pageReqVO, ApplicationPageReqVO.class));
         return success(BeanUtils.toBean(pageResult, AppApplicationRespVO.class));
+    }
+
+    @GetMapping("/reviewed-list")
+    @Operation(summary = "查询补办变更申请数据")
+    @ApiResponse
+    public CommonResult<List<ApplicationPageRespVO>> reviewedList() {
+        return success(applicationService.list());
     }
 
 

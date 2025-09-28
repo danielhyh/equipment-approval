@@ -40,4 +40,6 @@ public interface InstitutionExtMapper extends BaseMapperX<InstitutionExtDO> {
         """)
     Long inUse(@Param("id") Long id);
 
+    void updateBasicInfo(Map<String, String> map);
+
 }

@@ -4,7 +4,8 @@ import cn.iocoder.yudao.framework.common.exception.ErrorCode;
 import cn.iocoder.yudao.framework.common.exception.ServiceException;
 import cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils;
 import cn.iocoder.yudao.module.biz.controller.app.application.vo.AppApplicationSaveReqVO;
-import cn.iocoder.yudao.module.biz.dal.mysql.applicationmaterial.ApplicationMaterialMapper;
+import cn.iocoder.yudao.module.biz.controller.app.application.vo.ApplicationRecreateRequest;
+import cn.iocoder.yudao.module.biz.dal.mysql.institutionext.InstitutionExtMapper;
 import cn.iocoder.yudao.module.biz.service.devicelicense.DeviceLicenseService;
 import cn.iocoder.yudao.module.biz.service.notification.CreateNotificationRequest;
 import cn.iocoder.yudao.module.biz.service.notification.NotificationService;
@@ -13,12 +14,17 @@ import cn.iocoder.yudao.module.biz.service.utils.JdbcClientHelper;
 import com.alibaba.fastjson.JSON;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.fasterxml.jackson.databind.type.TypeFactory;
 import com.google.common.collect.Lists;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.jdbc.core.simple.JdbcClient;
 import org.springframework.stereotype.Service;
 import jakarta.annotation.Resource;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
 
 import java.time.LocalDate;
@@ -61,15 +67,20 @@ public class ApplicationServiceImpl implements ApplicationService {
     private OperationLogService operationService;
 
     @Resource
-    private ApplicationMaterialMapper applicationMaterialMapper;
+    private InstitutionExtMapper  institutionExtMapper;
 
     @Resource(name = "bizExecutor")
     private Executor bizExecutor;
 
     @Resource
+    private ObjectMapper objectMapper;
+
+    @Resource
     private NotificationService notificationService;
 
     private final DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("yyyyMMddHHmmss");
+
+    private final Map<Integer, String> actionDescMap = Map.of(1, "许可证申请", 2, "许可证补办", 3, "许可证变更", 4, "基本信息变更");
 
     @Override
     public Long createApplication(AppApplicationSaveReqVO createReqVO) {
@@ -82,7 +93,8 @@ public class ApplicationServiceImpl implements ApplicationService {
         //记录操作日志
         Long loginUserId = SecurityFrameworkUtils.getLoginUserId();
         String loginUserNickname = SecurityFrameworkUtils.getLoginUserNickname();
-        operationService.log(application.getId(), loginUserId, loginUserNickname, "发起申请");
+
+        operationService.log(application.getId(), loginUserId, loginUserNickname, "您发起的" + actionDescMap.get(createReqVO.getAppType()));
         //发通知
         var request = new CreateNotificationRequest();
         String institutionName = jdbcClient.sql("select institution_name from biz_institution_ext where dept_id = ?")
@@ -199,6 +211,8 @@ public class ApplicationServiceImpl implements ApplicationService {
         String expertAttachments = reviewVO.getExpertAttachments();
         ApplicationDO update = new ApplicationDO();
         update.setId(id);
+        ApplicationDO applicationDO = applicationMapper.selectById(id);
+        String actionDescPrefix = "您发起的" + actionDescMap.get(applicationDO.getAppType());
 
         if ("INITIAL".equals(reviewType)) {
             update.setInitialReviewResult(result);
@@ -207,8 +221,17 @@ public class ApplicationServiceImpl implements ApplicationService {
             update.setInitialReviewOpinion(opinion);
             update.setAppStatus(result == 1 ? 3 : 2);
             String res = result ==1 ? "初步审核已通过,待专家审核。": "初步审核未通过。";
+
+            //如果是基本信息变更 并且审核通过
+            if (4 == applicationDO.getAppType()) {
+                ObjectNode extra = applicationDO.getExtra();
+                extra.put("id", applicationDO.getInstitutionId());
+                Map<String, String> map = objectMapper.convertValue(extra, new TypeReference<>() {});
+                institutionExtMapper.updateBasicInfo(map);
+                res = result ==1 ? "审核已通过": "审核未通过。";
+            }
             publisherNotification(id, loginUserId, res, opinion);
-            operationService.log(reviewVO.getId(), loginUserId, loginUserNickname, res);
+            operationService.log(reviewVO.getId(), loginUserId, loginUserNickname, actionDescPrefix + res);
         } else if ("EXPERT".equals(reviewType)) {
             update.setExpertReviewResult(result);
             update.setExpertReviewTime(LocalDateTime.now());
@@ -234,7 +257,7 @@ public class ApplicationServiceImpl implements ApplicationService {
             }
             String res = result ==1 ? "专家审核已通过。": "专家审核未通过。";
             publisherNotification(id, loginUserId, res, opinion);
-            operationService.log(reviewVO.getId(), loginUserId, loginUserNickname, res, null,"expertIdList", JSON.toJSONString(expertIdList));
+            operationService.log(reviewVO.getId(), loginUserId, loginUserNickname, actionDescPrefix + res, null,"expertIdList", JSON.toJSONString(expertIdList));
         } else {
             throw new ServiceException(new ErrorCode(1199, "无效的审核类型: " + reviewType));
         }
@@ -321,13 +344,35 @@ public class ApplicationServiceImpl implements ApplicationService {
         String expertId = vo.getExpertId();
         if (StringUtils.isNotBlank(expertId)) {
             String[] split = expertId.split(",");
-            List<String> nameList = jdbcClient.sql("select name from biz_expert_ext where id in (:ids)")
-                    .param("ids", Arrays.asList(split))
-                    .query(String.class)
-                    .list();
-            vo.setExpertList(nameList);
+//            List<String> nameList = jdbcClient.sql("select name from biz_expert_ext where id in (:ids)")
+//                    .param("ids", Arrays.asList(split))
+//                    .query(String.class)
+//                    .list();
+            vo.setExpertList(new ArrayList<>(Arrays.asList(split)));
         }
         return vo;
+    }
+
+    @Override
+    public List<ApplicationPageRespVO> list() {
+        Long loginUserId = SecurityFrameworkUtils.getLoginUserId();
+        return applicationMapper.list(loginUserId);
+    }
+
+    @Override
+    @Transactional
+    public Long recreate(ApplicationRecreateRequest req) {
+        ApplicationDO applicationDO = applicationMapper.selectById(req.getAppId());
+        if (applicationDO == null) {
+            throw new ServiceException(APPLICATION_NOT_EXISTS);
+        }
+
+        ApplicationDO recreate = BeanUtils.toBean(req, ApplicationDO.class);
+        recreate.setInstitutionId(applicationDO.getInstitutionId());
+        recreate.setAppNo("SQ-"+timeFormatter.format(LocalDateTime.now()));
+        recreate.setAppStatus(1);//待初审
+        recreate.setDeadline(LocalDate.now().plusDays(45));
+        return 0L;
     }
 
 }

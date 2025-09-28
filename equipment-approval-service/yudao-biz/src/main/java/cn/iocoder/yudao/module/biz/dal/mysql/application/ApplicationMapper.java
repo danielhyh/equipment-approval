@@ -31,4 +31,6 @@ public interface ApplicationMapper extends BaseMapperX<ApplicationDO> {
     BusinessInfoVO businessInfo(@Param("id") Long id);
 
     ApprovalDetailsVO approvalDetails(@Param("id") Long id);
+
+    List<ApplicationPageRespVO> list(@Param("id")  Long id);
 }
