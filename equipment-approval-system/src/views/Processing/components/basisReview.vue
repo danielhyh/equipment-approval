@@ -1,0 +1,163 @@
+<template>
+  <div class="review-page">
+    <div class="page-b-p">
+      <div class="title">
+        <Icon icon="heroicons:document-check-solid" :size="24" color="#165DFF" />
+        <span>信息审核</span>
+      </div>
+      <el-form
+        :model="formValue"
+        :rules="rules"
+        ref="formRef"
+        label-width="120px"
+        class="demo-ruleForm"
+        label-position="top"
+        :disabled="isDisabled"
+      >
+        <el-form-item label="审核结果" prop="reviewResult">
+          <el-radio-group v-model="formValue.reviewResult">
+            <el-radio value="1">通过</el-radio>
+            <el-radio value="0">不通过</el-radio>
+            <!--            <el-radio label="3">退回补充材料</el-radio>-->
+          </el-radio-group>
+        </el-form-item>
+        <el-form-item label="审核备注" prop="reviewOpinion">
+          <el-input
+            v-model="formValue.reviewOpinion"
+            type="textarea"
+            :autosize="{ minRows: 4, maxRows: 6 }"
+          />
+        </el-form-item>
+      </el-form>
+    </div>
+  </div>
+</template>
+
+<script setup lang="ts" name="BasisReview">
+import { ElMessage } from 'element-plus'
+import { ApplicationApi } from '@/api/biz/application'
+import type { FormInstance } from 'element-plus'
+import { useApplicationDataStore } from '@/store/applicationData'
+let props = defineProps({
+  disabled: {
+    type: Boolean,
+    default: false
+  }
+})
+let isDisabled = computed(() => {
+  return props.disabled
+})
+const useAppData = useApplicationDataStore()
+const getReviewDetails = computed(() => {
+  return useAppData.getReviewDetails
+})
+
+const route = useRoute()
+const { id } = route.query
+
+let formValue = ref({
+  reviewResult: '',
+  reviewOpinion: '',
+  reviewType: 'INITIAL',
+  id: Number(id)
+})
+const updateFormValue = () => {
+  formValue.value.reviewResult = getReviewDetails.value.initialReviewResult
+  formValue.value.reviewOpinion = getReviewDetails.value.initialReviewOpinion
+}
+
+let formRef = ref<FormInstance | null>(null)
+let rules = reactive({
+  reviewResult: [{ required: true, message: '请选择审核结果', trigger: 'blur' }],
+  reviewOpinion: [{ required: false, message: '请输入审核备注', trigger: 'blur' }]
+})
+const submitFn = async () => {
+  if (!formRef.value) {
+    ElMessage.error('表单加载错误')
+    return
+  }
+  try {
+    let valid = await formRef.value.validate()
+    if (!valid) {
+      ElMessage.error('请填写完整信息')
+      return
+    }
+    await ApplicationApi.review(unref(formValue))
+    ElMessage.success('提交成功')
+    return { success: true }
+  } catch (err) {
+    console.log(err)
+    ElMessage.error('提交失败')
+  }
+}
+watch(
+  () => getReviewDetails.value,
+  () => {
+    updateFormValue()
+  },
+  { deep: true, immediate: true }
+)
+defineExpose({
+  submitFn
+})
+</script>
+
+<style lang="scss" scoped>
+.review-page {
+  padding: 0 10px;
+  .page-b-p {
+    background-color: rgba(248, 250, 252, 0.8);
+    border: 1px solid rgba(226, 232, 240, 0.6);
+    border-radius: 12px;
+    padding: 10px 14px;
+    margin-top: 20px;
+  }
+  .title {
+    display: flex;
+    align-items: center;
+    font-size: 16px;
+    font-weight: 600;
+    color: #165dff;
+    padding-bottom: 8px;
+    border-bottom: 2px solid rgba(22, 93, 255, 0.1);
+    span {
+      margin-left: 6px;
+    }
+  }
+  &:deep(.demo-ruleForm) {
+    padding: 20px 0;
+    .el-form-item {
+      .el-form-item__label {
+        color: #333;
+        font-weight: bold;
+      }
+      .el-input,
+      .el-textarea {
+        .el-input__inner,
+        .el-textarea__inner {
+          --el-disabled-text-color: #000;
+        }
+        .el-input__inner::placeholder {
+          -webkit-text-fill-color: #999;
+        }
+      }
+      .el-radio {
+        .is-checked {
+          .el-radio__inner {
+            border-color: #999;
+            background-color: #fff;
+
+            &::after {
+              background-color: #5b5b5b;
+            }
+          }
+        }
+
+        .el-radio__label {
+          color: #000;
+        }
+      }
+    }
+  }
+}
+</style>

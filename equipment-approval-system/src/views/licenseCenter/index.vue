@@ -85,6 +85,7 @@
           <el-button type="info" :icon="RefreshRight" @click="resetSearch">重置</el-button>
         </el-form-item>
       </el-form>
+      <el-button type="primary" :icon="VideoPlay" @click.stop="addLicense">新增许可证</el-button>
     </div>
     <div class="table-container">
       <el-table :data="tableData" row-key="id" style="min-height: 570px">
@@ -169,12 +170,16 @@
         <component :is="dialogComponent" v-bind="dialogComponentProps" ref="dialogComponentRef" />
       </div>
     </Dialog>
+    <!-- 弹窗 新增许可证 -->
+    <CreateLicense v-model:visible="addLicenseVisible" />
   </div>
 </template>
 
 <script setup lang="ts" name="LicenseCenter">
+import { VideoPlay } from '@element-plus/icons-vue'
 import { LicenseApi } from '@/api/biz/license'
 import License from '../Processing/components/license.vue'
+import CreateLicense from './components/createLicense.vue'
 import { Search, RefreshRight, Printer, Download } from '@element-plus/icons-vue'
 import { getDictOptions } from '@/utils/dict'
 import type { DictDataType } from '@/utils/dict'
@@ -308,7 +313,8 @@ const handleDetail = (row) => {
       id: row.id,
       originalId: row.originalId,
       duplicateId: row.duplicateId,
-      licenseCode: row.licenseNo
+      licenseCode: row.licenseNo,
+      licenseType: row.licenseType
     }
   })
 }
@@ -412,6 +418,16 @@ const downloadFn = () => {
   }
   dialogComponentRef.value?.download()
 }
+// 新增许可证弹窗
+const addLicenseVisible = ref(false)
+// 新增许可证
+const addLicense = () => {
+  addLicenseVisible.value = true
+}
+// 新增许可证弹窗关闭
+const closeAddLicense = () => {
+  addLicenseVisible.value = false
+}
 
 onMounted(() => {
   getList()
@@ -486,6 +502,8 @@ onMounted(() => {
     }
   }
   .seach-row {
+    display: flex;
+    justify-content: space-between;
     .el-form {
       .el-form-item {
         margin-bottom: 10px;

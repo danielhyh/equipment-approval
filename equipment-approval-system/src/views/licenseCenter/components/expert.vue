@@ -23,7 +23,9 @@
         <div class="line"></div>
         <div class="col">
           <span>审核人：</span>
-          <span>{{ getReviewDetails.expertList || '--' }}</span>
+          <span>
+            {{ getReviewDetails.expertList?.map((item: any) => item.name).join('、') || '--' }}
+          </span>
         </div>
       </div>
     </div>

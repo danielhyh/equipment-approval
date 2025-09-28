@@ -8,50 +8,62 @@
         :label="item.label"
         :prop="item.key"
       >
-        <el-input
+        <el-select
           v-model="basicData[item.key]"
-          placeholder="请输入"
+          placeholder="请选择"
+          v-if="item.key === 'institutionType'"
           disabled
-          v-if="item.key !== 'address'"
-        />
-        <el-input
+        >
+          <el-option
+            v-for="option in institutionTypeOptions"
+            :key="option.value"
+            :label="option.label"
+            :value="Number(option.value)"
+          />
+        </el-select>
+        <el-input v-model="basicData[item.key]" placeholder="请输入" disabled v-else />
+        <!-- <el-input
           v-model="basicData[item.key]"
           :rows="3"
           type="textarea"
           placeholder="请输入"
           disabled
-          v-else
-        />
+        /> -->
       </el-form-item>
     </el-form>
   </div>
 </template>
 
 <script setup lang="ts" name="BasisTwo">
+import { getDictOptions } from '@/utils/dict'
+import type { DictDataType } from '@/utils/dict'
 // 基本信息
 import { useApplicationDataStore } from '@/store/applicationData'
 const appData = useApplicationDataStore()
-
 let props = defineProps({
   list: {
     type: Object || null,
     default: () => {}
   }
 })
+interface DictDataTypeT extends DictDataType {
+  value: string | number
+}
+let institutionTypeOptions = computed<DictDataTypeT[]>(() => getDictOptions('biz_institution_type'))
 let basicMsg = ref([
   { label: '申请编号', value: '', key: 'appNo' },
-  { label: '机构名称', value: '', key: 'institutionName#' },
+  { label: '机构名称', value: '', key: 'institutionName' },
   { label: '统一社会信用代码', value: '', key: 'unifiedSocialCreditCode' },
   { label: '法定代表人', value: '', key: 'legalPerson' },
   { label: '联系人', value: '', key: 'contactPerson' },
   { label: '联系电话', value: '', key: 'contactPhone' },
   { label: '所有制性质', value: '', key: 'ownershipNature' },
   { label: '申请日期', value: '', key: 'createTime' },
-  { label: '注册地址', value: '', key: 'detailedAddress#' },
-  { label: '机构性质', value: '', key: 'institutionNature#' },
-  { label: '上级机构', value: '', key: 'institutionType#' },
-  { label: '卫生机构级别', value: '', key: 'detailedAddress#' },
-  { label: '所属区域', value: '', key: 'detailedAddress#' }
+  { label: '注册地址', value: '', key: 'detailedAddress' },
+  { label: '机构性质', value: '', key: 'institutionType' },
+  { label: '上级机构', value: '', key: 'superiorInstitution' },
+  { label: '卫生机构级别', value: '', key: 'institutionLevel' },
+  { label: '所属区域', value: '', key: 'region' }
 ])
 let basicData = ref({})
 watch(
@@ -89,6 +101,9 @@ watch(
         .el-input__inner::placeholder {
           -webkit-text-fill-color: #999;
         }
+      }
+      .el-select__selected-item {
+        color: #000;
       }
       .el-form-item__label {
         font-weight: bold;

@@ -176,7 +176,7 @@ const updateFormValue = () => {
   // todo 需要修改
   formValue.value.expertIds =
     getReviewDetails.value.expertList && Array.isArray(getReviewDetails.value.expertList)
-      ? getReviewDetails.value.expertList.join(',')
+      ? getReviewDetails.value.expertList.map((item: any) => item.id).join(',')
       : ''
   // 文件回显处理
   if (getReviewDetails.value.expertAttachments) {

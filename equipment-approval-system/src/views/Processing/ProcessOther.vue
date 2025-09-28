@@ -22,7 +22,7 @@
               <span class="value">{{ basicInfo.appNo }}</span>
             </div>
             <div class="line"></div>
-            <div class="col">
+            <div class="col" v-if="basicInfo.licenseDeviceName">
               <span class="label">设备名称:</span>
               <span class="value">{{ basicInfo.licenseDeviceName }}</span>
             </div>
@@ -72,6 +72,8 @@ import Business from './components/business.vue'
 import UseInfo from './components/useInfo.vue'
 import Expert from './components/expert.vue'
 import Preliminary from './components/perliminary.vue'
+import BasisTwo from './components/basisTwo.vue'
+import BasisReview from './components/basisReview.vue'
 import {
   Back,
   Monitor,
@@ -90,7 +92,7 @@ import { useApplicationDataStore } from '@/store/applicationData'
 let loading = ref(false)
 const router = useRouter()
 const route = useRoute()
-const { id, type, status } = route.query
+const { id, type, status, appType } = route.query
 
 let bindComponent = computed(() => ({ disabled: checkDisabled.value }))
 // 校验当前组件是否可以编辑
@@ -99,6 +101,9 @@ const checkDisabled = computed(() => {
     return true
   }
   if (typeActive.value.value === 'firstAudit' && status === '1') {
+    return false
+  }
+  if (typeActive.value.value === 'basisReview' && status === '1') {
     return false
   }
   if (typeActive.value.value === 'expertAudit' && status === '3') {
@@ -122,30 +127,60 @@ const titleName = computed(() => {
 const goBack = () => {
   router.back()
 }
+let typeList = computed(() => {
+  switch (appType) {
+    case '4':
+      return [
+        {
+          label: '基本信息',
+          value: 'basicInfo2',
+          component: markRaw(BasisTwo),
+          icon: markRaw(InfoFilled)
+        },
+        {
+          label: '信息审核',
+          value: 'basisReview',
+          component: markRaw(BasisReview),
+          icon: markRaw(Search)
+        }
+      ]
+    default:
+      return [
+        {
+          label: '基本信息',
+          value: 'basicInfo',
+          component: markRaw(BasicInfo),
+          icon: markRaw(InfoFilled)
+        },
+        {
+          label: '业务信息',
+          value: 'deviceInfo',
+          component: markRaw(Business),
+          icon: markRaw(Management)
+        },
+        {
+          label: '材料列表',
+          value: 'useInfo',
+          component: markRaw(UseInfo),
+          icon: markRaw(Connection)
+        },
+        {
+          label: '初步审核',
+          value: 'firstAudit',
+          component: markRaw(Preliminary),
+          icon: markRaw(Search)
+        },
+        {
+          label: '专家审核',
+          value: 'expertAudit',
+          component: markRaw(Expert),
+          icon: markRaw(Avatar)
+        }
+      ]
+  }
+})
 
-let typeList = ref([
-  {
-    label: '基本信息',
-    value: 'basicInfo',
-    component: markRaw(BasicInfo),
-    icon: markRaw(InfoFilled)
-  },
-  {
-    label: '业务信息',
-    value: 'deviceInfo',
-    component: markRaw(Business),
-    icon: markRaw(Management)
-  },
-  { label: '材料列表', value: 'useInfo', component: markRaw(UseInfo), icon: markRaw(Connection) },
-  {
-    label: '初步审核',
-    value: 'firstAudit',
-    component: markRaw(Preliminary),
-    icon: markRaw(Search)
-  },
-  { label: '专家审核', value: 'expertAudit', component: markRaw(Expert), icon: markRaw(Avatar) }
-])
-let typeActive = ref({ value: 'basicInfo', component: markRaw(BasicInfo) })
+let typeActive = ref<any>({ value: 'basicInfo', component: markRaw(BasicInfo) })
 const handlerType = (item) => {
   typeActive.value.value = item.value
   typeActive.value.component = item.component
@@ -197,6 +232,7 @@ const getBasicInfo = async () => {
   }
 }
 onMounted(() => {
+  typeActive.value = { value: typeList.value[0].value, component: typeList.value[0].component }
   getBasicInfo()
 })
 </script>

@@ -21,5 +21,9 @@ export const LicenseApi = {
   /* 许可证中心副本查询 */
   getLicenseCopy: async (params: { id: number }) => {
     return await request.get({ url: `/biz/license/getDuplicateById`, params })
+  },
+  // 新增线下许可证
+  addOfflineLicense: async (data: any) => {
+    return await request.post({ url: `/biz/license/offline-process`, data })
   }
 }

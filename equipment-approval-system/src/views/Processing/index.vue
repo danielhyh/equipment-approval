@@ -90,11 +90,27 @@
               <span
                 v-if="column.dataIndex === 'appStatus'"
                 class="status-label"
-                :class="statusMap(scope.row[column.dataIndex]).colorType"
+                :class="
+                  scope.row.appType !== '4'
+                    ? statusMap(scope.row[column.dataIndex]).colorType
+                    : scope.row[column.dataIndex] === '3'
+                      ? 'success'
+                      : statusMap(scope.row[column.dataIndex]).colorType
+                "
               >
-                {{ statusMap(scope.row[column.dataIndex]).label }}
+                {{
+                  scope.row.appType !== '4'
+                    ? statusMap(scope.row[column.dataIndex]).label
+                    : scope.row[column.dataIndex] === '3'
+                      ? '已审批'
+                      : statusMap(scope.row[column.dataIndex]).label
+                }}
               </span>
-              <span v-else>{{ scope.row[column.dataIndex] }}</span>
+              <span v-else>{{
+                column?.dataIndex2
+                  ? scope.row[column.dataIndex]?.[column.dataIndex2]
+                  : scope.row[column.dataIndex]
+              }}</span>
             </template>
           </el-table-column>
           <el-table-column label="操作" min-width="120" :align="'center'">
@@ -123,7 +139,7 @@
                 class="btn expert-btn"
                 type="primary"
                 :icon="Avatar"
-                v-if="scope.row.appStatus === '3'"
+                v-if="scope.row.appStatus === '3' && scope.row.appType !== '4'"
                 @click.stop="gotoDetailFn(scope.row, 'expert')"
               >
                 专家审批
@@ -288,7 +304,15 @@ const changeTypeFn = (item: TypeList) => {
   //resetForm()
   resetAllFn()
 }
-let tableConfig = computed(() => {
+interface TableConfigType {
+  columns: {
+    title: string
+    dataIndex: string
+    dataIndex2?: string
+    minWidth?: string | number
+  }[]
+}
+let tableConfig = computed<TableConfigType>(() => {
   switch (activeType.value) {
     case 'apply':
       return {
@@ -325,7 +349,7 @@ let tableConfig = computed(() => {
       return {
         columns: [
           { title: '申请单位', dataIndex: 'institutionName' },
-          { title: '变更内容', dataIndex: 'changeContent' },
+          { title: '变更内容', dataIndex: `extra`, dataIndex2: 'changeDesc' },
           { title: '申请日期', dataIndex: 'createTime' },
           { title: '状态', dataIndex: 'appStatus' }
         ]
@@ -458,7 +482,10 @@ const downloadFn = () => {
 // 查看 审核 专家审批
 const gotoDetailFn = (row, type) => {
   applicationDataStore.updateProcessingType(activeType.value) //当前类型
-  router.push({ path: '/process-other', query: { id: row.id, type: type, status: row.appStatus } })
+  router.push({
+    path: '/process-other',
+    query: { id: row.id, type: type, status: row.appStatus, appType: row.appType }
+  })
 }
 
 // 统计办件数量
