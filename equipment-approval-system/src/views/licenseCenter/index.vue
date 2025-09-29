@@ -135,7 +135,7 @@
             </el-tag>
           </template>
         </el-table-column>
-        <el-table-column label="操作" align="center" width="240">
+        <el-table-column label="操作" align="center" width="260">
           <template #default="scope">
             <el-button type="primary" size="small" @click.stop="openLicense(scope.row, 'A')">
               正本
@@ -144,6 +144,9 @@
               副本
             </el-button>
             <el-button type="primary" size="small" @click="handleDetail(scope.row)">详情</el-button>
+            <el-button v-show="scope.row.licenseType === '5'" type="primary" size="small">
+              编辑
+            </el-button>
           </template>
         </el-table-column>
       </el-table>
@@ -185,19 +188,21 @@ import { getDictOptions } from '@/utils/dict'
 import type { DictDataType } from '@/utils/dict'
 import type { licenseProfileType, copyProfile } from './components/licenseProfile'
 import { dayTimeFormate } from './components/licenseProfile'
-
+interface DictDataTypeT extends DictDataType {
+  value: string | number
+}
 // 许可证类型
-const licenseTypeOptions = computed<DictDataType[]>(() => getDictOptions('license_type'))
+const licenseTypeOptions = computed<DictDataTypeT[]>(() => getDictOptions('license_type'))
 // 设备类型
-const licenseDeviceOptions = computed<DictDataType[]>(() =>
+const licenseDeviceOptions = computed<DictDataTypeT[]>(() =>
   getDictOptions('biz_main_equipment_type')
 )
 // 阶梯配置
-const ladderConfigOptions = computed<DictDataType[]>(() =>
+const ladderConfigOptions = computed<DictDataTypeT[]>(() =>
   getDictOptions('biz_ladder_config_model')
 )
 // 所属区域
-const areaOptions = computed<DictDataType[]>(() => getDictOptions('biz_area_list'))
+const areaOptions = computed<DictDataTypeT[]>(() => getDictOptions('biz_area_list'))
 // 状态
 const statusOptions = reactive([
   { label: '正常', value: '1' },
@@ -418,14 +423,16 @@ const downloadFn = () => {
   dialogComponentRef.value?.download()
 }
 // 新增许可证弹窗
+let editAddLicenseProps = ref({})
 const addLicenseVisible = ref(false)
 // 新增许可证
 const addLicense = () => {
   addLicenseVisible.value = true
 }
-// 新增许可证弹窗关闭
-const closeAddLicense = () => {
-  addLicenseVisible.value = false
+// 编辑许可证
+const editLicense = (row) => {
+  editAddLicenseProps.value = row
+  addLicenseVisible.value = true
 }
 
 onMounted(() => {

@@ -83,6 +83,7 @@ let licenseId = route.query.id
 const licenseCode = route.query.licenseCode
 const originalId = route.query.originalId
 const duplicateId = route.query.duplicateId
+const licenseType = route.query.licenseType
 let loading = ref(false)
 provide('licenseId', licenseId)
 provide('originalId', originalId)
@@ -96,69 +97,98 @@ let basice = reactive({
   deviceName: 'X线正电子发射断层扫描仪'
 })
 
-let typeList = ref([
-  {
-    label: '基本信息',
-    value: 'basicInfo',
-    component: markRaw(BasicInfo),
-    icon: 'ep:info-filled'
-  },
-  {
-    label: '业务信息',
-    value: 'deviceInfo',
-    component: markRaw(Business),
-    icon: 'ep:management'
-  },
-  {
-    label: '材料列表',
-    value: 'useInfo',
-    component: markRaw(UseInfo),
-    icon: 'ep:connection'
-  },
-  {
-    label: '初步审核',
-    value: 'firstAudit',
-    component: markRaw(Preliminary),
-    icon: 'ep:search'
-  },
-  {
-    label: '专家审核',
-    value: 'expertAudit',
-    component: markRaw(Expert),
-    icon: 'ep:avatar'
-  },
-  {
-    label: '正本信息',
-    value: 'originalInfo',
-    component: markRaw(Original),
-    icon: 'ep:checked'
-  },
-  {
-    label: '副本信息',
-    value: 'copyInfo',
-    component: markRaw(Copy),
-    icon: 'ep:document-copy'
-  },
-  {
-    label: '其他信息',
-    value: 'otherInfo',
-    icon: 'ep:more-filled',
-    component: markRaw(OtherMsg)
-  },
-  // {
-  //   label: '二维码',
-  //   value: 'qrcode',
-  //   // component: markRaw(Qrcode),
-  //   icon: 'ic:baseline-qrcode'
-  // },
-  {
-    label: '操作历史',
-    value: 'operationHistory',
-    icon: 'lucide:history',
-    component: markRaw(history)
+let typeList = computed(() => {
+  switch (licenseType) {
+    case '5':
+      return [
+        {
+          label: '正本信息',
+          value: 'originalInfo',
+          component: markRaw(Original),
+          icon: 'ep:checked'
+        },
+        {
+          label: '副本信息',
+          value: 'copyInfo',
+          component: markRaw(Copy),
+          icon: 'ep:document-copy'
+        },
+        {
+          label: '其他信息',
+          value: 'otherInfo',
+          icon: 'ep:more-filled',
+          component: markRaw(OtherMsg)
+        }
+      ]
+    default:
+      return [
+        {
+          label: '基本信息',
+          value: 'basicInfo',
+          component: markRaw(BasicInfo),
+          icon: 'ep:info-filled'
+        },
+        {
+          label: '业务信息',
+          value: 'deviceInfo',
+          component: markRaw(Business),
+          icon: 'ep:management'
+        },
+        {
+          label: '材料列表',
+          value: 'useInfo',
+          component: markRaw(UseInfo),
+          icon: 'ep:connection'
+        },
+        {
+          label: '初步审核',
+          value: 'firstAudit',
+          component: markRaw(Preliminary),
+          icon: 'ep:search'
+        },
+        {
+          label: '专家审核',
+          value: 'expertAudit',
+          component: markRaw(Expert),
+          icon: 'ep:avatar'
+        },
+        {
+          label: '正本信息',
+          value: 'originalInfo',
+          component: markRaw(Original),
+          icon: 'ep:checked'
+        },
+        {
+          label: '副本信息',
+          value: 'copyInfo',
+          component: markRaw(Copy),
+          icon: 'ep:document-copy'
+        },
+        {
+          label: '其他信息',
+          value: 'otherInfo',
+          icon: 'ep:more-filled',
+          component: markRaw(OtherMsg)
+        },
+        // {
+        //   label: '二维码',
+        //   value: 'qrcode',
+        //   // component: markRaw(Qrcode),
+        //   icon: 'ic:baseline-qrcode'
+        // },
+        {
+          label: '操作历史',
+          value: 'operationHistory',
+          icon: 'lucide:history',
+          component: markRaw(history)
+        }
+      ]
   }
-])
-let typeActive = ref({ value: 'basicInfo', component: markRaw(BasicInfo) })
+})
+let typeActive = ref<{ value: string; component: any }>({
+  value: 'basicInfo',
+  component: markRaw(BasicInfo)
+})
 const handlerType = (item) => {
   if (!item.component) return
   typeActive.value.value = item.value
@@ -184,6 +214,10 @@ const getBasisInfo = async () => {
     ])
     allLicenseData.value = { ...responseAll[0], ...responseAll[1], code: licenseCode }
     loading.value = false
+
+    // 初始化第一个选中模块
+    typeActive.value.value = typeList.value[0].value
+    typeActive.value.component = typeList.value[0].component
   } catch (err) {
     loading.value = false
   }

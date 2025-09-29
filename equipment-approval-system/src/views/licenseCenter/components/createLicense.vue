@@ -15,12 +15,20 @@
     >
       <!-- 正本信息 -->
       <div class="title-group">正本信息</div>
-      <el-form-item label="配置单位名称" prop="originalLicense.configUnitName">
-        <el-input
-          v-model="formData.originalLicense.configUnitName"
-          placeholder="请输入配置单位名称"
+      <el-form-item label="配置单位名称" prop="originalLicense.institutionId">
+        <el-select
+          v-model="formData.originalLicense.institutionId"
+          placeholder="请选择配置单位名称"
           clearable
-        />
+          @change="changeConfigUnit"
+        >
+          <el-option
+            v-for="item in configUnitOptions"
+            :key="item.value"
+            :label="item.label"
+            :value="item.value"
+          />
+        </el-select>
       </el-form-item>
       <el-form-item label="统一社会信用代码" prop="originalLicense.unifiedSocialCreditCode">
         <el-input
@@ -287,7 +295,7 @@
 import { LicenseApi } from '@/api/biz/license'
 import { getDictOptions } from '@/utils/dict'
 import type { DictDataType } from '@/utils/dict'
-import { ElForm } from 'element-plus'
+import { ElForm, ElMessage } from 'element-plus'
 interface DictDataTypeT extends DictDataType {
   value: string | number
 }
@@ -314,10 +322,16 @@ let ownershipNatureOptions = computed<DictDataTypeT[]>(() => {
 let ladderConfigModelOptions = computed<DictDataTypeT[]>(() => {
   return getDictOptions('biz_ladder_config_model')
 })
+let configUnitOptions = ref<{ label: string; value: any }[]>([])
 let formRef = ref<InstanceType<typeof ElForm> | null>(null)
-let formData = reactive({
+interface formDataFace {
+  originalLicense: any
+  duplicateLicense: any
+}
+let formData = reactive<formDataFace>({
   originalLicense: {
     configUnitName: '',
+    institutionId: '', // 配置单位id
     unifiedSocialCreditCode: '',
     legalPerson: '',
     licenseDeviceName: '',
@@ -344,8 +358,8 @@ let formData = reactive({
   }
 })
 let rules = reactive({
-  'originalLicense.configUnitName': [
-    { required: true, message: '请输入配置单位名称', trigger: 'blur' }
+  'originalLicense.institutionId': [
+    { required: true, message: '请选择配置单位名称', trigger: 'change' }
   ],
   'originalLicense.unifiedSocialCreditCode': [
     { required: true, message: '请输入统一社会信用代码', trigger: 'blur' },
@@ -395,6 +409,13 @@ let rules = reactive({
     { required: true, message: '请输入副本发证日期', trigger: 'blur' }
   ]
 })
+const changeConfigUnit = (v) => {
+  let eg: { value: any; label: string } = configUnitOptions.value.find(
+    (item: { value: any; label: string }) => item.value === v
+  ) || { label: '', value: '' }
+  // 配置单位名称
+  formData.originalLicense.configUnitName = eg.label || ''
+}
 let userDialog = ref(false)
 let userDialogBind = reactive({
   title: '新增设备使用人员',
@@ -493,7 +514,9 @@ const submit = async () => {
     await formRef.value?.validate()
     let params = JSON.parse(JSON.stringify(formData))
     params.duplicateLicense.equipmentUsers = JSON.stringify(params.duplicateLicense.equipmentUsers)
+    params.originalLicense.status = 1
     await LicenseApi.addOfflineLicense(params)
+
     ElMessage.success('提交成功')
     $emtis('success')
     dialogVisible.value = false
@@ -504,6 +527,23 @@ const submit = async () => {
     loading.value = false
   }
 }
+//
+
+onMounted(async () => {
+  try {
+    loading.value = true
+    // 获取配置单位列表
+    let response = await LicenseApi.getConfigUnitList()
+    configUnitOptions.value = (response || []).map((item) => ({
+      label: item.institutionName,
+      value: item.id * 1
+    }))
+  } catch (err) {
+    ElMessage.error('获取配置单位列表失败')
+  } finally {
+    loading.value = false
+  }
+})
 </script>
 
 <style lang="scss" scoped>
