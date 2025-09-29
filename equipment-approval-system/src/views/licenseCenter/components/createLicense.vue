@@ -11,6 +11,7 @@
       ref="formRef"
       label-position="top"
       class="el-form-grid"
+      :disabled="loading"
     >
       <!-- 正本信息 -->
       <div class="title-group">正本信息</div>
@@ -25,6 +26,8 @@
         <el-input
           v-model="formData.originalLicense.unifiedSocialCreditCode"
           placeholder="请输入统一社会信用代码"
+          show-word-limit
+          maxlength="18"
           clearable
         />
       </el-form-item>
@@ -222,8 +225,8 @@
         class="dialog-footer"
         style="display: flex; align-items: center; justify-content: center"
       >
-        <el-button type="primary" @click="closeAddLicense">取消</el-button>
-        <el-button type="primary" @click="submit">提交</el-button>
+        <el-button type="info" @click="closeAddLicense" :disabled="loading">取消</el-button>
+        <el-button type="primary" @click="submit" :loading="loading">提交</el-button>
       </div>
     </template>
 
@@ -267,6 +270,15 @@
           <el-input v-model="userForm.phoneNumber" placeholder="请输入联系电话" clearable />
         </el-form-item>
       </el-form>
+      <template #footer>
+        <div
+          class="dialog-footer"
+          style="display: flex; align-items: center; justify-content: center"
+        >
+          <el-button type="primary" @click="closeAddUser">取消</el-button>
+          <el-button type="primary" @click="submitUser">提交</el-button>
+        </div>
+      </template>
     </Dialog>
   </Dialog>
 </template>
@@ -291,6 +303,7 @@ let dialogVisible = defineModel('visible', {
   default: false,
   type: Boolean
 })
+let loading = ref(false)
 let $emtis = defineEmits(['success'])
 let licenseDeviceOptions = computed<DictDataTypeT[]>(() => {
   return getDictOptions('biz_main_equipment_type')
@@ -390,8 +403,16 @@ let userDialogBind = reactive({
   'destroy-on-close': true,
   top: '70px'
 })
+interface userForm {
+  IdCard: string
+  name: string
+  gender: string
+  birthDate: string
+  title: string
+  phoneNumber: string
+}
 let userFormRef = ref<InstanceType<typeof ElForm> | null>(null)
-let userForm = reactive({
+let userForm = reactive<userForm>({
   IdCard: '',
   name: '',
   gender: '',
@@ -435,12 +456,53 @@ const handleIdCardBlur = (v) => {
 const handleDeleteUser = (index) => {
   formData.duplicateLicense.equipmentUsers.splice(index, 1)
 }
-const handleAddUser = () => {}
+const handleAddUser = () => {
+  userDialog.value = true
+}
+// 关闭新增设备使用人员弹窗
+const closeAddUser = () => {
+  userDialog.value = false
+  Object.keys(userForm).forEach((key) => {
+    userForm[key] = ''
+  })
+  // 重置表单
+  userFormRef.value?.resetFields()
+}
+
+// 提交新增设备使用人员表单
+const submitUser = () => {
+  userFormRef.value?.validate((valid: boolean) => {
+    if (valid) {
+      // 将新用户信息添加到设备使用人员列表
+      formData.duplicateLicense.equipmentUsers.push(JSON.parse(JSON.stringify(userForm)))
+      // 关闭弹窗
+      closeAddUser()
+    } else {
+      console.log('表单验证失败')
+      // 移除返回 false，避免类型不匹配问题
+    }
+  })
+}
 const closeAddLicense = () => {
   dialogVisible.value = false
+  formRef.value?.resetFields()
 }
-const submit = () => {
-  dialogVisible.value = false
+const submit = async () => {
+  try {
+    loading.value = true
+    await formRef.value?.validate()
+    let params = JSON.parse(JSON.stringify(formData))
+    params.duplicateLicense.equipmentUsers = JSON.stringify(params.duplicateLicense.equipmentUsers)
+    await LicenseApi.addOfflineLicense(params)
+    ElMessage.success('提交成功')
+    $emtis('success')
+    dialogVisible.value = false
+  } catch (err) {
+    console.log(err)
+    ElMessage.error('提交失败')
+  } finally {
+    loading.value = false
+  }
 }
 </script>
 

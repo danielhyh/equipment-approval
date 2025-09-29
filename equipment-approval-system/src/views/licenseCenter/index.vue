@@ -171,7 +171,7 @@
       </div>
     </Dialog>
     <!-- 弹窗 新增许可证 -->
-    <CreateLicense v-model:visible="addLicenseVisible" />
+    <CreateLicense v-model:visible="addLicenseVisible" @success="getList" />
   </div>
 </template>
 
@@ -250,7 +250,6 @@ const changeIndex = (index: number) => {
 let tableData = ref<any[]>([])
 const getList = () => {
   loading.value = true
-
   let params = {
     pageNum: paramsValue.pageNum,
     pageSize: paramsValue.pageSize,
