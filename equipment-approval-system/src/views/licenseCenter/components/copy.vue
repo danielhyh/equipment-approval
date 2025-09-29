@@ -5,7 +5,8 @@
         <el-input v-model="basicData[item.key]" placeholder="请输入" disabled />
       </el-form-item>
     </el-form>
-    <License v-bind="licenseProps" ref="licenseRef" />
+
+    <License v-if="duplicateId" v-bind="licenseProps" ref="licenseRef" />
   </div>
 </template>
 
@@ -64,6 +65,7 @@ const formateDialogLicense = (data: copyProfile) => {
   arr.push(data.licenseDeviceName)
   arr.push(data.remark)
   arr.push(data.ladderConfigModel)
+  licenseProps.value.licenseData = arr
   licenseProps.value.code = data.code
   licenseProps.value.stampUit = data.duplicateIssuingAuthority
   licenseProps.value.stampDate = data.duplicateIssueDate

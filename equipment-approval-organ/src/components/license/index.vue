@@ -151,7 +151,10 @@ let qrocodeText = computed(() => {
     text += `originId=${props.originalId}&`;
   }
   if (props.duplicateId) {
-    text += `duplicateId=${props.duplicateId}`;
+    text += `duplicateId=${props.duplicateId}&`;
+  }
+  if (isBLicenceSub.value) {
+    text += `copy=1`
   }
   return text;
 });

@@ -7,89 +7,89 @@ export type licenceDataType = {
 export const ALicenceData: licenceDataType[] = [
   {
     label: '配置单位名称',
-    value: '国家新能源科技有限公司'
+    value: ''
   },
   {
     label: '统一社会信用代码',
     subLabel: '（或组织机构代码）',
-    value: '913301067046373179'
+    value: ''
   },
   {
     label: '法定代表人',
     subLabel: '（或主要负责人）',
-    value: '韩歆毅'
+    value: ''
   },
   {
     label: '许可设备名称',
-    value: '磁共振成像设备'
+    value: ''
   },
   {
     label: '所有制性质',
-    value: '国有企业'
+    value: ''
   },
   {
     label: '阶梯配置机型',
-    value: 'MRI设备'
+    value: ''
   },
   {
     label: '设备配置地址',
-    value: '北京市海淀区长安路249号-1号楼-2单元-101室'
+    value: ''
   }
 ]
 // 副本
 export const BLicenceData: licenceDataType[] = [
   {
     label: '配置单位名称',
-    value: '国家新能源科技有限公司'
+    value: ''
   },
   {
     label: '生产企业',
-    value: '西门子医疗系统有限公司'
+    value: ''
   },
   {
     label: '法定代表人',
     subLabel: '（或主要负责人）',
-    value: '韩歆毅'
+    value: ''
   },
   {
     label: '具体型号',
-    value: 'SIEMENS 3T MRI'
+    value: ''
   },
   {
     label: '所有制性质',
-    value: '国有企业'
+    value: ''
   },
   {
     label: '产品序列号',
-    value: 'SN1234567890'
+    value: ''
   },
   {
     label: '设备配置地址',
-    value: '北京市海淀区长安路249号-1号楼-2单元-101室'
+    value: ''
   },
   {
     label: '装机日期',
-    value: '2023年01月01日'
+    value: ''
   },
   {
     label: '统一社会信用代码',
     subLabel: '（或组织机构代码）',
-    value: '913301067046373179'
+    value: ''
   },
   {
     label: '信息报送日期',
-    value: '2023年01月01日'
+    value: ''
   },
   {
     label: '许可设备名称',
-    value: '磁共振成像设备'
+    value: ''
   },
   {
     label: '备注信息',
-    value: '备注信息'
+    value: ''
   },
   {
     label: '阶梯配置机型',
-    value: 'MRI设备'
+    value: ''
   }
 ]

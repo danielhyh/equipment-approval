@@ -11,7 +11,7 @@
     <!-- 证书内容区域 -->
     <div class="license-content" v-loading="loading">
       <div class="boder-shadow">
-        <div class="change-box">
+        <div class="change-box" v-if="false">
           <div class="change-item" :class="{ active: current === 'origin' }" @click="changeCurrent('origin')">正本信息</div>
           <div class="change-item" :class="{ active: current === 'copy' }" @click="changeCurrent('copy')">副本信息</div>
         </div>
@@ -51,6 +51,7 @@ const route = useRoute();
 
 let originId = computed(() => route.query.originId);
 let copyId = computed(() => route.query.duplicateId);
+let isCopy = computed(() => route.query.type === "1");
 let loading = ref(false);
 let currentMsg = ref([]);
 let current = ref("origin");
@@ -107,6 +108,9 @@ const changeCurrent = (val) => {
 onMounted(() => {
   // 确保在移动设备上正确显示
   adjustForMobile();
+  if(isCopy.value){
+    current.value = "copy";
+  }
   initFn();
 });
 </script>

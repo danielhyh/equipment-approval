@@ -73,6 +73,7 @@ import Original from './components/original.vue'
 import Copy from './components/copy.vue'
 import OtherMsg from './components/otherMsg.vue'
 import history from './components/history.vue'
+import QrCode from './components/licenseCode.vue'
 import { useApplicationDataStore } from '@/store/applicationData'
 const router = useRouter()
 const route = useRoute()
@@ -170,12 +171,12 @@ let typeList = computed(() => {
           icon: 'ep:more-filled',
           component: markRaw(OtherMsg)
         },
-        // {
-        //   label: '二维码',
-        //   value: 'qrcode',
-        //   // component: markRaw(Qrcode),
-        //   icon: 'ic:baseline-qrcode'
-        // },
+        {
+          label: '二维码',
+          value: 'qrcode',
+          component: markRaw(QrCode),
+          icon: 'ic:baseline-qrcode'
+        },
         {
           label: '操作历史',
           value: 'operationHistory',

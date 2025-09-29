@@ -1,10 +1,10 @@
 <template>
   <div v-loading="loading">
     <div v-if="qrcodeInit" class="flex justify-center items-center m-b-30" style="flex-direction: column">
-      <div class="m-b-10 flex justify-center items-center" style="position: relative; height: 250px; width: 100%" ref="qrcodeRef">
-        <Qrcode tag="canvas" :text="qrcodeText" :width="230" id="QRCODEIMAGE" />
+      <div class="flex justify-center items-center" id="QRCODEIMAGE" style="overflow: hidden" ref="qrcodeRef">
+        <Qrcode tag="canvas" :text="qrcodeText" :width="230" />
       </div>
-      <div class="flex justify-center">
+      <div class="flex justify-center m-t-10">
         <el-button type="primary" size="small" @click="handlerDownlod">下载</el-button>
         <el-button type="primary" size="small" @click="handlPrint">打印</el-button>
       </div>
@@ -26,7 +26,6 @@
 </template>
 
 <script setup>
-import { formatDate } from "@/utils/tools";
 import { useBasisStore } from "@/pinia/modules/basis";
 import { getLicenseOrigin } from "@/apis/home";
 import { VuePrintNext } from "vue-print-next";
@@ -73,7 +72,8 @@ const qrcodeRef = ref(null);
 const handlerDownlod = async () => {
   if (qrcodeRef.value) {
     // 获取 canvas 元素
-    const canvas = qrcodeRef.value.$el;
+    const canvas = qrcodeRef.value;
+    console.log(canvas);
     if (canvas) {
       // 克隆 demo
       loading.value = true;
@@ -121,5 +121,22 @@ onMounted(() => {
   position: relative;
   border: 1px solid #2298e2e8;
   border-left: 4px solid #2298e2e8;
+}
+#QRCODEIMAGE {
+  padding: 10px;
+  box-shadow: 0 0 10px 0 #cfcfcf;
+  border-radius: 10px;
+  background-color: #fff;
+}
+@media print {
+  #QRCODEIMAGE {
+    overflow: hidden;
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    margin: auto;
+  }
 }
 </style>

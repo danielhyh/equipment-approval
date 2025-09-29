@@ -63,7 +63,7 @@
 
           <el-table-column prop="guideProcess" label="操作" width="180" fixed="right" align="center">
             <template #default="scope">
-              <el-button type="primary" size="small" @click.stop="handleDetail(scope.row)">详情</el-button>
+              <el-button type="primary" size="small" v-if="scope.row.appType !== 4" @click.stop="handleDetail(scope.row)">详情</el-button>
               <el-button type="warning" size="small" v-if="scope.row.appStatus === 1" @click.stop="handleEdit(scope.row)">
                 修改
               </el-button>

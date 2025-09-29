@@ -51,7 +51,42 @@
         <div class="label">{{ item.label }}</div>
       </div>
     </div>
-    <!--  -->
+    <!-- 公告统计汇总 -->
+    <div class="title-row m-t-10">
+      <div class="left">
+        <div class="title">公告统计汇总</div>
+      </div>
+    </div>
+    <div class="content-row">
+      <div class="item-box" v-for="item in noticeTotal" :key="item.key">
+        <div class="value">{{ item.value }}</div>
+        <div class="label">{{ item.label }}</div>
+      </div>
+    </div>
+    <!-- 设备生产企业汇总 -->
+    <div class="title-row m-t-10">
+      <div class="left">
+        <div class="title">设备生产企业汇总</div>
+      </div>
+    </div>
+    <div class="content-row">
+      <div class="item-box" v-for="item in deviceTotal" :key="item.key">
+        <div class="value">{{ item.value }}</div>
+        <div class="label">{{ item.label }}</div>
+      </div>
+    </div>
+    <!-- 医疗机构汇总 -->
+    <div class="title-row m-t-10">
+      <div class="left">
+        <div class="title">医疗机构汇总</div>
+      </div>
+    </div>
+    <div class="content-row">
+      <div class="item-box" v-for="item in hospitalTotal" :key="item.key">
+        <div class="value">{{ item.value }}</div>
+        <div class="label">{{ item.label }}</div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -124,6 +159,44 @@ let expertTotal = reactive<itemsType[]>([
   // 医学智能工程
   { label: '医学智能工程', value: 0, key: 'history_medical_intelligent_count' }
 ])
+// 公告统计汇总
+let noticeTotal = reactive<itemsType[]>([
+  { label: '公告总量', value: 0, key: 'notice_count' },
+  // 已发布
+  { label: '已发布', value: 0, key: 'notice_published_count' },
+  // 未发布
+  { label: '未发布', value: 0, key: 'notice_unpublished_count' },
+  // 总浏览量
+  { label: '总浏览量', value: 0, key: 'notice_views_count' }
+])
+// 设备生产企业汇总
+let deviceTotal = reactive<itemsType[]>([
+  { label: '设备生产企业总量', value: 0, key: 'device_count' },
+  //  正电子发射型核磁共振成像系统生产企业
+  { label: '正电子发射型核磁共振成像系统生产企业', value: 0, key: 'mr_count' },
+  //  X线正电子发射断层扫描仪生产企业
+  { label: 'X线正电子发射断层扫描仪生产企业', value: 0, key: 'xray_count' },
+  //  腹腔内窥镜手术系统生产企业
+  { label: '腹腔内窥镜手术系统生产企业', value: 0, key: 'endoscope_count' },
+  //  常规放射治疗类设备生产企业
+  { label: '常规放射治疗类设备生产企业', value: 0, key: 'radiation_count' },
+  //  大型医疗器械生产企业
+  { label: '大型医疗器械生产企业', value: 0, key: 'first_config_count' }
+])
+// 医疗机构汇总
+let hospitalTotal = reactive<itemsType[]>([
+  { label: '医疗机构总量', value: 0, key: 'hospital_count' },
+  // 拥有正电子发射型核磁共振成像系统医疗机构
+  { label: '拥有正电子发射型核磁共振成像系统医疗机构', value: 0, key: 'mr_hospital_count' },
+  //  拥有X线正电子发射断层扫描仪医疗机构
+  { label: '拥有X线正电子发射断层扫描仪医疗机构', value: 0, key: 'xray_hospital_count' },
+  //  拥有腹腔内窥镜手术系统医疗机构
+  { label: '拥有腹腔内窥镜手术系统医疗机构', value: 0, key: 'endoscope_hospital_count' },
+  //  拥有常规放射治疗类设备医疗机构
+  { label: '拥有常规放射治疗类设备医疗机构', value: 0, key: 'radiation_hospital_count' },
+  //  首次配置的大型医疗器械医疗机构
+  { label: '首次配置的大型医疗器械医疗机构', value: 0, key: 'first_config_hospital_count' }
+])
 </script>
 
 <style lang="scss" scoped>
@@ -140,7 +213,7 @@ let expertTotal = reactive<itemsType[]>([
       font-size: 16px;
       font-weight: bold;
       color: #333;
-      border-left: 4px solid #2c2ec6;
+      border-left: 4px solid #4245df;
       padding-left: 10px;
     }
   }
@@ -157,7 +230,9 @@ let expertTotal = reactive<itemsType[]>([
   border-radius: 10px;
   background-color: #fff;
   box-shadow: 0px 0px 10px 0px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease-in-out;
   flex: 1;
+  cursor: default;
   .value {
     line-height: 24px;
     font-size: 18px;
@@ -168,6 +243,9 @@ let expertTotal = reactive<itemsType[]>([
     font-size: 14px;
     font-weight: bold;
     color: #333;
+  }
+  &:hover {
+    box-shadow: 0px 0px 10px 0px rgba(0, 0, 0, 0.3);
   }
 }
 </style>
