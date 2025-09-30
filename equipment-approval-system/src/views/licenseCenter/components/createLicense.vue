@@ -106,6 +106,13 @@
           clearable
         />
       </el-form-item>
+      <el-form-item label="许可证编号" prop="originalLicense.licenseNo">
+        <el-input
+          v-model="formData.originalLicense.licenseNo"
+          placeholder="提交后自动生成"
+          disabled
+        />
+      </el-form-item>
       <!-- 副本信息 -->
       <div class="title-group">副本信息</div>
       <el-form-item label="生产企业" prop="duplicateLicense.productionEnterprise">
@@ -311,6 +318,7 @@ let dialogVisible = defineModel('visible', {
   default: false,
   type: Boolean
 })
+let editLicenseRow = inject<any>('editLicenseRow')
 let loading = ref(false)
 let $emtis = defineEmits(['success'])
 let licenseDeviceOptions = computed<DictDataTypeT[]>(() => {
@@ -339,8 +347,9 @@ let formData = reactive<formDataFace>({
     ladderConfigModel: '',
     equipmentConfigAddress: '',
     detailedAddress: '',
-    issuingAuthority: '',
-    issueDate: ''
+    issuingAuthority: '陕西省卫生健康委员会',
+    issueDate: '',
+    licenseNo: ''
   },
   duplicateLicense: {
     productionEnterprise: '',
@@ -386,28 +395,28 @@ let rules = reactive({
   'originalLicense.issuingAuthority': [
     { required: true, message: '请输入发证机关', trigger: 'blur' }
   ],
-  'originalLicense.issueDate': [{ required: true, message: '请输入发证日期', trigger: 'blur' }],
-  'duplicateLicense.productionEnterprise': [
-    { required: true, message: '请输入生产企业', trigger: 'blur' }
-  ],
-  'duplicateLicense.specificModel': [
-    { required: true, message: '请输入具体型号', trigger: 'blur' }
-  ],
-  'duplicateLicense.productSerialNo': [
-    { required: true, message: '请输入产品序列号', trigger: 'blur' }
-  ],
-  'duplicateLicense.installationDate': [
-    { required: true, message: '请输入安装日期', trigger: 'blur' }
-  ],
-  'duplicateLicense.infoSubmitDate': [
-    { required: true, message: '请输入信息提交日期', trigger: 'blur' }
-  ],
-  'duplicateLicense.duplicateIssuingAuthority': [
-    { required: true, message: '请输入副本发证机关', trigger: 'blur' }
-  ],
-  'duplicateLicense.duplicateIssueDate': [
-    { required: true, message: '请输入副本发证日期', trigger: 'blur' }
-  ]
+  'originalLicense.issueDate': [{ required: true, message: '请输入发证日期', trigger: 'blur' }]
+  // 'duplicateLicense.productionEnterprise': [
+  //   { required: true, message: '请输入生产企业', trigger: 'blur' }
+  // ],
+  // 'duplicateLicense.specificModel': [
+  //   { required: true, message: '请输入具体型号', trigger: 'blur' }
+  // ],
+  // 'duplicateLicense.productSerialNo': [
+  //   { required: true, message: '请输入产品序列号', trigger: 'blur' }
+  // ],
+  // 'duplicateLicense.installationDate': [
+  //   { required: true, message: '请输入安装日期', trigger: 'blur' }
+  // ],
+  // 'duplicateLicense.infoSubmitDate': [
+  //   { required: true, message: '请输入信息提交日期', trigger: 'blur' }
+  // ],
+  // 'duplicateLicense.duplicateIssuingAuthority': [
+  //   { required: true, message: '请输入副本发证机关', trigger: 'blur' }
+  // ],
+  // 'duplicateLicense.duplicateIssueDate': [
+  //   { required: true, message: '请输入副本发证日期', trigger: 'blur' }
+  // ]
 })
 const changeConfigUnit = (v) => {
   let eg: { value: any; label: string } = configUnitOptions.value.find(
@@ -416,6 +425,18 @@ const changeConfigUnit = (v) => {
   // 配置单位名称
   formData.originalLicense.configUnitName = eg.label || ''
 }
+watch(
+  () => dialogVisible.value,
+  (v) => {
+    if (!v) return
+    if (editLicenseRow.value) {
+      dialogBind.title = '编辑许可证'
+      getEditFn()
+    } else {
+      dialogBind.title = '新增许可证'
+    }
+  }
+)
 let userDialog = ref(false)
 let userDialogBind = reactive({
   title: '新增设备使用人员',
@@ -527,7 +548,48 @@ const submit = async () => {
     loading.value = false
   }
 }
-//
+// 获取 编辑信息
+const getEditFn = async () => {
+  try {
+    loading.value = true
+    let response = await LicenseApi.getOfflineLicense({
+      oid: editLicenseRow.value.originalId,
+      did: editLicenseRow.value.duplicateId
+    })
+    Object.keys(formData).forEach((key1) => {
+      Object.keys(formData[key1]).forEach((key2) => {
+        if (key2 === 'equipmentUsers') {
+          formData[key1][key2] = isJsonString(response[key1][key2])
+            ? JSON.parse(response[key1][key2])
+            : []
+          return
+        }
+        formData[key1][key2] = response[key1][key2]
+      })
+      // formData
+    })
+  } catch (err) {
+    ElMessage.error('获取编辑信息失败')
+    dialogVisible.value = false
+  } finally {
+    loading.value = false
+  }
+}
+// 校验是否是 JSON 字符串
+const isJsonString = (str) => {
+  if (!str || typeof str !== 'string') {
+    return false
+  }
+  if (str === '{}' || str === '[]') {
+    return false
+  }
+  try {
+    JSON.parse(str)
+  } catch (e) {
+    return false
+  }
+  return true
+}
 
 onMounted(async () => {
   try {

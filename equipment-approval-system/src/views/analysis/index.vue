@@ -13,13 +13,16 @@
       </div>
     </div>
     <div class="content-box">
-      <component :is="activeType.component" :key="activeType.key" />
+      <keep-alive>
+        <component :is="activeType.component" :key="activeType.key" />
+      </keep-alive>
     </div>
   </div>
 </template>
 
 <script setup lang="ts" name="Analysis">
 import Overview from './components/overview.vue'
+import DeviceOwnership from './components/deviceOwnership.vue'
 let typeList = reactive([
   {
     label: '统计概览',
@@ -27,7 +30,12 @@ let typeList = reactive([
     icon: 'icon-park-outline:market-analysis',
     component: markRaw(Overview)
   },
-  { label: '设备拥有量统计', key: 'deviceOwnership', icon: 'bi:device-ssd-fill', component: '' },
+  {
+    label: '设备拥有量统计',
+    key: 'deviceOwnership',
+    icon: 'bi:device-ssd-fill',
+    component: markRaw(DeviceOwnership)
+  },
   { label: '年度递增分量及总量', key: 'annualIncrease', icon: 'fa:pie-chart', component: '' },
   {
     label: '阶梯配置统计',

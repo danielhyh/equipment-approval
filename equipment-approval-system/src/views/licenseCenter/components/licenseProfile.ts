@@ -8,6 +8,7 @@ export interface licenseProfileType {
   seal?: string | null | undefined // 印章
   originalId?: string | null | undefined // 正本id
   duplicateId?: string | null | undefined // 副本id
+  preview?: boolean
 }
 export interface originalProfile {
   code?: string | null | undefined

@@ -6,7 +6,7 @@
         <div class="title">办件统计汇总</div>
       </div>
       <div class="right">
-        <el-button type="primary" size="small" :icon="Filter">筛选</el-button>
+        <el-button type="primary" size="small" :icon="Filter" @click="openDialog">筛选</el-button>
       </div>
     </div>
     <div class="content-row">
@@ -87,11 +87,56 @@
         <div class="label">{{ item.label }}</div>
       </div>
     </div>
+
+    <!-- 弹窗筛选 -->
+    <Dialog v-model:model-value="filterVisible" v-bind="filterDialogProp">
+      <el-form v-model="filterParams" label-position="top">
+        <el-form-item label="年份" prop="fullYears">
+          <el-date-picker
+            v-model="filterParams.fullYears"
+            type="year"
+            format="YYYY年"
+            value-format="YYYY"
+            placeholder="请选择年份"
+            style="width: 100%"
+          />
+        </el-form-item>
+        <el-form-item label="区域" prop="region">
+          <el-select
+            v-model="filterParams.region"
+            placeholder="请选择区域"
+            style="width: 100%"
+            clearable
+          >
+            <el-option
+              v-for="item in regionOptions"
+              :key="item.value"
+              :label="item.label"
+              :value="item.value"
+            />
+          </el-select>
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <div style="display: flex; justify-content: center; align-items: center">
+          <el-button type="info" @click="filterVisible = false">取消</el-button>
+          <el-button type="primary" @click="handleFilter">筛选</el-button>
+        </div>
+      </template>
+    </Dialog>
   </div>
 </template>
 
 <script setup lang="ts">
+import { getDictOptions } from '@/utils/dict'
+import type { DictDataType } from '@/utils/dict'
 import { Filter } from '@element-plus/icons-vue'
+interface DictDataTypeT extends DictDataType {
+  value: string | number
+}
+let regionOptions = computed<DictDataTypeT[]>(() => {
+  return getDictOptions('biz_area_list')
+})
 
 interface itemsType {
   label: string
@@ -197,6 +242,26 @@ let hospitalTotal = reactive<itemsType[]>([
   //  首次配置的大型医疗器械医疗机构
   { label: '首次配置的大型医疗器械医疗机构', value: 0, key: 'first_config_hospital_count' }
 ])
+
+// 筛选弹窗
+let filterParams = reactive({
+  fullYears: '',
+  // 区域
+  region: ''
+})
+let filterVisible = ref(false)
+let filterDialogProp = reactive({
+  title: '筛选',
+  width: '500px'
+})
+// 打开弹窗
+const openDialog = () => {
+  filterVisible.value = true
+}
+// 处理筛选
+const handleFilter = () => {
+  filterVisible.value = false
+}
 </script>
 
 <style lang="scss" scoped>

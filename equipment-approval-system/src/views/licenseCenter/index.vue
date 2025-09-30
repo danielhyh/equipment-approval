@@ -137,14 +137,39 @@
         </el-table-column>
         <el-table-column label="操作" align="center" width="260">
           <template #default="scope">
-            <el-button type="primary" size="small" @click.stop="openLicense(scope.row, 'A')">
-              正本
-            </el-button>
-            <el-button type="primary" size="small" @click.stop="openLicense(scope.row, 'B')">
-              副本
-            </el-button>
+            <el-dropdown
+              style="margin-right: 8px; vertical-align: middle"
+              trigger="click"
+              @command="(command) => openLicense(scope.row, 'A', command)"
+            >
+              <el-button type="primary" size="small"> 正本 </el-button>
+              <template #dropdown>
+                <el-dropdown-menu>
+                  <el-dropdown-item command="view">查看</el-dropdown-item>
+                  <el-dropdown-item command="print">打印预览</el-dropdown-item>
+                </el-dropdown-menu>
+              </template>
+            </el-dropdown>
+            <el-dropdown
+              style="margin-right: 8px; vertical-align: middle"
+              trigger="click"
+              @command="(command) => openLicense(scope.row, 'B', command)"
+            >
+              <el-button type="primary" size="small"> 副本 </el-button>
+              <template #dropdown>
+                <el-dropdown-menu>
+                  <el-dropdown-item command="view">查看</el-dropdown-item>
+                  <el-dropdown-item command="print">打印预览</el-dropdown-item>
+                </el-dropdown-menu>
+              </template>
+            </el-dropdown>
             <el-button type="primary" size="small" @click="handleDetail(scope.row)">详情</el-button>
-            <el-button v-show="scope.row.licenseType === '5'" type="primary" size="small">
+            <el-button
+              v-show="scope.row.licenseType === '5'"
+              type="primary"
+              size="small"
+              @click.stop="editLicense(scope.row)"
+            >
               编辑
             </el-button>
           </template>
@@ -342,21 +367,28 @@ let dialogComponentProps = ref<licenseProfileType>({
   stampDate: '',
   seal: '',
   originalId: '',
-  duplicateId: ''
+  duplicateId: '',
+  preview: false
 })
 let dialogComponentRef = ref<InstanceType<typeof License> | null>(null)
 let isLicense = ref(true)
 // 打开许可证弹窗
-const openLicense = async (row, type) => {
+const openLicense = async (row, type, command) => {
   loading.value = true
   let originalParam = { id: row.originalId }
   let copyParam = { id: row.duplicateId }
+
   if (type === 'A') {
     dialogBind.title = '许可证-正本'
     dialogComponentProps.value = { licenceType: 'B', licenceSubtitle: 'A' }
   } else {
     dialogBind.title = '许可证-副本'
     dialogComponentProps.value = { licenceType: 'B', licenceSubtitle: 'B' }
+  }
+  if (command === 'print') {
+    dialogComponentProps.value.preview = true
+  } else {
+    dialogComponentProps.value.preview = false
   }
   dialogComponentProps.value.originalId = String(row.originalId)
   dialogComponentProps.value.duplicateId = String(row.duplicateId)
@@ -422,16 +454,19 @@ const downloadFn = () => {
   }
   dialogComponentRef.value?.download()
 }
+
+let editLicenseRow = ref<any>(null)
+provide('editLicenseRow', editLicenseRow)
 // 新增许可证弹窗
-let editAddLicenseProps = ref({})
 const addLicenseVisible = ref(false)
 // 新增许可证
 const addLicense = () => {
+  editLicenseRow.value = null
   addLicenseVisible.value = true
 }
 // 编辑许可证
 const editLicense = (row) => {
-  editAddLicenseProps.value = row
+  editLicenseRow.value = row
   addLicenseVisible.value = true
 }
 

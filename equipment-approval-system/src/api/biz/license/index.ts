@@ -26,6 +26,10 @@ export const LicenseApi = {
   addOfflineLicense: async (data: any) => {
     return await request.post({ url: `/biz/license/offline-process`, data })
   },
+  // 获取线下许可证详情 {oid:'',did:''}
+  getOfflineLicense: async (params: any) => {
+    return await request.get({ url: '/biz/license/get-license', params })
+  },
   // 获取配置单位
   getConfigUnitList: async () => {
     return await request.get({ url: `/biz/institution-ext/list` })
