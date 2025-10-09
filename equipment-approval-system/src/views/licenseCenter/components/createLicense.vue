@@ -333,6 +333,8 @@ let ladderConfigModelOptions = computed<DictDataTypeT[]>(() => {
 let configUnitOptions = ref<{ label: string; value: any }[]>([])
 let formRef = ref<InstanceType<typeof ElForm> | null>(null)
 interface formDataFace {
+  originalId?: number
+  duplicateId?: number
   originalLicense: any
   duplicateLicense: any
 }
@@ -534,8 +536,13 @@ const submit = async () => {
     loading.value = true
     await formRef.value?.validate()
     let params = JSON.parse(JSON.stringify(formData))
-    params.duplicateLicense.equipmentUsers = JSON.stringify(params.duplicateLicense.equipmentUsers)
-    params.originalLicense.status = 1
+    params.duplicateLicense.equipmentUsers = params.duplicateLicense.equipmentUsers.length
+      ? JSON.stringify(params.duplicateLicense.equipmentUsers)
+      : []
+    params.originalLicense.status = 1 // 状态 1-启用 2-禁用
+
+    params.originalId = params.originalId ? params.originalId : null
+    params.duplicateId = params.duplicateId ? params.duplicateId : null
     await LicenseApi.addOfflineLicense(params)
 
     ElMessage.success('提交成功')
@@ -557,6 +564,10 @@ const getEditFn = async () => {
       did: editLicenseRow.value.duplicateId
     })
     Object.keys(formData).forEach((key1) => {
+      if (key1 === 'originalId' || key1 === 'duplicateId') {
+        formData[key1] = response[key1]
+        return
+      }
       Object.keys(formData[key1]).forEach((key2) => {
         if (key2 === 'equipmentUsers') {
           formData[key1][key2] = isJsonString(response[key1][key2])
@@ -566,7 +577,6 @@ const getEditFn = async () => {
         }
         formData[key1][key2] = response[key1][key2]
       })
-      // formData
     })
   } catch (err) {
     ElMessage.error('获取编辑信息失败')

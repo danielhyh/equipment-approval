@@ -15,10 +15,18 @@
             <span>文件大小：{{ item.size }}</span>
           </div>
           <div class="handler-box">
-            <el-button round size="small" type="primary" :icon="View" @click.stop="viewFn(item)"
-              >查看</el-button
+            <el-button round size="small" type="primary" :icon="View" @click.stop="viewFn(item)">
+              查看
+            </el-button>
+            <el-button
+              round
+              size="small"
+              type="warning"
+              :icon="Download"
+              @click.stop="downLoadFn(item)"
             >
-            <el-button round size="small" type="warning" :icon="Download">下载</el-button>
+              下载
+            </el-button>
           </div>
         </div>
       </template>
@@ -42,36 +50,6 @@ interface fileItemType {
   id: string | number
   fileType: string
 }
-// let props = defineProps({
-//   files: {
-//     type: Array as PropType<fileItemType[]>,
-//     default: () => [
-//       { name: '申请表', url: '', uploadTime: '2024-09-23', size: '3.2MB', id: 1, fileType: 'pdf' },
-//       { name: '申请表', url: '', uploadTime: '2024-09-23', size: '3.2MB', id: 2, fileType: 'pdf' },
-//       { name: '申请表', url: '', uploadTime: '2024-09-23', size: '3.2MB', id: 3, fileType: 'pdf' },
-//       { name: '申请表', url: '', uploadTime: '2024-09-23', size: '3.2MB', id: 4, fileType: 'docx' },
-//       {
-//         name: '技术条件配套设备专业技术人员材料.docx',
-//         url: '',
-//         uploadTime: '2024-09-23',
-//         size: '3.2MB',
-//         id: 5,
-//         fileType: 'docx'
-//       },
-//       {
-//         name: '技术条件配套设备专业技术人员材料.xlsx',
-//         url: '',
-//         uploadTime: '2024-09-23',
-//         size: '3.2MB',
-//         id: 6,
-//         fileType: 'xlsx'
-//       }
-//     ]
-//   }
-// })
-// let filesData = computed(() => {
-//   return props.files
-// })
 
 const getFileIcon = (type: string) => {
   let str = 'svg-icon:'
@@ -84,11 +62,19 @@ const getFileIcon = (type: string) => {
       return str + 'file-excel-solid-full'
     case 'xls':
       return str + 'file-excel-solid-full'
+    case 'png':
+    case 'jpg':
+    case 'jpeg':
+      return 'lets-icons:img-box-fill'
   }
 }
 const $emit = defineEmits(['view'])
 const viewFn = (item: fileItemType) => {
   console.log('useinfo view fn', item)
+  ElMessage.warning('暂不支持在线查看，需下载后查看')
+}
+const downLoadFn = (item: fileItemType) => {
+  window.open(item.url, '_blank')
 }
 const infoList = ref([])
 const filesData = ref<fileItemType[]>([])
@@ -114,7 +100,7 @@ const getInfoList = async () => {
     obj.name = item.materialName
 
     obj.id = item.id
-    obj.fileType = getFileType(item.materialName)
+    obj.fileType = getFileType(item.filePath)
     obj.size = bytesToMB(item.fileSize)
     obj.url = item.filePath
     obj.uploadTime = new Date(item.uploadTime).toLocaleString()

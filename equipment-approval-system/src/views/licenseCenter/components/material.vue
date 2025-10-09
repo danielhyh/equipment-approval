@@ -2,7 +2,7 @@
   <div class="use-info-box">
     <div class="title">
       <el-icon><List /></el-icon>
-      <span>申请材料</span>
+      <span>验收材料</span>
     </div>
     <div class="file-list-box">
       <template v-if="filesData.length > 0">
@@ -50,36 +50,6 @@ interface fileItemType {
   id: string | number
   fileType: string
 }
-// let props = defineProps({
-//   files: {
-//     type: Array as PropType<fileItemType[]>,
-//     default: () => [
-//       { name: '申请表', url: '', uploadTime: '2024-09-23', size: '3.2MB', id: 1, fileType: 'pdf' },
-//       { name: '申请表', url: '', uploadTime: '2024-09-23', size: '3.2MB', id: 2, fileType: 'pdf' },
-//       { name: '申请表', url: '', uploadTime: '2024-09-23', size: '3.2MB', id: 3, fileType: 'pdf' },
-//       { name: '申请表', url: '', uploadTime: '2024-09-23', size: '3.2MB', id: 4, fileType: 'docx' },
-//       {
-//         name: '技术条件配套设备专业技术人员材料.docx',
-//         url: '',
-//         uploadTime: '2024-09-23',
-//         size: '3.2MB',
-//         id: 5,
-//         fileType: 'docx'
-//       },
-//       {
-//         name: '技术条件配套设备专业技术人员材料.xlsx',
-//         url: '',
-//         uploadTime: '2024-09-23',
-//         size: '3.2MB',
-//         id: 6,
-//         fileType: 'xlsx'
-//       }
-//     ]
-//   }
-// })
-// let filesData = computed(() => {
-//   return props.files
-// })
 
 const getFileIcon = (type: string) => {
   let str = 'svg-icon:'
@@ -117,6 +87,11 @@ const getFileType = (filename) => {
   }
   return filename.substring(lastDotIndex + 1).toLowerCase()
 }
+const bytesToMB = (bytes: number) => {
+  if (bytes === 0) return '0 MB'
+  const mb = bytes / (1024 * 1024) // 转为 MB
+  return mb.toFixed(2) + ' MB' // 保留两位小数
+}
 const getInfoList = async () => {
   const params = { id: id }
   infoList.value = await ApplicationMaterialApi.list(params)
@@ -132,16 +107,12 @@ const getInfoList = async () => {
     filesData.value.push(obj)
   })
 }
-const bytesToMB = (bytes: number) => {
-  if (bytes === 0) return '0 MB'
-  const mb = bytes / (1024 * 1024) // 转为 MB
-  return mb.toFixed(2) + ' MB' // 保留两位小数
-}
-defineExpose({
-  viewFn
-})
 onMounted(() => {
   getInfoList()
+})
+
+defineExpose({
+  viewFn
 })
 </script>
 

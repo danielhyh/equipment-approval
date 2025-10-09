@@ -172,6 +172,9 @@
             >
               编辑
             </el-button>
+            <el-button type="warning" size="small" @click="copyInspectionFn(scope.row)">
+              设备验收
+            </el-button>
           </template>
         </el-table-column>
       </el-table>
@@ -344,6 +347,17 @@ const handleDetail = (row) => {
       duplicateId: row.duplicateId,
       licenseCode: row.licenseNo,
       licenseType: row.licenseType
+    }
+  })
+}
+const copyInspectionFn = (row) => {
+  router.push({
+    path: '/copy-inspection',
+    query: {
+      id: row.id,
+      originalId: row.originalId,
+      duplicateId: row.duplicateId,
+      licenseCode: row.licenseNo
     }
   })
 }

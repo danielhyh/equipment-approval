@@ -3,7 +3,7 @@
     <div class="header-row">
       <div class="left">
         <el-icon><Monitor /></el-icon>
-        <span>许可证详情 - {{ title }}</span>
+        <span>副本信息验收 - {{ title }}</span>
       </div>
       <div class="right">
         <el-button type="primary" :icon="Back" @click="goBack">返回上一页</el-button>
@@ -65,15 +65,8 @@ import { LicenseApi } from '@/api/biz/license'
 import { Back, Monitor, Management } from '@element-plus/icons-vue'
 import BasicInfo from './components/basis.vue'
 import Business from './components/business.vue'
-import UseInfo from './components/useInfo.vue'
 import Material from './components/material.vue'
-import Preliminary from './components/preliminary.vue'
-import Expert from './components/expert.vue'
-import Original from './components/original.vue'
-import Copy from './components/copy.vue'
-import OtherMsg from './components/otherMsg.vue'
-import history from './components/history.vue'
-import QrCode from './components/licenseCode.vue'
+import CopyExpert from './components/copyExpert.vue'
 import { useApplicationDataStore } from '@/store/applicationData'
 const router = useRouter()
 const route = useRoute()
@@ -84,7 +77,6 @@ let licenseId = route.query.id
 const licenseCode = route.query.licenseCode
 const originalId = route.query.originalId
 const duplicateId = route.query.duplicateId
-const licenseType = route.query.licenseType
 let loading = ref(false)
 provide('licenseId', licenseId)
 provide('originalId', originalId)
@@ -92,105 +84,38 @@ provide('duplicateId', duplicateId)
 let title = ref('陕西省大型医用设备在线审批归档系统')
 // 基础数据
 let basice = reactive({
-  title: '西安交通大学第一附属医院',
+  title: '--',
   code: 'DQ-2024-09-23-0931',
-  // 设备名称
-  deviceName: 'X线正电子发射断层扫描仪'
+  deviceName: '--'
 })
 
 let typeList = computed(() => {
-  switch (licenseType) {
-    case '5':
-      return [
-        {
-          label: '正本信息',
-          value: 'originalInfo',
-          component: markRaw(Original),
-          icon: 'ep:checked'
-        },
-        {
-          label: '副本信息',
-          value: 'copyInfo',
-          component: markRaw(Copy),
-          icon: 'ep:document-copy'
-        },
-        {
-          label: '其他信息',
-          value: 'otherInfo',
-          icon: 'ep:more-filled',
-          component: markRaw(OtherMsg)
-        }
-      ]
-    default:
-      return [
-        {
-          label: '基本信息',
-          value: 'basicInfo',
-          component: markRaw(BasicInfo),
-          icon: 'ep:info-filled'
-        },
-        {
-          label: '业务信息',
-          value: 'deviceInfo',
-          component: markRaw(Business),
-          icon: 'ep:management'
-        },
-        {
-          label: '申请材料列表',
-          value: 'useInfo',
-          component: markRaw(UseInfo),
-          icon: 'ep:connection'
-        },
-        {
-          label: '验收材料列表',
-          value: 'material',
-          component: markRaw(Material),
-          icon: 'ep:connection'
-        },
-        {
-          label: '初步审核',
-          value: 'firstAudit',
-          component: markRaw(Preliminary),
-          icon: 'ep:search'
-        },
-        {
-          label: '专家审核',
-          value: 'expertAudit',
-          component: markRaw(Expert),
-          icon: 'ep:avatar'
-        },
-        {
-          label: '正本信息',
-          value: 'originalInfo',
-          component: markRaw(Original),
-          icon: 'ep:checked'
-        },
-        {
-          label: '副本信息',
-          value: 'copyInfo',
-          component: markRaw(Copy),
-          icon: 'ep:document-copy'
-        },
-        {
-          label: '其他信息',
-          value: 'otherInfo',
-          icon: 'ep:more-filled',
-          component: markRaw(OtherMsg)
-        },
-        {
-          label: '二维码',
-          value: 'qrcode',
-          component: markRaw(QrCode),
-          icon: 'ic:baseline-qrcode'
-        },
-        {
-          label: '操作历史',
-          value: 'operationHistory',
-          icon: 'lucide:history',
-          component: markRaw(history)
-        }
-      ]
-  }
+  return [
+    {
+      label: '基本信息',
+      value: 'basicInfo',
+      component: markRaw(BasicInfo),
+      icon: 'ep:info-filled'
+    },
+    {
+      label: '业务信息',
+      value: 'deviceInfo',
+      component: markRaw(Business),
+      icon: 'ep:management'
+    },
+    {
+      label: '验收材料',
+      value: 'useInfo',
+      component: markRaw(Material),
+      icon: 'ep:connection'
+    },
+    {
+      label: '设备验收',
+      value: 'copyInspection',
+      component: markRaw(CopyExpert),
+      icon: 'ep:checked'
+    }
+  ]
 })
 let typeActive = ref<{ value: string; component: any }>({
   value: 'basicInfo',
