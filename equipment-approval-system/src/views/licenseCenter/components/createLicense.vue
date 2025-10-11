@@ -333,8 +333,8 @@ let ladderConfigModelOptions = computed<DictDataTypeT[]>(() => {
 let configUnitOptions = ref<{ label: string; value: any }[]>([])
 let formRef = ref<InstanceType<typeof ElForm> | null>(null)
 interface formDataFace {
-  originalId?: number
-  duplicateId?: number
+  originalId?: number | null
+  duplicateId?: number | null
   originalLicense: any
   duplicateLicense: any
 }
@@ -366,7 +366,9 @@ let formData = reactive<formDataFace>({
     purchasePrice: '', //采购价格
     specialDescription: '', //特殊描述
     equipmentUsers: [] //设备使用人员JSON
-  }
+  },
+  originalId: null,
+  duplicateId: null
 })
 let rules = reactive({
   'originalLicense.institutionId': [
@@ -536,10 +538,15 @@ const submit = async () => {
     loading.value = true
     await formRef.value?.validate()
     let params = JSON.parse(JSON.stringify(formData))
-    params.duplicateLicense.equipmentUsers = params.duplicateLicense.equipmentUsers.length
-      ? JSON.stringify(params.duplicateLicense.equipmentUsers)
-      : []
+    // params.duplicateLicense.equipmentUsers = params.duplicateLicense.equipmentUsers.length
+    //   ? JSON.stringify(params.duplicateLicense.equipmentUsers)
+    //   : []
     params.originalLicense.status = 1 // 状态 1-启用 2-禁用
+    // 校验副本信息是否填写
+    let duplicateLicenseBool = checkDuplicateLicense()
+    if (!duplicateLicenseBool) {
+      delete params.duplicateLicense
+    }
 
     params.originalId = params.originalId ? params.originalId : null
     params.duplicateId = params.duplicateId ? params.duplicateId : null
@@ -569,12 +576,12 @@ const getEditFn = async () => {
         return
       }
       Object.keys(formData[key1]).forEach((key2) => {
-        if (key2 === 'equipmentUsers') {
-          formData[key1][key2] = isJsonString(response[key1][key2])
-            ? JSON.parse(response[key1][key2])
-            : []
-          return
-        }
+        // if (key2 === 'equipmentUsers') {
+        //   formData[key1][key2] = isJsonString(response[key1][key2])
+        //     ? JSON.parse(response[key1][key2])
+        //     : []
+        //   return
+        // }
         formData[key1][key2] = response[key1][key2]
       })
     })
@@ -599,6 +606,24 @@ const isJsonString = (str) => {
     return false
   }
   return true
+}
+// 检测副本信息是否填写
+const checkDuplicateLicense = () => {
+  let bool = false
+  Object.keys(formData.duplicateLicense).forEach((key) => {
+    if (
+      typeof formData.duplicateLicense[key] === 'string' &&
+      formData.duplicateLicense[key].trim() !== ''
+    ) {
+      bool = true
+      return
+    }
+    if (Array.isArray(formData.duplicateLicense[key]) && formData.duplicateLicense[key].length) {
+      bool = true
+      return
+    }
+  })
+  return bool
 }
 
 onMounted(async () => {
