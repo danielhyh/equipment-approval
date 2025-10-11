@@ -47,6 +47,7 @@
                 <component
                   ref="typeRef"
                   :list="allLicenseData"
+                  :disabled="true"
                   :is="typeActive.component"
                   :key="typeActive.value"
                 />
@@ -69,6 +70,7 @@ import UseInfo from './components/useInfo.vue'
 import Material from './components/material.vue'
 import Preliminary from './components/preliminary.vue'
 import Expert from './components/expert.vue'
+import CopyExpert from './components/copyExpert.vue'
 import Original from './components/original.vue'
 import Copy from './components/copy.vue'
 import OtherMsg from './components/otherMsg.vue'
@@ -158,6 +160,12 @@ let typeList = computed(() => {
           value: 'expertAudit',
           component: markRaw(Expert),
           icon: 'ep:avatar'
+        },
+        {
+          label: '设备验收',
+          value: 'copyInspection',
+          component: markRaw(CopyExpert),
+          icon: 'ep:connection'
         },
         {
           label: '正本信息',

@@ -1,5 +1,5 @@
 <template>
-  <div class="review-page">
+  <div class="review-page" v-loading="loading">
     <div class="page-b-p">
       <div class="title">
         <Icon icon="svg-icon:user-graduatel" :size="24" color="#165DFF" />
@@ -17,8 +17,8 @@
       >
         <el-form-item label="审核结果" prop="reviewResult">
           <el-radio-group v-model="formValue.reviewResult">
-            <el-radio value="1">通过</el-radio>
-            <el-radio value="2">不通过</el-radio>
+            <el-radio :value="1">通过</el-radio>
+            <el-radio :value="0">不通过</el-radio>
           </el-radio-group>
         </el-form-item>
         <el-form-item label="审核备注" prop="reviewOpinion">
@@ -28,19 +28,6 @@
             :autosize="{ minRows: 4, maxRows: 6 }"
           />
         </el-form-item>
-        <div class="row-col">
-          <el-form-item label="许可证编号" prop="licenseCode">
-            <el-input v-model="formValue.licenseCode" disabled show-word-limit maxlength="11" />
-          </el-form-item>
-          <el-form-item label="生成日期" prop="createDate">
-            <el-date-picker
-              v-model="formValue.createDate"
-              type="date"
-              value-format="YYYY-MM-DD"
-              placeholder="选择日期"
-            />
-          </el-form-item>
-        </div>
       </el-form>
 
       <div class="title">
@@ -128,7 +115,7 @@
         <el-empty v-if="fileList.length === 0 && isDisabled" :image-size="80" />
       </div>
 
-      <div style="display: flex; align-items: center; justify-content: center">
+      <div style="display: flex; align-items: center; justify-content: center" v-if="!isDisabled">
         <el-button type="info" @click.stop="goBack">取消</el-button>
         <el-button type="primary" @click="submitFn">提交</el-button>
       </div>
@@ -143,15 +130,11 @@ import type { FormInstance, TableInstance } from 'element-plus'
 import { useRoute } from 'vue-router'
 import { ExpertExtApi } from '@/api/biz/expertext'
 import { DICT_TYPE, getDictLabel } from '@/utils/dict'
-import { ApplicationApi } from '@/api/biz/application'
-import { useApplicationDataStore } from '@/store/applicationData'
-const useAppData = useApplicationDataStore()
-const getReviewDetails = computed(() => {
-  return useAppData.getReviewDetails
-})
+import { LicenseApi } from '@/api/biz/license/index'
 const route = useRoute()
 const router = useRouter()
-const { id } = route.query
+const { duplicateId } = route.query
+let loading = ref(false)
 
 const goBack = () => {
   router.back()
@@ -166,49 +149,48 @@ let isDisabled = computed(() => {
   return props.disabled
 })
 let formValue = ref({
+  id: Number(duplicateId),
   reviewResult: '',
   reviewOpinion: '',
-  reviewType: 'EXPERT',
-  id: Number(id),
-  licenseCode: '',
-  createDate: '',
-  licenseGenerateDate: '',
   expertAttachments: '', //上传附件的地址 多个以逗号隔开
   expertIds: '' //选中的专家的id
 })
-const updateFormValue = () => {
-  formValue.value.reviewResult = getReviewDetails.value.expertReviewResult
-  formValue.value.reviewOpinion = getReviewDetails.value.expertReviewOpinion
-  formValue.value.licenseCode = getReviewDetails.value.licenseNo
-  formValue.value.createDate = getReviewDetails.value.licenseGenerateDate
-  formValue.value.expertAttachments = getReviewDetails.value.expertAttachments
-  // todo 需要修改
-  formValue.value.expertIds =
-    getReviewDetails.value.expertList && Array.isArray(getReviewDetails.value.expertList)
-      ? getReviewDetails.value.expertList.map((item: any) => item.id).join(',')
-      : ''
-  // 文件回显处理
-  if (getReviewDetails.value.expertAttachments) {
-    fileList.value = getReviewDetails.value.expertAttachments.split(',')
+const updateFormValue = async () => {
+  try {
+    loading.value = true
+    let response = await LicenseApi.auditCopyLicenseDetail({ id: Number(duplicateId) })
+    formValue.value.reviewResult = response.reviewResult
+    formValue.value.reviewOpinion = response.reviewOpinion
+    formValue.value.expertAttachments = response.expertAttachments
+    formValue.value.expertIds =
+      response.expertList && Array.isArray(response.expertList)
+        ? response.expertList.map((item: any) => item.id).join(',')
+        : ''
+    // 文件回显处理
+    if (response.expertAttachments) {
+      fileList.value = response.expertAttachments.split(',')
+    }
+    // 列表回显处理
+    if (expertList.value.length) {
+      let expertIdArr = formValue.value.expertIds.split(',') || []
+      expertIdArr.forEach((eg) => {
+        let item = expertList.value.find((item) => item.id === Number(eg))
+        if (item) {
+          selectMultiple.value.push(item)
+        }
+      })
+    }
+  } catch (e) {
+    ElMessage.error('获取设备验收信息失败')
+  } finally {
+    loading.value = false
   }
-  // 列表回显处理
-  if (expertList.value.length) {
-    let expertIdArr = formValue.value.expertIds.split(',') || []
-    expertIdArr.forEach((eg) => {
-      let item = expertList.value.find((item) => item.id === Number(eg))
-      if (item) {
-        selectMultiple.value.push(item)
-      }
-    })
-  }
-  generateLicenseNum()
 }
 
 let formRef = ref<FormInstance | null>(null)
 let rules = reactive({
   reviewResult: [{ required: true, message: '请选择审核结果', trigger: 'blur' }],
-  reviewOpinion: [{ required: false, message: '请输入审核备注', trigger: 'blur' }],
-  createDate: [{ required: true, message: '请选择日期', trigger: 'blur' }]
+  reviewOpinion: [{ required: false, message: '请输入审核备注', trigger: 'blur' }]
 })
 
 interface listDataType {
@@ -275,13 +257,13 @@ const submitFn = async () => {
     await formRef.value.validate()
     //调用接口
     formValue.value.expertAttachments = fileList.value.join(',')
-    formValue.value.licenseGenerateDate = formValue.value.createDate
-    await ApplicationApi.review(formValue.value)
+    await LicenseApi.auditCopyLicense(formValue.value)
     ElMessage.success('提交成功')
+    goBack()
     return { success: true }
   } catch (err) {
-    ElMessage.error('请填写完整信息')
-    console.log(err)
+    // ElMessage.error('请填写完整信息')
+    // console.log(err)
   }
 }
 const specialtyList = ref([])
@@ -300,9 +282,6 @@ const searchExpertForm = ref({
   keyword: undefined,
   specialty: undefined
 })
-const generateLicenseNum = async () => {
-  formValue.value.licenseCode = await ApplicationApi.generateLicense(Number(id))
-}
 onMounted(async () => {
   await getExpertList()
   getSpecialtyList()

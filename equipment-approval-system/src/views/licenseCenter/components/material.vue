@@ -97,9 +97,8 @@ const getInfoList = async () => {
   infoList.value = await ApplicationMaterialApi.list(params)
   infoList.value.forEach((item) => {
     let obj: Partial<fileItemType> = {}
-    obj.name = item.materialName
-
-    obj.id = item.id
+    obj.name = item?.materialName || ''
+    obj.id = item?.id || ''
     obj.fileType = getFileType(item.filePath)
     obj.size = bytesToMB(item.fileSize)
     obj.url = item.filePath

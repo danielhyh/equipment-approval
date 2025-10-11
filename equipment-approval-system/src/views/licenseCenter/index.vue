@@ -172,7 +172,12 @@
             >
               编辑
             </el-button>
-            <el-button type="warning" size="small" @click="copyInspectionFn(scope.row)">
+            <el-button
+              v-if="scope.row.acceptanceStatus !== 1"
+              type="warning"
+              size="small"
+              @click="copyInspectionFn(scope.row)"
+            >
               设备验收
             </el-button>
           </template>
@@ -304,11 +309,12 @@ const getList = () => {
           ladderConfigModel: eg.ladderConfigModel,
           areaName: eg.region,
           originalIssueDate: eg.originalIssuanceDate,
-          copyIssueDate: eg.duplicateIssuanceDate,
+          copyIssueDate: eg.duplicateIssueDate,
           licenseType: eg.licenseType,
           status: eg.status,
           originalId: eg.originalId,
-          duplicateId: eg.duplicateId
+          duplicateId: eg.duplicateId,
+          acceptanceStatus: eg.acceptanceStatus // 设备验收状态 1已验收 0未验收
         }
       })
       paramsValue.total = total

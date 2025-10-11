@@ -33,5 +33,13 @@ export const LicenseApi = {
   // 获取配置单位
   getConfigUnitList: async () => {
     return await request.get({ url: `/biz/institution-ext/list` })
+  },
+  // 针对副本进行审核回显 {id:副本id}
+  auditCopyLicenseDetail: async (params: any) => {
+    return await request.get({ url: `/biz/license/approval-details`, params })
+  },
+  // 针对副本进行审核 {id:副本id,reviewResult:审核结果,reviewOpinion:审核意见,expertIds:专家id列表——逗号隔开的字符串,expertAttachments:专家审核附件path 逗号分隔}
+  auditCopyLicense: async (data: any) => {
+    return await request.post({ url: `/biz/license/approval`, data })
   }
 }
