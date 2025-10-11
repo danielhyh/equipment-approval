@@ -1,7 +1,11 @@
 <template>
   <div
     class="licence-container"
-    :class="{ 'is-preview': isPreview, 'is-b-licence': isBLicenceSub }"
+    :class="{
+      'is-preview': isPreview,
+      'is-b-licence': isBLicenceSub,
+      'is-b-accepted': isBAccepted
+    }"
     id="licenceID"
     ref="licenceIDRef"
     v-loading="loading"
@@ -96,7 +100,9 @@ let props = defineProps({
   originalId: { type: [String, null, undefined], default: '' }, // 正本id
   duplicateId: { type: [String, null, undefined], default: '' }, // 副本id
   // 是否预览数据
-  preview: { type: Boolean, default: false }
+  preview: { type: Boolean, default: false },
+  // 副本是否验收
+  copyAccepted: { type: Boolean, default: false }
 })
 
 let licenceTitle = computed(() => {
@@ -152,13 +158,17 @@ let firstColumns = computed(() => {
 let secondColumns = computed(() => {
   return licenceContent.value.filter((_, index) => index % 2 === 1)
 })
+// 是否是副本
 let isBLicenceSub = computed(() => {
-  // 是否是副本
   return props.licenceSubtitle === 'B'
 })
 let isPreview = computed(() => {
   return props.preview
 })
+let isBAccepted = computed(() => {
+  return isBLicenceSub.value && props.copyAccepted
+})
+
 let qrocodeText = computed(() => {
   let text = 'http://hospital.fangliyun.com/#/mobile/qrcode?'
   if (props.originalId) {
@@ -493,12 +503,22 @@ defineExpose({
     }
   }
   &.is-b-licence {
+    .licence-content-b {
+      .licence-content-columns:nth-of-type(2) {
+        opacity: 0;
+      }
+    }
+  }
+  &.is-b-accepted {
     .licence-code {
       opacity: 0;
     }
     .licence-content-b {
       .licence-content-columns:nth-of-type(1) {
         opacity: 0;
+      }
+      .licence-content-columns:nth-of-type(2) {
+        opacity: 1;
       }
     }
     .licence-stamp-date {

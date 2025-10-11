@@ -412,7 +412,6 @@ let licenceData = ref<licenseProfileType>({})
 
 let licenceRef = ref<InstanceType<typeof licence> | null>(null)
 const showLicenceFn = (row, type) => {
-  console.log(row, 'row')
   licenceTitle.value = type === 'A' ? '正本' : '副本'
   licenceData.value = {
     licenceType: 'B',

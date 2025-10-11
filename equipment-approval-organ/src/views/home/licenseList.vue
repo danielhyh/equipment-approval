@@ -36,7 +36,7 @@
       <el-table-column prop="installationDate" label="装机日期" align="center" />
       <el-table-column label="操作" align="center" width="230" fixed="right">
         <template #default="{ row }">
-          <el-button type="primary" size="small" v-if="row.hasDuplicate === 'N'" @click="handleCopy(row)">副本提交</el-button>
+          <el-button type="primary" size="small" v-if="row.hasDuplicate === 'N'" @click="handleCopy(row)"> 副本提交 </el-button>
           <el-button
             type="success"
             size="small"
@@ -45,10 +45,23 @@
           >
             验收资料提交
           </el-button>
-          <el-button type="warning" size="small" v-if="row.hasDuplicate === 'Y'" @click="handleOther(row)"
-            >补充其他信息</el-button
+          <el-dropdown
+            v-if="row.hasDuplicate === 'Y'"
+            style="margin: 0 8px; vertical-align: middle"
+            trigger="click"
+            @command="(command) => openLicense(row, 'B', command)"
           >
-          <el-button type="primary" size="small" v-if="row.hasDuplicate === 'Y'" @click="handleDetail(row)">详细信息</el-button>
+            <el-button type="primary" size="small" v-if="row.hasDuplicate === 'Y'">副本</el-button>
+            <template #dropdown>
+              <el-dropdown-item command="view">查看</el-dropdown-item>
+              <el-dropdown-item command="preview">打印预览</el-dropdown-item>
+            </template>
+          </el-dropdown>
+
+          <el-button type="warning" size="small" v-if="row.hasDuplicate === 'Y'" @click="handleOther(row)">
+            补充其他信息
+          </el-button>
+          <el-button type="primary" size="small" v-if="row.hasDuplicate === 'Y'" @click="handleDetail(row)"> 详细信息 </el-button>
           <el-button type="primary" size="small" v-if="row.hasDuplicate === 'Y'" @click="handleQrCode(row)">二维码信息</el-button>
         </template>
       </el-table-column>
@@ -78,10 +91,19 @@
         </div>
       </template>
     </Dialog>
+    <!-- 查看/打印预览副本弹窗 -->
+    <Dialog v-model:visible="previewCopy" title="打印预览副本" width="1200px">
+      <div class=" m-b-10" style="position: relative; text-align: right;">
+        <el-button type="primary" @click="printFn">打印副本</el-button>
+      </div>
+      <license ref="licenseRef" v-bind="licenseProps" />
+    </Dialog>
   </div>
 </template>
 
 <script setup name="LicenseList">
+import { dayTimeFormate } from "@/utils/tools";
+import { getLicenseCopy, getLicenseOrigin } from "@/apis/home";
 import { getLicenseList } from "@/apis/home";
 import { useDictStore } from "@/pinia/modules/dict";
 import { useBasisStore } from "@/pinia/modules/basis";
@@ -191,6 +213,66 @@ const handleQrCode = (row) => {
   router.push({ name: "LicenseDetail", query: { key: "qrCodeMsg" } });
 };
 
+let licenseRef = ref(null);
+let licenseProps = reactive({
+  licenceType: "B",
+  licenceSubtitle: "B",
+  code: "",
+  licenseData: [],
+  stampUit: "",
+  stampDate: "",
+  // 二维码使用
+  originalId: "",
+  duplicateId: "",
+  // 是否预览
+  preview: true,
+  // 是否副本已经验收
+  bAccepted: false,
+});
+let previewCopy = ref(false);
+// 查看/打印预览副本
+const openLicense = async (row, type, command) => {
+  if (command === "preview") {
+    loading.value = true;
+    let resArr = await Promise.all([getLicenseOrigin(row.originalId), getLicenseCopy(row.duplicateId)]);
+    let [originRes, copyRes] = resArr;
+    let data = { ...originRes.data, ...copyRes.data };
+    let arr = [];
+    arr.push(data.configUnitName);
+    arr.push(data.productionEnterprise);
+    arr.push(data.legalPerson);
+    arr.push(data.specificModel);
+    arr.push(data.ownershipNature);
+    arr.push(data.productSerialNo);
+    arr.push(data.equipmentConfigAddress);
+    arr.push(dayTimeFormate(data.installationDate));
+    arr.push(data.unifiedSocialCreditCode);
+    arr.push(dayTimeFormate(data.infoSubmitDate));
+    arr.push(data.licenseDeviceName);
+    arr.push(data.remark);
+    arr.push(data.ladderConfigModel);
+    licenseProps.licenseData = arr;
+    licenseProps.code = row.licenseNo;
+    licenseProps.stampUit = data.duplicateIssuingAuthority;
+    licenseProps.stampDate = data.duplicateIssueDate;
+    // 二维码使用
+    licenseProps.originalId = row.originalId;
+    licenseProps.duplicateId = row.duplicateId;
+    // 是否副本已经验收
+    licenseProps.bAccepted = row.hasAcceptanceMaterial === "Y";
+    loading.value = false;
+    previewCopy.value = true;
+    return;
+  }
+  if (command === "view") {
+    basisStore.setLicenseBasis(row);
+    router.push({ name: "LicenseDetail", query: { key: "copyMsg" } });
+    return;
+  }
+};
+const printFn = () => {
+  licenseRef.value?.print();
+};
 onMounted(() => {
   getLicenseListFn();
 });

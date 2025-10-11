@@ -388,7 +388,8 @@ let dialogComponentProps = ref<licenseProfileType>({
   seal: '',
   originalId: '',
   duplicateId: '',
-  preview: false
+  preview: false,
+  copyAccepted: false
 })
 let dialogComponentRef = ref<InstanceType<typeof License> | null>(null)
 let isLicense = ref(true)
@@ -413,6 +414,8 @@ const openLicense = async (row, type, command) => {
   dialogComponentProps.value.originalId = String(row.originalId)
   dialogComponentProps.value.duplicateId = String(row.duplicateId)
   dialogComponentProps.value.code = row.licenseNo
+  // 设备验收状态 1已验收 0未验收
+  dialogComponentProps.value.copyAccepted = row.acceptanceStatus === 1
 
   dialogComponent.value = markRaw(License)
   dialogBind.width = '320mm'

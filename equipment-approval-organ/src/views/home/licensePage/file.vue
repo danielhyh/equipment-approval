@@ -292,6 +292,7 @@ const submit = async () => {
     materialName: item.fileName,
     filePath: item.filePath,
     fileSize: item.fileSize + "",
+    uploadTime: new Date().toLocaleString(),
   }));
   try {
     loading.value = true;

@@ -1,5 +1,15 @@
 <template>
-  <div class="licence-container" id="licenceID" ref="licenceIDRef" v-loading="loading">
+  <div
+    class="licence-container"
+    :class="{
+      'is-preview': isPreview,
+      'is-b-licence': isBLicenceSub,
+      'is-b-accepted': isBAccepted,
+    }"
+    id="licenceID"
+    ref="licenceIDRef"
+    v-loading="loading"
+  >
     <!-- 花边框 -->
     <div class="licence-out-border">
       <!-- 内边框 -->
@@ -9,7 +19,7 @@
 
         <div class="licence-title">{{ licenceTitle }}</div>
         <div class="licence-subtitle">{{ licenceSubtitle }}</div>
-        <div class="licence-code">许可证编号 {{ licenceCode }}</div>
+        <div class="licence-code"><span class="label">许可证编号</span> {{ licenceCode }}</div>
         <div class="licence-content" :class="{ 'licence-content-b': isBLicenceSub }">
           <!-- 许可证内容 -->
           <div class="licence-content-columns">
@@ -33,7 +43,7 @@
         </div>
         <!-- 二维码 -->
         <!-- <div class="licence-qr-code" v-show="!isBLicenceSub"> -->
-          <div class="licence-qr-code" >
+        <div class="licence-qr-code">
           <Qrcode :width="83" :text="qrocodeText" tag="canvas" ref="qrcodeRef" />
         </div>
         <!-- 签发机关 年月日盖章 -->
@@ -89,6 +99,9 @@ let props = defineProps({
 
   originalId: { type: [String, Number, null, undefined], default: "" },
   duplicateId: { type: [String, Number, null, undefined], default: "" },
+
+  preview: { type: Boolean, default: false }, // 预览模式
+  bAccepted: { type: Boolean, default: false }, // 是否副本验收
 });
 
 let licenceTitle = computed(() => {
@@ -141,9 +154,16 @@ let firstColumns = computed(() => {
 let secondColumns = computed(() => {
   return licenceContent.value.filter((_, index) => index % 2 === 1);
 });
+// 是否是副本
 let isBLicenceSub = computed(() => {
-  // 是否是副本
   return props.licenceSubtitle === "B";
+});
+let isPreview = computed(() => {
+  return props.preview;
+});
+// 是否是副本验收
+let isBAccepted = computed(() => {
+  return isBLicenceSub.value && props.bAccepted;
 });
 let qrocodeText = computed(() => {
   let text = window.location.origin + "/#/mobile/qrcode?";
@@ -154,7 +174,7 @@ let qrocodeText = computed(() => {
     text += `duplicateId=${props.duplicateId}&`;
   }
   if (isBLicenceSub.value) {
-    text += `copy=1`
+    text += `copy=1`;
   }
   return text;
 });
@@ -251,7 +271,7 @@ defineExpose({
 });
 </script>
 
-<style scoped>
+<style lang="scss" scoped>
 .licence-container {
   width: 297mm;
   height: 210mm;
@@ -374,7 +394,7 @@ defineExpose({
 
 .licence-qr-code {
   position: absolute;
-  bottom: 12mm;
+  bottom: 8mm;
   left: 5mm;
   width: 22mm;
   height: 22mm;
@@ -422,6 +442,64 @@ defineExpose({
   width: 10.2mm;
   text-align: center;
   font-style: normal;
+}
+.is-preview {
+  .licence-out-border {
+    background-image: none !important;
+  }
+  .licence-in-border {
+    background-color: transparent !important;
+  }
+  .licence-img {
+    display: none;
+  }
+  .licence-title {
+    opacity: 0;
+  }
+  .licence-subtitle {
+    opacity: 0;
+  }
+  .licence-code span.label {
+    opacity: 0;
+  }
+  .licence-content-item .label-col {
+    opacity: 0;
+  }
+  .licence-stamp-date {
+    .label,
+    .remark {
+      opacity: 0;
+    }
+    .date-row span {
+      opacity: 0;
+    }
+  }
+  &.is-b-licence {
+    .licence-content-b {
+      .licence-content-columns:nth-of-type(2) {
+        opacity: 0;
+      }
+    }
+  }
+  &.is-b-accepted {
+    .licence-code {
+      opacity: 0;
+    }
+    .licence-content-b {
+      .licence-content-columns:nth-of-type(1) {
+        opacity: 0;
+      }
+      .licence-content-columns:nth-of-type(2) {
+        opacity: 1;
+      }
+    }
+    .licence-stamp-date {
+      opacity: 0;
+    }
+    .licence-qr-code {
+      opacity: 0;
+    }
+  }
 }
 @page {
   size: A4 landscape;
@@ -554,7 +632,7 @@ defineExpose({
 
   .licence-qr-code {
     position: absolute;
-    bottom: 12mm;
+    bottom: 8mm;
     left: 5mm;
     width: 22mm;
     height: 22mm;
