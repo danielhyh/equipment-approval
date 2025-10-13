@@ -576,16 +576,21 @@ const getEditFn = async () => {
         return
       }
       Object.keys(formData[key1]).forEach((key2) => {
-        // if (key2 === 'equipmentUsers') {
-        //   formData[key1][key2] = isJsonString(response[key1][key2])
-        //     ? JSON.parse(response[key1][key2])
-        //     : []
-        //   return
-        // }
-        formData[key1][key2] = response[key1][key2]
+        if (!response[key1]) {
+          return
+        }
+        if (key2 === 'equipmentUsers') {
+          // formData[key1][key2] = isJsonString(response[key1][key2])
+          //   ? JSON.parse(response[key1][key2])
+          //   : []
+          formData[key1][key2] = response[key1][key2] || []
+          return
+        }
+        formData[key1][key2] = response[key1][key2] || ''
       })
     })
   } catch (err) {
+    console.log(err)
     ElMessage.error('获取编辑信息失败')
     dialogVisible.value = false
   } finally {
