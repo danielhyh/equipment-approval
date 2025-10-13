@@ -296,21 +296,24 @@ const handleFilter = () => {
   background-color: #fff;
   box-shadow: 0px 0px 10px 0px rgba(0, 0, 0, 0.1);
   transition: all 0.3s ease-in-out;
+  border: 1px solid transparent;
   flex: 1;
   cursor: default;
   .value {
-    line-height: 24px;
-    font-size: 18px;
+    line-height: 32px;
+    font-size: 24px;
     font-weight: bolder;
-    color: #066de3;
+    color: #165dff;
   }
   .label {
     font-size: 14px;
-    font-weight: bold;
+    // font-weight: bold;
     color: #333;
   }
   &:hover {
     box-shadow: 0px 0px 10px 0px rgba(0, 0, 0, 0.3);
+    border-color: #165dff;
+    transform: translateY(-2px);
   }
 }
 </style>

@@ -86,7 +86,7 @@ const changeType = (item) => {
     justify-content: center;
     align-items: center;
     padding: 10px 15px;
-    border-radius: 5px;
+    border-radius: 12px;
     font-size: 14px;
     flex: 1;
     color: #4e4e4e;
@@ -96,11 +96,13 @@ const changeType = (item) => {
       margin-left: 6px;
     }
     &:hover {
-      background-color: #007bff;
+      background-image: linear-gradient(135deg, #165dff, #06b6d4);
+      box-shadow: 0 6px 20px rgba(22, 93, 255, 0.3);
       color: #fff;
     }
     &.active {
-      background-color: #007bff;
+      background-image: linear-gradient(135deg, #165dff, #06b6d4);
+      box-shadow: 0 6px 20px rgba(22, 93, 255, 0.3);
       color: #fff;
     }
   }

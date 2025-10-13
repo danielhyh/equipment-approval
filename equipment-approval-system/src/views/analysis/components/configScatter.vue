@@ -26,9 +26,9 @@
         :header-cell-style="{ background: '#007bff', color: '#fff' }"
       >
         <!-- 行政区域 -->
-        <el-table-column prop="region" label="行政区域" align="center" />
+        <el-table-column prop="region" label="行政区域" align="center" fixed="left" />
         <!-- 合计 -->
-        <el-table-column prop="total" label="合计" align="center" />
+        <el-table-column prop="total" label="合计" align="center" fixed="left" />
         <!-- 正电子发射型磁共振 -->
         <el-table-column label="正电子发射型磁共振" align="center">
           <el-table-column prop="zdz_zfby" label="政府办医" align="center" />
