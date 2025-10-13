@@ -23,6 +23,10 @@
 <script setup lang="ts" name="Analysis">
 import Overview from './components/overview.vue'
 import DeviceOwnership from './components/deviceOwnership.vue'
+import annualAmount from './components/annualAmount.vue'
+import StepConfiguration from './components/StepConfiguration.vue'
+import configScatter from './components/configScatter.vue'
+
 let typeList = reactive([
   {
     label: '统计概览',
@@ -36,18 +40,23 @@ let typeList = reactive([
     icon: 'bi:device-ssd-fill',
     component: markRaw(DeviceOwnership)
   },
-  { label: '年度递增分量及总量', key: 'annualIncrease', icon: 'fa:pie-chart', component: '' },
+  {
+    label: '年度递增分量及总量',
+    key: 'annualIncrease',
+    icon: 'fa:pie-chart',
+    component: markRaw(annualAmount)
+  },
   {
     label: '阶梯配置统计',
     key: 'ladderConfiguration',
     icon: 'bi:clipboard-data-fill',
-    component: ''
+    component: markRaw(StepConfiguration)
   },
   {
-    label: '设备分布情况',
-    key: 'deviceDistribution',
+    label: '配置分布情况',
+    key: 'configDistribution',
     icon: 'material-symbols:map-pin-review-rounded',
-    component: ''
+    component: markRaw(configScatter)
   }
 ])
 let activeType = ref(typeList[0])

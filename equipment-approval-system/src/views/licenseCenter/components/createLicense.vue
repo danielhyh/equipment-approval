@@ -21,6 +21,7 @@
           placeholder="请选择配置单位名称"
           clearable
           @change="changeConfigUnit"
+          :disabled="isEdit"
         >
           <el-option
             v-for="item in configUnitOptions"
@@ -36,14 +37,24 @@
           placeholder="请输入统一社会信用代码"
           show-word-limit
           maxlength="18"
+          :disabled="isEdit"
           clearable
         />
       </el-form-item>
       <el-form-item label="法定代表人" prop="originalLicense.legalPerson">
-        <el-input v-model="formData.originalLicense.legalPerson" placeholder="请输入法定代表人" />
+        <el-input
+          v-model="formData.originalLicense.legalPerson"
+          placeholder="请输入法定代表人"
+          :disabled="isEdit"
+          clearable
+        />
       </el-form-item>
       <el-form-item label="配置设备名称" prop="originalLicense.licenseDeviceName">
-        <el-select v-model="formData.originalLicense.licenseDeviceName" clearable>
+        <el-select
+          v-model="formData.originalLicense.licenseDeviceName"
+          clearable
+          :disabled="isEdit"
+        >
           <el-option
             v-for="item in licenseDeviceOptions"
             :key="item.value"
@@ -56,6 +67,7 @@
         <el-select
           v-model="formData.originalLicense.ownershipNature"
           placeholder="请选择 所有制性质"
+          :disabled="isEdit"
           clearable
         >
           <el-option
@@ -67,7 +79,11 @@
         </el-select>
       </el-form-item>
       <el-form-item label="阶梯配置机型" prop="originalLicense.ladderConfigModel">
-        <el-select v-model="formData.originalLicense.ladderConfigModel" clearable>
+        <el-select
+          v-model="formData.originalLicense.ladderConfigModel"
+          :disabled="isEdit"
+          clearable
+        >
           <el-option
             v-for="item in ladderConfigModelOptions"
             :key="item.value"
@@ -80,6 +96,7 @@
         <el-input
           v-model="formData.originalLicense.equipmentConfigAddress"
           placeholder="请输入设备配置地址"
+          :disabled="isEdit"
           clearable
         />
       </el-form-item>
@@ -87,6 +104,7 @@
         <el-input
           v-model="formData.originalLicense.detailedAddress"
           placeholder="请输入 详细地址"
+          :disabled="isEdit"
           clearable
         />
       </el-form-item>
@@ -94,6 +112,7 @@
         <el-input
           v-model="formData.originalLicense.issuingAuthority"
           placeholder="请输入 发证机关"
+          :disabled="isEdit"
           clearable
         />
       </el-form-item>
@@ -103,6 +122,7 @@
           type="date"
           value-format="YYYY-MM-DD"
           placeholder="请选择发证日期"
+          :disabled="isEdit"
           clearable
         />
       </el-form-item>
@@ -319,6 +339,7 @@ let dialogVisible = defineModel('visible', {
   type: Boolean
 })
 let editLicenseRow = inject<any>('editLicenseRow')
+let isEdit = ref(false)
 let loading = ref(false)
 let $emtis = defineEmits(['success'])
 let licenseDeviceOptions = computed<DictDataTypeT[]>(() => {
@@ -435,8 +456,10 @@ watch(
     if (!v) return
     if (editLicenseRow.value) {
       dialogBind.title = '编辑许可证'
+      isEdit.value = true
       getEditFn()
     } else {
+      isEdit.value = false
       dialogBind.title = '新增许可证'
     }
   }

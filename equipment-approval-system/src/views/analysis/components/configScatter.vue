@@ -1,37 +1,78 @@
 <template>
   <div>
-    <!-- 区域覆盖 -->
-    <div class="region-coverage">
-      <div class="title-row">
-        <div class="left">
-          <div class="title">
-            <Icon
-              icon="material-symbols:map-pin-review-rounded"
-              color="#4245df"
-              :size="18"
-              style="margin-right: 5px"
-            />
-            区域分布情况(覆盖8个地市)
-          </div>
-        </div>
-      </div>
-      <div class="content-row">
-        <div class="item-box" v-for="item in regionData" :key="item.key">
-          <div class="label">{{ item.label }}</div>
-          <div class="value-unit">
-            <span class="value">{{ item.value }}</span>
-            <span class="unit">台</span>
-          </div>
-        </div>
-      </div>
-    </div>
-    <!-- 设备详细信息 -->
-    <div class="device-info">
+    <!-- 设备配置分布情况 -->
+    <div>
       <div class="title-row" style="margin-bottom: 10px">
         <div class="left">
           <div class="title">
             <Icon
-              icon="material-symbols:map-pin-review-rounded"
+              icon="mdi:message-text-clock"
+              color="#4245df"
+              :size="18"
+              style="margin-right: 5px"
+            />
+            设备配置分布情况
+          </div>
+        </div>
+      </div>
+      <!-- 表格 -->
+      <el-table
+        :data="configScatterData"
+        style="width: 100%"
+        border
+        stripe
+        size="small"
+        :style="{ 'border-radius': ' 10px' }"
+        :header-cell-style="{ background: '#007bff', color: '#fff' }"
+      >
+        <!-- 行政区域 -->
+        <el-table-column prop="region" label="行政区域" align="center" />
+        <!-- 合计 -->
+        <el-table-column prop="total" label="合计" align="center" />
+        <!-- 正电子发射型磁共振 -->
+        <el-table-column label="正电子发射型磁共振" align="center">
+          <el-table-column prop="zdz_zfby" label="政府办医" align="center" />
+          <el-table-column prop="zdz_shby" label="社会办医" align="center" />
+          <el-table-column prop="zdz_yys" label="已验收" align="center" />
+          <el-table-column prop="zdz_wwys" label="未验收" align="center" />
+        </el-table-column>
+        <!-- X线正电子发射断层扫描仪 -->
+        <el-table-column label="X线正电子发射断层扫描仪" align="center">
+          <el-table-column prop="x_zfby" label="政府办医" align="center" />
+          <el-table-column prop="x_shby" label="社会办医" align="center" />
+          <el-table-column prop="x_yys" label="已验收" align="center" />
+          <el-table-column prop="x_wwys" label="未验收" align="center" />
+        </el-table-column>
+        <!-- 腹腔内窥镜手术系统 -->
+        <el-table-column label="腹腔内窥镜手术系统" align="center">
+          <el-table-column prop="endoscope_zfby" label="政府办医" align="center" />
+          <el-table-column prop="endoscope_shby" label="社会办医" align="center" />
+          <el-table-column prop="endoscope_yys" label="已验收" align="center" />
+          <el-table-column prop="endoscope_wwys" label="未验收" align="center" />
+        </el-table-column>
+        <!-- 常规放射治疗类设备 -->
+        <el-table-column label="常规放射治疗类设备" align="center">
+          <el-table-column prop="radiation_zfby" label="政府办医" align="center" />
+          <el-table-column prop="radiation_shby" label="社会办医" align="center" />
+          <el-table-column prop="radiation_yys" label="已验收" align="center" />
+          <el-table-column prop="radiation_wwys" label="未验收" align="center" />
+        </el-table-column>
+        <!-- 首次配置的大型医疗器械 -->
+        <el-table-column label="首次配置的大型医疗器械" align="center">
+          <el-table-column prop="first_config_zfby" label="政府办医" align="center" />
+          <el-table-column prop="first_config_shby" label="社会办医" align="center" />
+          <el-table-column prop="first_config_yys" label="已验收" align="center" />
+          <el-table-column prop="first_config_wwys" label="未验收" align="center" />
+        </el-table-column>
+      </el-table>
+    </div>
+    <!-- 设备详情 -->
+    <div style="margin-top: 20px">
+      <div class="title-row" style="margin-bottom: 10px">
+        <div class="left">
+          <div class="title">
+            <Icon
+              icon="mdi:message-text-clock"
               color="#4245df"
               :size="18"
               style="margin-right: 5px"
@@ -102,7 +143,6 @@
         @pagination="getList"
       />
     </div>
-
     <!-- 筛选弹窗 -->
     <Dialog v-model:model-value="filterVisible" v-bind="filterDialogProp">
       <el-form
@@ -225,55 +265,8 @@ let deviceTypeOptions = computed<DictDataTypeT[]>(() => {
 let licenseStatusOptions = computed<DictDataTypeT[]>(() => {
   return getDictOptions('biz_license_status')
 })
-let regionData = ref([
-  {
-    key: 'xiaan',
-    label: '西安市',
-    value: 100
-  },
-  // 宝鸡市
-  {
-    key: 'baoji',
-    label: '宝鸡市',
-    value: 200
-  },
-  // 汉中市
-  {
-    key: 'hanzhong',
-    label: '汉中市',
-    value: 300
-  },
-  // 咸阳市
-  {
-    key: 'sanya',
-    label: '咸阳市',
-    value: 400
-  },
-  // 渭南市
-  {
-    key: 'weinan',
-    label: '渭南市',
-    value: 500
-  },
-  // 延安市
-  {
-    key: 'yianan',
-    label: '延安市',
-    value: 600
-  },
-  // 安康市
-  {
-    key: 'ankang',
-    label: '安康市',
-    value: 700
-  },
-  // 榆林市
-  {
-    key: 'yulin',
-    label: '榆林市',
-    value: 800
-  }
-])
+
+// 设备信息
 let loading = ref(false)
 let tableData = ref([
   {
@@ -313,7 +306,8 @@ const customIndex = (index: number) => {
   return (queryParams.pageNo - 1) * queryParams.pageSize + index + 1
 }
 const getList = async () => {}
-
+// 设备配置分布情况列表
+let configScatterData = ref([])
 // 弹窗
 let filterVisible = ref(false)
 let filterDialogProp = reactive({
@@ -344,13 +338,7 @@ const handleFilter = () => {
 }
 </script>
 
-<style lang="scss" scoped>
-.region-coverage {
-  background-color: #fff;
-  padding: 10px;
-  border-radius: 10px;
-  margin-bottom: 10px;
-}
+<style scoped>
 .title-row {
   display: flex;
   justify-content: space-between;

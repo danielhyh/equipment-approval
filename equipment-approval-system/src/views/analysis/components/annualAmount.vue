@@ -1,6 +1,6 @@
 <template>
   <div>
-    <!-- 区域覆盖 -->
+    <!-- 年度递增情况 -->
     <div class="region-coverage">
       <div class="title-row">
         <div class="left">
@@ -11,16 +11,15 @@
               :size="18"
               style="margin-right: 5px"
             />
-            区域分布情况(覆盖8个地市)
+            年度递增情况
           </div>
         </div>
       </div>
       <div class="content-row">
-        <div class="item-box" v-for="item in regionData" :key="item.key">
-          <div class="label">{{ item.label }}</div>
-          <div class="value-unit">
-            <span class="value">{{ item.value }}</span>
-            <span class="unit">台</span>
+        <div class="item-ground" v-for="(item, index) in yearCountData" :key="index">
+          <div class="item-box" v-for="ie in item" :key="ie.key + '_' + index">
+            <span class="value">{{ ie.value }}</span>
+            <div class="label">{{ ie.label }}</div>
           </div>
         </div>
       </div>
@@ -225,54 +224,87 @@ let deviceTypeOptions = computed<DictDataTypeT[]>(() => {
 let licenseStatusOptions = computed<DictDataTypeT[]>(() => {
   return getDictOptions('biz_license_status')
 })
-let regionData = ref([
-  {
-    key: 'xiaan',
-    label: '西安市',
-    value: 100
-  },
-  // 宝鸡市
-  {
-    key: 'baoji',
-    label: '宝鸡市',
-    value: 200
-  },
-  // 汉中市
-  {
-    key: 'hanzhong',
-    label: '汉中市',
-    value: 300
-  },
-  // 咸阳市
-  {
-    key: 'sanya',
-    label: '咸阳市',
-    value: 400
-  },
-  // 渭南市
-  {
-    key: 'weinan',
-    label: '渭南市',
-    value: 500
-  },
-  // 延安市
-  {
-    key: 'yianan',
-    label: '延安市',
-    value: 600
-  },
-  // 安康市
-  {
-    key: 'ankang',
-    label: '安康市',
-    value: 700
-  },
-  // 榆林市
-  {
-    key: 'yulin',
-    label: '榆林市',
-    value: 800
-  }
+let yearCountData = ref([
+  [
+    // 2025年总量
+    {
+      key: 'total_count',
+      label: '2025年总量',
+      value: 100
+    },
+    // 新增数量
+    {
+      key: 'new_count',
+      label: '新增数量',
+      value: 10
+    },
+    // 增长率
+    {
+      key: 'growth_rate',
+      label: '增长率',
+      value: '10%'
+    }
+  ],
+  [
+    // 2024年总量
+    {
+      key: 'total_count',
+      label: '2024年总量',
+      value: 100
+    },
+    // 新增数量
+    {
+      key: 'new_count',
+      label: '新增数量',
+      value: 10
+    },
+    // 增长率
+    {
+      key: 'growth_rate',
+      label: '增长率',
+      value: '10%'
+    }
+  ],
+  [
+    // 2023年总量
+    {
+      key: 'total_count',
+      label: '2023年总量',
+      value: 100
+    },
+    // 新增数量
+    {
+      key: 'new_count',
+      label: '新增数量',
+      value: 10
+    },
+    // 增长率
+    {
+      key: 'growth_rate',
+      label: '增长率',
+      value: '10%'
+    }
+  ],
+  [
+    // 2022年总量
+    {
+      key: 'total_count',
+      label: '2022年总量',
+      value: 100
+    },
+    // 新增数量
+    {
+      key: 'new_count',
+      label: '新增数量',
+      value: 10
+    },
+    // 增长率
+    {
+      key: 'growth_rate',
+      label: '增长率',
+      value: '10%'
+    }
+  ]
 ])
 let loading = ref(false)
 let tableData = ref([
@@ -374,28 +406,33 @@ const handleFilter = () => {
   justify-content: space-between;
   align-items: center;
   gap: 20px;
-  margin-top: 20px;
-  .item-box {
-    flex: 1;
+  padding: 5px;
+  padding-top: 14px;
+  .item-ground {
     display: flex;
-    justify-content: space-between;
-    align-items: center;
+    justify-content: space-around;
+    align-items: flex-end;
+    gap: 10px;
+    box-shadow: 0 0 6px #dfdfdf;
+    border-radius: 6px;
+    flex-basis: calc(25% - 20px);
+  }
+  .item-box {
     gap: 5px;
-    border: 1px solid #e5e5e5;
     padding: 10px;
     border-radius: 8px;
     font-size: 14px;
     .label {
       font-weight: bold;
       color: #333;
+      font-size: 12px;
+      white-space: nowrap;
     }
     .value {
       color: #066de3;
       font-weight: bold;
+      font-size: 18px;
       margin-right: 5px;
-    }
-    .unit {
-      font-size: 12px;
     }
   }
 }
