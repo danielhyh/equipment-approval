@@ -63,4 +63,6 @@ public interface InstitutionExtService {
 
     Boolean inUse(Long id);
 
+    List<Map<String, String>> getInstitutionExtList();
+
 }

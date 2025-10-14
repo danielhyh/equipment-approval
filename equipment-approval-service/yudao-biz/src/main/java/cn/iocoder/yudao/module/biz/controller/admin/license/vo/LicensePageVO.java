@@ -39,12 +39,15 @@ public class LicensePageVO {
     private String originalIssuanceDate;
 
     @Schema(description = "副本发证日期")
-    private String duplicateIssuanceDate;
+    private String duplicateIssueDate;
 
     @Schema(description = "许可证类型")
     private String licenseType;
 
     @Schema(description = "状态：1-有效，2-已注销，3-已变更")
     private String status;
+
+    @Schema(description = "设备验收审核状态：1-已通过，0-未通过")
+    private Integer acceptanceStatus;
 
 }

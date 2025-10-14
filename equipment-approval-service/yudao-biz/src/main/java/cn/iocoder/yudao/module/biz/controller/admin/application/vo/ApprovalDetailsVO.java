@@ -7,6 +7,7 @@ import lombok.Data;
 import java.time.LocalDate;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
 @Data
 public class ApprovalDetailsVO {
@@ -30,7 +31,7 @@ public class ApprovalDetailsVO {
     @JsonIgnore
     private String expertId;
 
-    private List<String> expertList;
+    private List<Map<String, String>> expertList;
 
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private Date expertReviewTime;

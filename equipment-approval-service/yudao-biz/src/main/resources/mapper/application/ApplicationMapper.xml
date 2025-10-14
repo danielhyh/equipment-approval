@@ -8,7 +8,11 @@
         代码生成器暂时只生成 Mapper XML 文件本身，更多推荐 MybatisX 快速开发插件来生成查询。
         文档可见：https://www.iocoder.cn/MyBatis/x-plugins/
      -->
-    <select id="page" resultType="cn.iocoder.yudao.module.biz.controller.admin.application.vo.ApplicationPageRespVO">
+
+    <resultMap id="pageResultMap" type="cn.iocoder.yudao.module.biz.controller.admin.application.vo.ApplicationPageRespVO">
+        <result property="extra" column="extra" typeHandler="com.baomidou.mybatisplus.extension.handlers.JacksonTypeHandler" />
+    </resultMap>
+    <select id="page" resultMap="pageResultMap">
         SELECT
         ba.id,
         bie.institution_name,
@@ -19,6 +23,7 @@
         ba.deadline,
         ba.app_type,
         ba.app_no,
+        ba.extra,
         ba.institution_id,
         GREATEST(DATEDIFF(ba.deadline, NOW()), 0) AS remaining_days,
         blo.id as original_id,
@@ -106,19 +111,24 @@
         SELECT
             ba.id,
             app_no,
-            institution_name,
+            bie.institution_name,
             license_device_name,
-            unified_social_credit_code,
-            legal_person,
-            contact_person,
-            contact_phone,
-            ownership_nature,
+            bie.unified_social_credit_code,
+            bie.legal_person,
+            bie.contact_person,
+            bie.contact_phone,
+            bie.ownership_nature,
             ba.create_time,
-            detailed_address,
-            region
+            bie.detailed_address,
+            bie.region,
+            bie.institution_level,
+            bie.institution_type,
+            b2.institution_name as superior_institution
         FROM
             biz_application ba
             LEFT JOIN biz_institution_ext bie on ba.institution_id = bie.dept_id
+            INNER JOIN system_dept d1 ON bie.dept_id = d1.id
+            LEFT JOIN biz_institution_ext b2 ON d1.parent_id = b2.dept_id
         WHERE
             ba.id = #{id} and ba.deleted = 0
     </select>
@@ -184,6 +194,6 @@
             biz_license_original blo ON ba.id = blo.application_id
                 LEFT JOIN
             biz_license_duplicate bld ON blo.id = bld.original_id
-        where ba.deleted = b'0' and ba.app_status = 5 and ba.creator = #{id}
+        where ba.deleted = 0 and ba.app_status = 5 and ba.creator = #{id}
     </select>
 </mapper>

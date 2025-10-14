@@ -1,7 +1,9 @@
 package cn.iocoder.yudao.module.biz.service.license;
 
+import cn.iocoder.yudao.framework.common.exception.ServiceException;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.common.util.object.BeanUtils;
+import cn.iocoder.yudao.framework.common.util.validation.ValidationUtils;
 import cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils;
 import cn.iocoder.yudao.module.biz.controller.admin.license.vo.*;
 import cn.iocoder.yudao.module.biz.controller.app.license.vo.AppDuplicateSubmitRequest;
@@ -12,11 +14,16 @@ import cn.iocoder.yudao.module.biz.dal.mysql.application.ApplicationMapper;
 import cn.iocoder.yudao.module.biz.dal.mysql.classaequipment.ClassAEquipmentMapper;
 import cn.iocoder.yudao.module.biz.dal.mysql.license.LicenseMapper;
 import cn.iocoder.yudao.module.biz.service.devicelicense.DeviceLicenseService;
+import cn.iocoder.yudao.module.biz.service.notification.CreateNotificationRequest;
+import cn.iocoder.yudao.module.biz.service.notification.NotificationService;
 import cn.iocoder.yudao.module.biz.service.utils.JdbcClientHelper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.jdbc.core.simple.JdbcClient;
@@ -27,8 +34,7 @@ import org.springframework.transaction.support.TransactionTemplate;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.ZoneId;
-import java.util.Date;
-import java.util.Map;
+import java.util.*;
 
 @Service
 @Slf4j
@@ -53,6 +59,12 @@ public class LicenseService {
 
     @Resource
     private TransactionTemplate transactionTemplate;
+
+    @Resource
+    private ObjectMapper objectMapper;
+
+    @Resource
+    private NotificationService  notificationService;
 
     public PageResult<AppLicensePageRespVO> licensePage(Integer pageSize, Integer pageNum, String type) {
         IPage<AppLicensePageRespVO> page = new Page<>(pageNum, pageSize);
@@ -106,6 +118,8 @@ public class LicenseService {
                 where c.id = ?
                 """;
         Map<String, String> res = jdbcClient.sql(sql).param(req.getOriginalId()).query(JdbcClientHelper::resultSetToMap).single();
+        Optional<Long> optional = jdbcClient.sql("select equipment_id from biz_license_duplicate where id = ?").param(req.getId()).query(Long.class).optional();
+        equipmentDO.setId(optional.orElse(null));
         equipmentDO.setConfigUnitName(res.get("institutionName"));
         equipmentDO.setContactPerson(res.get("contactPerson"));
         equipmentDO.setContactPhone(res.get("contactPhone"));
@@ -114,7 +128,7 @@ public class LicenseService {
         equipmentDO.setLicenseDeviceName(res.get("licenseDeviceName"));
         equipmentDO.setOwnershipNature(res.get("ownershipNature"));
         equipmentDO.setEquipmentConfigAddress(res.get("detailedAddress"));
-        classAEquipmentMapper.insert(equipmentDO);
+        classAEquipmentMapper.insertOrUpdate(equipmentDO);
 
         //更新application表 equipmentId
         jdbcClient.sql("update biz_application set equipment_id = :eid where id = :id")
@@ -145,91 +159,200 @@ public class LicenseService {
     //模拟申请流程 创建申请 设置申请类型为5(线下申请) 但是不用审核，直接成功，随后根据数据生成正本副本，以及生成正副本中途需要的操作
     public void offlineProcessLicense(OfflineLicenseInsertRequest request) {
         Long loginUserId = SecurityFrameworkUtils.getLoginUserId();
-        
-        // 1. 创建线下申请记录
-        ApplicationDO application = new ApplicationDO();
-        application.setAppNo("SQ-" + java.time.LocalDateTime.now().format(java.time.format.DateTimeFormatter.ofPattern("yyyyMMddHHmmss")));
-        application.setInstitutionId(request.getOriginalLicense().getConfigUnitName() != null ? 
-            getInstitutionIdByName(request.getOriginalLicense().getConfigUnitName()) : null);
-        application.setAppType(5); // 线下申请
-        application.setLicenseDeviceName(request.getOriginalLicense().getLicenseDeviceName());
-        application.setLadderConfigModel(request.getOriginalLicense().getLadderConfigModel());
-        application.setConfigReason("线下申请");
-        application.setAppStatus(5); // 直接设为专家审核通过
-        application.setInitialReviewResult(1); // 初审通过
-        application.setExpertReviewResult(1); // 专家审核通过
-        application.setInitialReviewTime(java.time.LocalDateTime.now());
-        application.setExpertReviewTime(java.time.LocalDateTime.now());
-        Date issueDate = request.getOriginalLicense().getIssueDate();
-        LocalDate localDate = issueDate.toInstant().atZone(ZoneId.of("Asia/Shanghai")).toLocalDate();
-        application.setLicenseGenerateDate(localDate);
-        application.setDeadline(java.time.LocalDate.now().plusDays(45));
-        transactionTemplate.execute(status ->{
-           try {
-               // 插入申请记录
-               applicationMapper.insert(application);
-               Long applicationId = application.getId();
 
-               // 获取刚插入的申请ID
-               logger.info("线下办理创建线下申请记录，申请ID: {}", application.getId());
+        transactionTemplate.execute(status -> {
+            try {
+                OriginalLicenseVO originalLicense = request.getOriginalLicense();
 
-               // 2. 生成正本许可证
-               OriginalLicenseVO originalLicense = request.getOriginalLicense();
-               originalLicense.setEquipmentConfigAddress("陕西省" + originalLicense.getEquipmentConfigAddress());
-               originalLicense.setId(null); // 确保ID为空，让数据库自动生成
+                // 判断是新增还是修改
+                if (request.getOriginalId() != null) {
+//                    // 修改操作
+//                    logger.info("执行许可证修改操作，正本ID: {}", request.getOriginalId());
+//
+//                    // 更新正本许可证
+//                    originalLicense.setId(request.getOriginalId());
+//                    originalLicense.setEquipmentConfigAddress("陕西省" + originalLicense.getEquipmentConfigAddress());
+//
+//                    int updateResult = licenseMapper.updateOriginalLicense(originalLicense);
+//                    if (updateResult <= 0) {
+//                        throw new RuntimeException("线下办理更新正本许可证失败");
+//                    }
+                    Long originalId = request.getOriginalId();
+//
+//                    logger.info("线下办理更新正本许可证成功，正本ID: {}", originalId);
 
-               // 生成许可证编号
-               String licenseCode = deviceLicenseService.generateLicenseNumber("乙",
-                       originalLicense.getEquipmentConfigAddress(),
-                       originalLicense.getLicenseDeviceName(),
-                       originalLicense.getLadderConfigModel());
-               originalLicense.setLicenseNo(licenseCode);
-               // 插入正本记录
-               int originalResult = licenseMapper.insertOriginalLicense(originalLicense, loginUserId, applicationId);
-               if (originalResult <= 0) {
-                   throw new RuntimeException("线下办理插入正本许可证失败");
-               }
-               Long originalId = originalLicense.getId();
-               // 获取正本ID
-               logger.info("线下办理创建正本许可证，正本ID: {}", originalId);
+                    // 如果有副本信息，则更新副本
+                    if (request.getDuplicateLicense() != null) {
+                        DuplicateLicenseVO duplicateLicense = request.getDuplicateLicense();
+                        ValidationUtils.validate(duplicateLicense);
+                        duplicateLicense.setId(request.getDuplicateId());
+                        AppDuplicateSubmitRequest duplicateSubmitRequest = BeanUtils.toBean(duplicateLicense, AppDuplicateSubmitRequest.class);
+                        duplicateSubmitRequest.setOriginalId(originalId);
+                        insertEquipment(duplicateSubmitRequest);
+                        int updateDuplicateResult = 0;
+                        if (request.getDuplicateId() == null) {
+                            updateDuplicateResult = licenseMapper.insertDuplicateLicense(duplicateSubmitRequest, loginUserId);
+                        } else {
+                            updateDuplicateResult = licenseMapper.updateDuplicateLicense(duplicateLicense);
+                        }
 
-               // 更新序列号表状态
-               jdbcClient.sql("UPDATE biz_device_license SET status = 'USED' WHERE license_number = ?")
-                       .param(licenseCode).update();
+                        if (updateDuplicateResult <= 0) {
+                            throw new RuntimeException("线下办理更新副本许可证失败");
+                        }
+                        logger.info("线下办理更新副本许可证成功，副本ID: {}", duplicateSubmitRequest.getId());
+                    }
 
-               // 3. 生成副本许可证
-               DuplicateLicenseVO duplicateLicense = request.getDuplicateLicense();
-               duplicateLicense.setId(null); // 确保ID为空
-               AppDuplicateSubmitRequest duplicateSubmitRequest = BeanUtils.toBean(duplicateLicense, AppDuplicateSubmitRequest.class);
-               duplicateSubmitRequest.setOriginalId(originalId);
-               // 插入副本记录
-               insertDuplicateLicense(duplicateSubmitRequest);
-               logger.info("线下办理副本插入成功, ID: {}", duplicateSubmitRequest.getId());
-               //插入装备
+                } else {
+                    // 新增操作
+                    logger.info("执行许可证新增操作");
 
-               logger.info("线下许可证处理完成 - 申请ID: {}, 正本ID: {}", applicationId, originalId);
-           } catch (Exception e) {
-               status.setRollbackOnly();
-               logger.info("线下办理插入失败",e);
-           }
-           return null;
+                    // 1. 创建线下申请记录
+                    ApplicationDO application = new ApplicationDO();
+                    application.setAppNo("SQ-" + java.time.LocalDateTime.now().format(java.time.format.DateTimeFormatter.ofPattern("yyyyMMddHHmmss")));
+                    application.setInstitutionId(originalLicense.getInstitutionId() != null ?
+                            originalLicense.getInstitutionId() : getInstitutionIdByName(originalLicense.getConfigUnitName()));
+                    application.setAppType(5); // 线下申请
+                    application.setLicenseDeviceName(originalLicense.getLicenseDeviceName());
+                    application.setLadderConfigModel(originalLicense.getLadderConfigModel());
+                    application.setConfigReason("线下申请");
+                    application.setAppStatus(5); // 直接设为专家审核通过
+                    application.setInitialReviewResult(1); // 初审通过
+                    application.setExpertReviewResult(1); // 专家审核通过
+                    application.setInitialReviewTime(java.time.LocalDateTime.now());
+                    application.setExpertReviewTime(java.time.LocalDateTime.now());
+                    Date issueDate = originalLicense.getIssueDate();
+                    LocalDate localDate = issueDate.toInstant().atZone(ZoneId.of("Asia/Shanghai")).toLocalDate();
+                    application.setLicenseGenerateDate(localDate);
+                    application.setDeadline(java.time.LocalDate.now().plusDays(45));
+
+                    // 插入申请记录
+                    applicationMapper.insert(application);
+                    Long applicationId = application.getId();
+
+                    // 获取刚插入的申请ID
+                    logger.info("线下办理创建线下申请记录，申请ID: {}", application.getId());
+
+                    // 2. 生成正本许可证
+                    originalLicense.setEquipmentConfigAddress("陕西省" + originalLicense.getEquipmentConfigAddress());
+
+                    // 生成许可证编号
+                    String licenseCode = deviceLicenseService.generateLicenseNumber("乙",
+                            originalLicense.getEquipmentConfigAddress(),
+                            originalLicense.getLicenseDeviceName(),
+                            originalLicense.getLadderConfigModel());
+                    originalLicense.setLicenseNo(licenseCode);
+                    // 插入正本记录
+                    int originalResult = licenseMapper.insertOriginalLicense(originalLicense, loginUserId, applicationId);
+                    if (originalResult <= 0) {
+                        throw new RuntimeException("线下办理插入正本许可证失败");
+                    }
+                    Long originalId = originalLicense.getId();
+                    // 获取正本ID
+                    logger.info("线下办理创建正本许可证，正本ID: {}", originalId);
+
+                    // 更新序列号表状态
+                    jdbcClient.sql("UPDATE biz_device_license SET status = 'USED' WHERE license_number = ?")
+                            .param(licenseCode).update();
+
+
+                    // 3. 生成副本许可证
+                    DuplicateLicenseVO duplicateLicense = request.getDuplicateLicense();
+                    if (duplicateLicense != null) {
+                        ValidationUtils.validate(duplicateLicense);
+                        duplicateLicense.setId(null); // 确保ID为空
+                        AppDuplicateSubmitRequest duplicateSubmitRequest = BeanUtils.toBean(duplicateLicense, AppDuplicateSubmitRequest.class);
+                        duplicateSubmitRequest.setOriginalId(originalId);
+                        // 插入副本记录
+                        insertDuplicateLicense(duplicateSubmitRequest);
+                        logger.info("线下办理副本插入成功, ID: {}", duplicateSubmitRequest.getId());
+                    }
+
+
+                    logger.info("线下许可证处理完成 - 申请ID: {}, 正本ID: {}", applicationId, originalId);
+                }
+            } catch (Exception e) {
+                status.setRollbackOnly();
+                logger.info("线下办理处理失败", e);
+                throw new ServiceException(1111, "线下办理处理失败: " + e.getMessage());
+            }
+            return null;
         });
-
     }
 
 
-    
     /**
      * 根据机构名称获取机构ID
      */
     private Long getInstitutionIdByName(String institutionName) {
         try {
             return jdbcClient.sql("SELECT dept_id FROM biz_institution_ext WHERE institution_name = ?")
-                .param(institutionName)
-                .query(Long.class).single();
+                    .param(institutionName)
+                    .query(Long.class).single();
         } catch (Exception e) {
             logger.warn("未找到机构: {}", institutionName);
             return null;
         }
+    }
+
+    public void approval(DuplicateApprovalRequest request) {
+        String loginUserNickname = SecurityFrameworkUtils.getLoginUserNickname();
+        String extra;
+        try {
+            extra = objectMapper.writeValueAsString(request);
+        } catch (JsonProcessingException e) {
+            logger.error("序列化 DuplicateApprovalRequest 失败，请求数据：{}", request, e);
+            throw new RuntimeException(e);
+        }
+
+        int res = jdbcClient.sql("update biz_license_duplicate set acceptance_status = ?, extra = ? where id = ?")
+                .param(request.getReviewResult())
+                .param(extra)
+                .param(request.getId())
+                .update();
+        if (res > 0){
+            String sql = """
+                    select b.application_id, b.license_device_name from biz_license_duplicate a
+                    left join biz_license_original b on a.original_id = b.id
+                    where a.id = ?
+                    """;
+            Map<String, String> map = jdbcClient.sql(sql).param(request.getId()).query(JdbcClientHelper::resultSetToMap).single();
+            Long appId = Long.parseLong(map.get("applicationId"));
+            String deviceName = map.get("licenseDeviceName");
+            CreateNotificationRequest req = new CreateNotificationRequest();
+            req.setTitle(deviceName+"设备验收审批结果");
+            String result = request.getReviewResult() == 1 ? "通过" : "不通过";
+
+            req.setContent(String.format("您的%s设备验收审批结果为：%s。审核意见为：%s。", deviceName, result, request.getReviewOpinion()));
+            req.setCreator(loginUserNickname);
+            req.setPublishNow(true);
+            req.setAppId(appId);
+            notificationService.createNotification(req);
+            //TODO 增加操作记录
+        }
+    }
+
+    public DuplicateApprovalDetails approvalDetails(Long id) {
+        Optional<String> extra = jdbcClient.sql("select extra from biz_license_duplicate where id = ?")
+                .param(id)
+                .query(String.class)
+                .optional();
+        if (extra.isEmpty()) {
+            return new  DuplicateApprovalDetails();
+        }
+        DuplicateApprovalDetails ret;
+        try {
+            ret = objectMapper.readValue(extra.orElse(null), DuplicateApprovalDetails.class);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
+        if (StringUtils.isNotBlank(ret.getExpertIds())) {
+            String[] split = ret.getExpertIds().split(",");
+            List<Map<String, String>> nameList = jdbcClient.sql("select id, name from biz_expert_ext where id in (:ids)")
+                    .param("ids", Arrays.asList(split))
+                    .query(JdbcClientHelper::resultSetToMap)
+                    .list();
+            ret.setExpertList(nameList);
+        }
+        return ret;
     }
 }

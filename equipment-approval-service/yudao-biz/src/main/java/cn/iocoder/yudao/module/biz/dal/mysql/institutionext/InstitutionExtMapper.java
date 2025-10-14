@@ -36,10 +36,19 @@ public interface InstitutionExtMapper extends BaseMapperX<InstitutionExtDO> {
             COUNT(u.id) AS user_count
             FROM biz_institution_ext i
             LEFT JOIN system_users u ON i.dept_id = u.dept_id
-            WHERE i.dept_id = #{id} and i.deleted = b'0'
+            WHERE i.dept_id = #{id} and i.deleted = 0
         """)
     Long inUse(@Param("id") Long id);
 
     void updateBasicInfo(Map<String, String> map);
 
+    @Select("""
+            SELECT
+            i.id,
+            i.institution_name as "institutionName",
+            i.dept_id as "deptId"
+            FROM biz_institution_ext i
+            WHERE i.deleted = 0
+        """)
+    List<Map<String, String>> selectList2();
 }

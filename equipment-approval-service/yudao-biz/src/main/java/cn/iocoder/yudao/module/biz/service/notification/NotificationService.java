@@ -4,13 +4,13 @@ import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
+import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Service;
 
-import java.sql.PreparedStatement;
-import java.sql.Statement;
-import java.sql.Timestamp;
+import java.sql.*;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
@@ -52,19 +52,37 @@ public class NotificationService {
 
     
     public PageResult<BizNotificationDTO> pageNotifications(int pageNum, int pageSize) {
-        String countSql = "SELECT COUNT(*) FROM biz_notifications WHERE deleted = b'0'";
+        Long loginUserId = SecurityFrameworkUtils.getLoginUserId();
+        List<Long> appIdList = jdbcTemplate.query("select id from biz_application where deleted = 0 and creator = ?", (rs, rowNum) -> rs.getLong("id"), loginUserId);
+
+
+        NamedParameterJdbcTemplate template = new NamedParameterJdbcTemplate(jdbcTemplate);
+        String countSql = "SELECT COUNT(*) FROM biz_notifications WHERE deleted = 0 and app_id in (:appIds)";
+        MapSqlParameterSource totalQuery = new MapSqlParameterSource();
+        totalQuery.addValue("appIds", appIdList);
+        Long total = template.queryForObject(countSql, totalQuery, Long.class);
+
+
         String dataSql = """
             SELECT id, title, content, status, publish_time,
                    (SELECT COUNT(*) FROM biz_user_notification_status
                     WHERE notification_id = n.id AND is_read = 1) AS view_count
             FROM biz_notifications n
-            WHERE deleted = 0
-            ORDER BY create_time DESC
+            WHERE deleted = 0 and app_id in (:appIds)
+            ORDER BY create_time DESC LIMIT :pageNum, :pageSize
             """;
 
-        Long total = jdbcTemplate.queryForObject(countSql, Long.class);
+        MapSqlParameterSource paramSource = new MapSqlParameterSource();
+
+
         int offset = (pageNum - 1) * pageSize;
-        List<BizNotificationDTO> list = jdbcTemplate.query(dataSql, notificationRowMapper, offset, pageSize);
+
+
+
+        paramSource.addValue("appIds", appIdList);
+        paramSource.addValue("pageSize", pageSize);
+        paramSource.addValue("pageNum", offset);
+        List<BizNotificationDTO> list = template.query(dataSql, paramSource, notificationRowMapper);
         return new PageResult<>(list, total);
     }
 
@@ -84,7 +102,7 @@ public class NotificationService {
 
     public void deleteNotification(Long id) {
         Long loginUserId = SecurityFrameworkUtils.getLoginUserId();
-        String sql = "update biz_notifications set deleted = b'1', updater = ?, update_time = NOW() where id = ?";
+        String sql = "update biz_notifications set deleted = 1, updater = ?, update_time = NOW() where id = ?";
         jdbcTemplate.update(sql, id, loginUserId);
     }
 
@@ -137,7 +155,6 @@ public class NotificationService {
         String insertSql = """
         INSERT INTO biz_user_notification_status (user_id, notification_id, is_read, read_at)
         VALUES (?, ?, 0, NULL)
-        ON DUPLICATE KEY UPDATE is_read = is_read  -- 无操作，避免报错
         """;
 
         jdbcTemplate.batchUpdate(insertSql, userIds, 1000, (ps, userId) -> {
@@ -157,7 +174,7 @@ public class NotificationService {
                     WHERE notification_id = n.id AND is_read = 1) AS view_count
             FROM biz_notifications n
             LEFT JOIN biz_user_notification_status s ON n.id = s.notification_id AND s.user_id = ?
-            WHERE n.deleted = b'0' AND n.status = '已发布' AND (s.is_read IS NULL OR s.is_read = b'0')
+            WHERE n.deleted = 0 AND n.status = '已发布' AND (s.is_read IS NULL OR s.is_read = 0)
             ORDER BY n.publish_time DESC
             """;
 

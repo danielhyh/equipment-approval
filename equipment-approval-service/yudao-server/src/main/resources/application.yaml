@@ -3,7 +3,6 @@ spring:
     name: yudao-server
   profiles:
     active: local
-
   main:
     allow-circular-references: true # 允许循环依赖，因为项目是三层架构，无法避免这个情况。
     banner-mode: off
@@ -37,7 +36,7 @@ server:
       force: true
 
 --- #################### 接口文档配置 ####################
-
+db-type: mysql
 springdoc:
   api-docs:
     enabled: true

@@ -8,17 +8,88 @@
                 SUM(IF(app_type = 2, 1, 0)) AS cert_renew_count,
                SUM(IF(app_type = 3, 1, 0)) AS cert_change_count,
                SUM(IF(app_type = 4, 1, 0)) AS info_change_count
-        FROM biz_application
-        where deleted = b'0'
+        FROM biz_application a
+        left join biz_institution_ext b on a.institution_id = b.dept_id
+        where a.deleted = 0
         <if test="status != null and status == 1">
             and app_status = 1
         </if>
+        <if test="req.region != null and req.region != ''">
+            and b.region = #{req.region}
+        </if>
+         <if test="req.year != null">
+             and YEAR(a.create_time) = #{req.year}
+         </if>
     </select>
-    
+
     <select id="licenseSummary" resultType="map">
         select count(*) as total_count,
-               SUM(IF(license_device_name = 'X线正电子发射断层扫描仪', 1, 0)) as 'X'
-        FROM biz_application;
+        SUM(CASE WHEN a.license_device_name = 'X线正电子发射断层扫描仪' THEN 1 ELSE 0 END) as petCtScanner,
+        SUM(CASE WHEN a.license_device_name = '伽玛射线立体定向放射治疗系统' THEN 1 ELSE 0 END) as gammaRayStereotacticRtSystem,
+        SUM(CASE WHEN a.license_device_name = '直线加速器' THEN 1 ELSE 0 END) as linearAccelerator,
+        SUM(CASE WHEN a.license_device_name = '内窥镜手术器械控制系统' THEN 1 ELSE 0 END) as endoscopicSurgicalSystem,
+        SUM(CASE WHEN a.license_device_name = '1.5T及以上磁共振成像系统' THEN 1 ELSE 0 END) as mriSystem1_5tPlus,
+        SUM(CASE WHEN a.license_device_name = '64排及以上X线计算机断层扫描仪' THEN 1 ELSE 0 END) as ctScanner64SlicePlus
+        FROM biz_license_original a
+        left join biz_application b on a.application_id = b.id
+        left join biz_institution_ext c on b.institution_id = c.dept_id
+        where a.deleted = 0
+        <if test="req.region != null and req.region != ''">
+            and c.region = #{req.region}
+        </if>
+        <if test="req.year != null">
+            and YEAR(a.create_time) = #{req.year}
+        </if>
+    </select>
+
+    <select id="expertSummary" resultType="map">
+        select count(*)                                        as total_count,
+               SUM(IF(specialty = '放射影像', 1, 0))           AS radiology_imaging,
+               SUM(IF(specialty = '放射治疗', 1, 0))           AS radiation_therapy,
+               SUM(IF(specialty = '核医学', 1, 0))             AS nuclear_medicine,
+               SUM(IF(specialty = '卫生管理', 1, 0))           AS health_management,
+               SUM(IF(specialty = '医学设备与安全防护', 1, 0)) AS medical_equipment_safety,
+               SUM(IF(specialty = '医学智能工程', 1, 0))       AS medical_intelligent_engineering
+        FROM biz_expert_ext
+        where deleted = 0
+          and specialty IS NOT NULL
+    </select>
+    <!--  公告统计汇总  -->
+    <select id="noticeSummary" resultType="map">
+        select count(a.id)                         as total,
+               SUM(IF(a.status = '已发布', 1, 0)) AS publishedCount,
+               SUM(IF(a.status = '未发布', 1, 0)) AS draftCount,
+               (SELECT COUNT(*) FROM biz_user_notification_status WHERE is_read = b'1') AS totalViews
+        from biz_notifications a
+        left join biz_application b on a.app_id = b.id
+        left join biz_institution_ext c on b.institution_id = c.dept_id
+        where a.deleted = 0
+        <if test="req.region != null and req.region != ''">
+            and c.region = #{req.region}
+        </if>
+        <if test="req.year != null">
+            and YEAR(a.create_time) = #{req.year}
+        </if>
+    </select>
+
+
+    
+    <!--  设备生产企业汇总  -->
+    <select id="equipmentManufacturerSummary" resultType="map">
+        SELECT
+        COUNT(*) AS total_count,
+        SUM(CASE WHEN main_equipment_type = '01' THEN 1 ELSE 0 END) AS petCtScanner,
+        SUM(CASE WHEN main_equipment_type = '02' THEN 1 ELSE 0 END) AS gammaRayStereotacticRtSystem,
+        SUM(CASE WHEN main_equipment_type = '03' THEN 1 ELSE 0 END) AS linearAccelerator,
+        SUM(CASE WHEN main_equipment_type = '04' THEN 1 ELSE 0 END) AS endoscopicSurgicalSystem,
+        SUM(CASE WHEN main_equipment_type = '05' THEN 1 ELSE 0 END) AS mriSystem1_5tPlus,
+        SUM(CASE WHEN main_equipment_type = '06' THEN 1 ELSE 0 END) AS ctScanner64SlicePlus
+        FROM
+        biz_equipment_manufacturer
+        WHERE deleted = 0
+        <if test="req.year != null">
+            and YEAR(a.create_time) = #{req.year}
+        </if>
     </select>
 
     <select id="equipmentSummary" resultType="map">
@@ -33,9 +104,105 @@
         IFNULL(SUM(IF(license_device_name = '高端放射治疗类设备', 1, 0)), 0) AS highEndRtEquipment,
         IFNULL(SUM(IF(license_device_name = '重离子质子放射治疗系统', 1, 0)), 0) AS heavyIonProtonRtSystem
         FROM biz_class_a_equipment
-        WHERE deleted = b'0'
+        WHERE deleted = 0
         <if test="year != null and year != ''">
-            AND YEAR(create_time) = #{year, jdbcType=VARCHAR}
+            AND YEAR(create_time) = #{year}
         </if>
+    </select>
+
+    <select id="medicalInstitutionSummary" resultType="java.util.Map">
+        select
+            count(a.id) as total,
+            IFNULL(SUM(CASE WHEN b.license_device_name = 'X线正电子发射断层扫描仪' THEN 1 ELSE 0 END), 0)  AS petCtScanner,
+            IFNULL(SUM(CASE WHEN b.license_device_name = '伽玛射线立体定向放射治疗系统' THEN 1 ELSE 0 END), 0)  AS gammaRayStereotacticRtSystem,
+            IFNULL(SUM(CASE WHEN b.license_device_name = '直线加速器' THEN 1 ELSE 0 END), 0)  AS linearAccelerator,
+            IFNULL(SUM(CASE WHEN b.license_device_name = '内窥镜手术器械控制系统' THEN 1 ELSE 0 END), 0)  AS endoscopicSurgicalSystem,
+            IFNULL(SUM(CASE WHEN b.license_device_name = '1.5T及以上磁共振成像系统' THEN 1 ELSE 0 END), 0)  AS mriSystem1_5tPlus,
+            IFNULL(SUM(CASE WHEN b.license_device_name = '64排及以上X线计算机断层扫描仪' THEN 1 ELSE 0 END), 0)  AS ctScanner64SlicePlus
+        from biz_institution_ext a
+        left join biz_application b on a.dept_id = b.institution_id
+        where b.app_status = 5
+
+    </select>
+
+    <select id="equipmentStatisticsArea" resultType="map">
+        select
+            b.region as region,
+            count(a.id) as total
+        from biz_application a
+        left join biz_institution_ext b on a.institution_id = b.dept_id
+        where a.deleted = 0 and b.deleted = 0
+    </select>
+
+    <select id="equipmentStatisticsDetail" resultType="map">
+        select a.region, a.institution_name, b.license_device_name, b.ladder_config_model,
+               b.license_no, b.issue_date, c.installation_date, c.production_enterprise,
+               c.specific_model, c.duplicate_issue_date, b.status
+        from biz_application d
+        left join biz_institution_ext a on d.institution_id = a.dept_id
+        left join biz_license_original b on b.application_id = d.id
+        left join biz_license_duplicate c on b.id = c.original_id
+        where d.app_status = 5
+        <if test="req.region != null and req.region != ''">
+            and a.region = #{req.region}
+        </if>
+        <if test="req.year != null">
+            and YEAR(d.create_time) = #{req.year}
+        </if>
+        <if test="req.types != null and !req.types.isEmpty()">
+            and b.license_device_name in
+            <foreach collection="req.types" item="item" open="(" close=")" separator=",">
+                #{item}
+            </foreach>
+        </if>
+        <if test="req.status != null">
+            and b.status = #{req.status}
+        </if>
+        <if test="req.keywords != null and req.keywords != ''">
+            and (
+                (a.institution_name like concat('%', #{req.keywords}, '%')
+            or b.license_no like concat('%', #{req.keywords}, '%')
+                 )
+        </if>
+    </select>
+    <select id="annualIncremental" resultType="java.util.Map">
+        WITH yearly_counts AS (
+            SELECT
+                YEAR(create_time) AS "year",
+                COUNT(*) AS yearly_count
+            FROM biz_license_original
+            WHERE deleted = 0
+            GROUP BY YEAR(create_time)
+        ),
+             yearly_growth AS (
+                 SELECT
+                     "year",
+                     yearly_count,
+                     LAG(yearly_count, 1) OVER (ORDER BY "year") AS prev_year_count
+                 FROM yearly_counts
+             )
+        SELECT
+            "year",
+            yearly_count AS inc_count,
+            prev_year_count AS prev_count,
+            ROUND(
+                    CASE
+                        WHEN prev_year_count IS NULL THEN NULL
+                        WHEN prev_year_count = 0 THEN NULL
+                        ELSE (yearly_count - prev_year_count) * 100.0 / prev_year_count
+                        END,
+                    2
+            ) AS yoy_rate
+        FROM yearly_growth
+        ORDER BY "year";
+    </select>
+    <select id="ladderConfigDistribution" resultType="java.util.Map">
+        SELECT
+            ladder_config_model AS model,
+            COUNT(*) AS count,
+            ROUND(COUNT(*) * 100.0 / SUM(COUNT(*)) OVER (), 1) AS percentage
+        FROM biz_license_original
+        WHERE deleted = 0
+        GROUP BY ladder_config_model
     </select>
 </mapper>

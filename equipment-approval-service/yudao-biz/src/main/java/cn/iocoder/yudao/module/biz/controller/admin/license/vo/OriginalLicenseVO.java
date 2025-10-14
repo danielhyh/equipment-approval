@@ -1,6 +1,8 @@
 package cn.iocoder.yudao.module.biz.controller.admin.license.vo;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
@@ -14,6 +16,10 @@ public class OriginalLicenseVO {
 
     @Schema(description = "单位名称", example = "某某医院")
     private String configUnitName;
+
+//    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
+    @Schema(description = "机构ID", example = "1024",  implementation = Long.class)
+    private Long institutionId;
 
     @Schema(description = "统一社会信用代码", example = "912345678901234567")
     private String unifiedSocialCreditCode;
