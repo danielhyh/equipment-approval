@@ -116,14 +116,17 @@ let props = defineProps({
 let isView = computed(() => props.type === 'view')
 let isEdit = computed(() => props.type === 'edit')
 let loading = ref(false)
+interface DictDataTypeT extends DictDataType {
+  value: string | number
+}
 // 机构级别
-const orgLevelOptions = computed<DictDataType[]>(() => getDictOptions('biz_institution_level'))
+const orgLevelOptions = computed<DictDataTypeT[]>(() => getDictOptions('biz_institution_level'))
 // 机构类型
-const orgTypeOptions = computed<DictDataType[]>(() => getDictOptions('biz_institution_type'))
+const orgTypeOptions = computed<DictDataTypeT[]>(() => getDictOptions('biz_institution_type'))
 // 所有制性质
-const ownershipTypeOptions = computed<DictDataType[]>(() => getDictOptions('biz_ownership_nature'))
+const ownershipTypeOptions = computed<DictDataTypeT[]>(() => getDictOptions('biz_ownership_nature'))
 // 所属区域
-const areaOptions = computed<DictDataType[]>(() => getDictOptions('biz_area_list'))
+const areaOptions = computed<DictDataTypeT[]>(() => getDictOptions('biz_area_list'))
 interface tableDataType {
   id?: number | string
   // 机构名称

@@ -203,9 +203,11 @@
 </template>
 
 <script setup lang="ts">
+import { AnalysisApi } from '@/api/biz/analysis'
 import { Filter } from '@element-plus/icons-vue'
 import { getDictOptions } from '@/utils/dict'
 import type { DictDataType } from '@/utils/dict'
+
 interface DictDataTypeT extends DictDataType {
   value: string | number
 }
@@ -229,51 +231,68 @@ let regionData = ref([
   {
     key: 'xiaan',
     label: '西安市',
-    value: 100
+    value: 0
   },
   // 宝鸡市
   {
     key: 'baoji',
     label: '宝鸡市',
-    value: 200
+    value: 0
   },
   // 汉中市
   {
     key: 'hanzhong',
     label: '汉中市',
-    value: 300
+    value: 0
   },
   // 咸阳市
   {
     key: 'sanya',
     label: '咸阳市',
-    value: 400
+    value: 0
   },
   // 渭南市
   {
     key: 'weinan',
     label: '渭南市',
-    value: 500
+    value: 0
   },
   // 延安市
   {
     key: 'yianan',
     label: '延安市',
-    value: 600
+    value: 0
   },
   // 安康市
   {
     key: 'ankang',
     label: '安康市',
-    value: 700
+    value: 0
   },
   // 榆林市
   {
     key: 'yulin',
     label: '榆林市',
-    value: 800
+    value: 0
   }
 ])
+const getTotalData = async () => {
+  try {
+    const response = await AnalysisApi.getRegionDevice()
+    if (Array.isArray(response) && response.length > 0) {
+      response.forEach((item) => {
+        const index = regionData.value.findIndex(
+          (regionItem: any) => regionItem.label === item.region
+        )
+        if (index !== -1) {
+          regionData.value[index].value = item.total
+        }
+      })
+    }
+  } catch (err) {
+    console.log(err)
+  }
+}
 let loading = ref(false)
 let tableData = ref([
   {
@@ -312,7 +331,34 @@ let queryParams = reactive({
 const customIndex = (index: number) => {
   return (queryParams.pageNo - 1) * queryParams.pageSize + index + 1
 }
-const getList = async () => {}
+const getList = async () => {
+  let params = {
+    pageNo: queryParams.pageNo,
+    pageSize: queryParams.pageSize,
+    // 搜索关键词
+    keywords: queryParams.keyword,
+    // 统计年份
+    year: queryParams.year,
+    // 行政区划
+    region: queryParams.region,
+    // 阶梯配置
+    ladderConfigModel: queryParams.step_config,
+    // 证书状态
+    status: queryParams.licenseStatus,
+    // 设备类型
+    deviceTypes: queryParams.device_type
+  }
+  try {
+    loading.value = true
+    const response = await AnalysisApi.getDeviceDetail(params)
+    tableData.value = response.list || []
+    queryParams.total = response.total || 0
+  } catch (err) {
+    console.log(err)
+  } finally {
+    loading.value = false
+  }
+}
 
 // 弹窗
 let filterVisible = ref(false)
@@ -342,6 +388,9 @@ const openDialog = () => {
 const handleFilter = () => {
   filterVisible.value = false
 }
+onMounted(() => {
+  getTotalData()
+})
 </script>
 
 <style lang="scss" scoped>

@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div v-loading="loading">
     <!-- 办件统计汇总 -->
     <div class="title-row">
       <div class="left">
@@ -131,6 +131,7 @@
 import { getDictOptions } from '@/utils/dict'
 import type { DictDataType } from '@/utils/dict'
 import { Filter } from '@element-plus/icons-vue'
+import { AnalysisApi } from '@/api/biz/analysis'
 interface DictDataTypeT extends DictDataType {
   value: string | number
 }
@@ -157,91 +158,148 @@ let handingTotal = reactive<itemsType[]>([
 ])
 // 许可证统计汇总
 let licenseTotal = reactive<itemsType[]>([
-  { label: '许可证总量', value: 0, key: 'license_count' },
+  { label: '许可证总量', value: 0, key: 'total_count' },
   // 正电子发射型磁共振
-  { label: '正电子发射型磁共振', value: 0, key: 'mr_count' },
+  { label: '正电子发射型磁共振', value: 0, key: 'petCtScanner' },
   // X线正电子发射断层扫描仪
-  { label: 'X线正电子发射断层扫描仪', value: 0, key: 'xray_count' },
+  { label: 'X线正电子发射断层扫描仪', value: 0, key: 'ctScanner64SlicePlus' },
   // 腹腔内窥镜手术系统
-  { label: '腹腔内窥镜手术系统', value: 0, key: 'endoscope_count' },
+  { label: '腹腔内窥镜手术系统', value: 0, key: 'endoscopicSurgicalSystem' },
   // 常规放射治疗类设备
-  { label: '常规放射治疗类设备', value: 0, key: 'radiation_count' },
+  { label: '常规放射治疗类设备', value: 0, key: 'gammaRayStereotacticRtSystem' },
   // 首次配置的大型医疗器械
   { label: '首次配置的大型医疗器械', value: 0, key: 'first_config_count' }
 ])
 // 历史数据统计汇总
 let historyTotal = reactive<itemsType[]>([
-  { label: '历史数据总量', value: 0, key: 'history_count' },
+  { label: '历史数据总量', value: 0, key: 'total' },
   // x线正电子发射断层扫描仪
-  { label: 'x线正电子发射断层扫描仪', value: 0, key: 'history_xray_count' },
+  { label: 'x线正电子发射断层扫描仪', value: 0, key: 'petCtScanner' },
   // 内窥镜手术器械控制系统
-  { label: '内窥镜手术器械控制系统', value: 0, key: 'history_endoscope_count' },
+  { label: '内窥镜手术器械控制系统', value: 0, key: 'endoscopicSurgicalSystem' },
   // 64排以上X线计算机断层扫描仪
-  { label: '64排以上X线计算机断层扫描仪', value: 0, key: 'history_xray_computer_count' },
+  { label: '64排以上X线计算机断层扫描仪', value: 0, key: 'ctScanner64SlicePlus' },
   // 1.5%T及以上磁共振成像系统
-  { label: '1.5%T及以上磁共振成像系统', value: 0, key: 'history_mr_count' },
+  { label: '1.5%T及以上磁共振成像系统', value: 0, key: 'mriSystem1_5tPlus' },
   // 直线加速器
-  { label: '直线加速器', value: 0, key: 'history_linear_accelerator_count' },
+  { label: '直线加速器', value: 0, key: 'linearAccelerator' },
   // 伽马射线立体定向放射治疗系统
-  { label: '伽马射线立体定向放射治疗系统', value: 0, key: 'history_gamma_ray_count' }
+  { label: '伽马射线立体定向放射治疗系统', value: 0, key: 'gammaRayStereotacticRtSystem' }
 ])
 // 专家统计汇总
 let expertTotal = reactive<itemsType[]>([
   // 专家总数
-  { label: '专家总数', value: 0, key: 'expert_count' },
+  { label: '专家总数', value: 0, key: 'totalCount' },
   // 放射影像
-  { label: '放射影像', value: 0, key: 'history_radiation_count' },
+  { label: '放射影像', value: 0, key: 'radiologyImaging' },
   // 放射治疗
-  { label: '放射治疗', value: 0, key: 'history_radiation_therapy_count' },
+  { label: '放射治疗', value: 0, key: 'radiationTherapy' },
   // 核医学
-  { label: '核医学', value: 0, key: 'history_nuclear_medicine_count' },
+  { label: '核医学', value: 0, key: 'nuclearMedicine' },
   // 卫生管理
-  { label: '卫生管理', value: 0, key: 'history_waste_management_count' },
-  // 直线加速器
-  { label: '直线加速器', value: 0, key: 'history_linear_accelerator_count' },
+  { label: '卫生管理', value: 0, key: 'healthManagement' },
+  // // 直线加速器
+  // { label: '直线加速器', value: 0, key: 'history_linear_accelerator_count' },
   // 医学设备与安全防护
-  { label: '医学设备与安全防护', value: 0, key: 'history_medical_equipment_count' },
+  { label: '医学设备与安全防护', value: 0, key: 'medicalEquipmentSafety' },
   // 医学智能工程
-  { label: '医学智能工程', value: 0, key: 'history_medical_intelligent_count' }
+  { label: '医学智能工程', value: 0, key: 'medicalIntelligentEngineering' }
 ])
 // 公告统计汇总
 let noticeTotal = reactive<itemsType[]>([
-  { label: '公告总量', value: 0, key: 'notice_count' },
+  { label: '公告总量', value: 0, key: 'total' },
   // 已发布
-  { label: '已发布', value: 0, key: 'notice_published_count' },
+  { label: '已发布', value: 0, key: 'publishedCount' },
   // 未发布
-  { label: '未发布', value: 0, key: 'notice_unpublished_count' },
+  { label: '未发布', value: 0, key: 'draftCount' },
   // 总浏览量
-  { label: '总浏览量', value: 0, key: 'notice_views_count' }
+  { label: '总浏览量', value: 0, key: 'totalViews' }
 ])
 // 设备生产企业汇总
 let deviceTotal = reactive<itemsType[]>([
-  { label: '设备生产企业总量', value: 0, key: 'device_count' },
+  { label: '设备生产企业总量', value: 0, key: 'total_count' },
   //  正电子发射型核磁共振成像系统生产企业
-  { label: '正电子发射型核磁共振成像系统生产企业', value: 0, key: 'mr_count' },
+  { label: '正电子发射型核磁共振成像系统生产企业', value: 0, key: 'mriSystem1_5tPlus' },
   //  X线正电子发射断层扫描仪生产企业
-  { label: 'X线正电子发射断层扫描仪生产企业', value: 0, key: 'xray_count' },
+  { label: 'X线正电子发射断层扫描仪生产企业', value: 0, key: 'petCtScanner' },
   //  腹腔内窥镜手术系统生产企业
-  { label: '腹腔内窥镜手术系统生产企业', value: 0, key: 'endoscope_count' },
+  { label: '腹腔内窥镜手术系统生产企业', value: 0, key: 'endoscopicSurgicalSystem' },
   //  常规放射治疗类设备生产企业
-  { label: '常规放射治疗类设备生产企业', value: 0, key: 'radiation_count' },
+  { label: '常规放射治疗类设备生产企业', value: 0, key: 'gammaRayStereotacticRtSystem' },
   //  大型医疗器械生产企业
-  { label: '大型医疗器械生产企业', value: 0, key: 'first_config_count' }
+  { label: '大型医疗器械生产企业', value: 0, key: 'linearAccelerator' }
 ])
 // 医疗机构汇总
 let hospitalTotal = reactive<itemsType[]>([
-  { label: '医疗机构总量', value: 0, key: 'hospital_count' },
+  { label: '医疗机构总量', value: 0, key: 'total' },
   // 拥有正电子发射型核磁共振成像系统医疗机构
-  { label: '拥有正电子发射型核磁共振成像系统医疗机构', value: 0, key: 'mr_hospital_count' },
+  { label: '拥有正电子发射型核磁共振成像系统医疗机构', value: 0, key: 'mriSystem1_5tPlus' },
   //  拥有X线正电子发射断层扫描仪医疗机构
-  { label: '拥有X线正电子发射断层扫描仪医疗机构', value: 0, key: 'xray_hospital_count' },
+  { label: '拥有X线正电子发射断层扫描仪医疗机构', value: 0, key: 'petCtScanner' },
   //  拥有腹腔内窥镜手术系统医疗机构
-  { label: '拥有腹腔内窥镜手术系统医疗机构', value: 0, key: 'endoscope_hospital_count' },
+  { label: '拥有腹腔内窥镜手术系统医疗机构', value: 0, key: 'endoscopicSurgicalSystem' },
   //  拥有常规放射治疗类设备医疗机构
-  { label: '拥有常规放射治疗类设备医疗机构', value: 0, key: 'radiation_hospital_count' },
+  { label: '拥有常规放射治疗类设备医疗机构', value: 0, key: 'gammaRayStereotacticRtSystem' },
   //  首次配置的大型医疗器械医疗机构
-  { label: '首次配置的大型医疗器械医疗机构', value: 0, key: 'first_config_hospital_count' }
+  { label: '首次配置的大型医疗器械医疗机构', value: 0, key: 'linearAccelerator' }
 ])
+let loading = ref(false)
+const getOverviewData = async () => {
+  try {
+    loading.value = true
+    let response = await Promise.all([
+      AnalysisApi.getApplicationSummary({
+        year: filterParams.fullYears
+        // region: filterParams.region
+      }),
+      AnalysisApi.getLicenseSummary({
+        year: filterParams.fullYears
+        // region: filterParams.region
+      }),
+      AnalysisApi.getHistorySummary({
+        year: filterParams.fullYears
+      }),
+      AnalysisApi.getExpertSummary(),
+      AnalysisApi.getNoticeSummary({
+        year: filterParams.fullYears
+        // region: filterParams.region
+      }),
+      AnalysisApi.getEquipmentCompanySummary({
+        year: filterParams.fullYears
+        // region: filterParams.region
+      }),
+      AnalysisApi.getHealthcareSummary({
+        year: filterParams.fullYears
+        // region: filterParams.region
+      })
+    ])
+    handingTotal.forEach((item) => {
+      item.value = response[0][item.key] ? response[0][item.key] : 0
+    })
+    licenseTotal.forEach((item) => {
+      item.value = response[1][item.key] ? response[1][item.key] : 0
+    })
+    historyTotal.forEach((item) => {
+      item.value = response[2][item.key] ? response[2][item.key] : 0
+    })
+    expertTotal.forEach((item) => {
+      item.value = response[3][item.key] ? response[3][item.key] : 0
+    })
+    noticeTotal.forEach((item) => {
+      item.value = response[4][item.key] ? response[4][item.key] : 0
+    })
+    deviceTotal.forEach((item) => {
+      item.value = response[5][item.key] ? response[5][item.key] : 0
+    })
+    hospitalTotal.forEach((item) => {
+      item.value = response[6][item.key] ? response[6][item.key] : 0
+    })
+  } catch (err) {
+    console.log(err)
+  } finally {
+    loading.value = false
+  }
+}
 
 // 筛选弹窗
 let filterParams = reactive({
@@ -261,7 +319,11 @@ const openDialog = () => {
 // 处理筛选
 const handleFilter = () => {
   filterVisible.value = false
+  getOverviewData()
 }
+onMounted(() => {
+  getOverviewData()
+})
 </script>
 
 <style lang="scss" scoped>
