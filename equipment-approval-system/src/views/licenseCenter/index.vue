@@ -420,11 +420,19 @@ const openLicense = async (row, type, command) => {
   dialogComponent.value = markRaw(License)
   dialogBind.width = '320mm'
   try {
-    let response = await Promise.all([
-      LicenseApi.getLicenseOriginal(originalParam),
-      LicenseApi.getLicenseCopy(copyParam)
-    ])
-    let result = formateDialogLicense({ ...response[0], ...response[1] }, type)
+    let response =
+      type === 'A'
+        ? await Promise.all([LicenseApi.getLicenseOriginal(originalParam)])
+        : await Promise.all([
+            LicenseApi.getLicenseOriginal(originalParam),
+            LicenseApi.getLicenseCopy(copyParam)
+          ])
+    let result: any = null
+    if (type === 'B') {
+      result = formateDialogLicense({ ...response[0], ...response[1] }, type)
+    } else {
+      result = formateDialogLicense({ ...response[0] }, type)
+    }
     dialogComponentProps.value.licenseData = result
     dialogVisible.value = true
   } catch (err) {

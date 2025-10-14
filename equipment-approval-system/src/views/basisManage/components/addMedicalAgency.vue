@@ -40,7 +40,7 @@
             v-for="item in orgLevelOptions"
             :key="item.value"
             :label="item.label"
-            :value="item.value"
+            :value="item.label"
           />
         </el-select>
       </el-form-item>
@@ -62,7 +62,7 @@
             v-for="item in ownershipTypeOptions"
             :key="item.value"
             :label="item.label"
-            :value="item.value"
+            :value="item.label"
           />
         </el-select>
       </el-form-item>
@@ -73,13 +73,9 @@
             v-for="item in areaOptions"
             :key="item.value"
             :label="item.label"
-            :value="item.value"
+            :value="item.label"
           />
         </el-select>
-      </el-form-item>
-      <!-- 设备数量 -->
-      <el-form-item label="设备数量" prop="deviceNum">
-        <el-input v-model="formData.deviceNum" type="number" min="0" placeholder="请输入设备数量" />
       </el-form-item>
       <!-- 详情地址 -->
       <el-form-item class="el-form-item--span-row" label="详情地址" prop="detailAddress">
@@ -144,8 +140,6 @@ interface tableDataType {
   ownershipNature: string
   // 所属区域
   region: string
-  // 设备数量
-  deviceNum: number | string
   // 上级机构
   parentOrg?: string
   // 详情地址
@@ -165,7 +159,6 @@ let formData = reactive<tableDataType>({
   institutionType: '',
   ownershipNature: '',
   region: '',
-  deviceNum: '',
   detailAddress: '',
   contactPerson: '',
   businessLicensePic: []
@@ -181,7 +174,6 @@ let rules = ref({
   institutionType: [{ required: true, message: '请选择机构类型', trigger: 'change' }],
   ownershipNature: [{ required: true, message: '请选择所有制性质', trigger: 'change' }],
   region: [{ required: true, message: '请选择所属区域', trigger: 'change' }],
-  deviceNum: [{ required: true, message: '请输入设备数量', trigger: 'blur' }],
   detailAddress: [{ required: false, message: '请输入详情地址', trigger: 'blur' }],
   contactPerson: [{ required: false, message: '请输入联系人', trigger: 'blur' }],
   contactPhone: [
@@ -218,8 +210,8 @@ onMounted(() => {
   if (isView || isEdit) {
     let row = JSON.parse(JSON.stringify(props.row))
     row.businessLicensePic = row.businessLicensePic ? row.businessLicensePic : ''
-    console.log(row)
-    formData = Object.assign(formData, row)
+    row.institutionType = row.institutionType ? row.institutionType + '' : ''
+    row.formData = Object.assign(formData, row)
   }
 })
 defineExpose({

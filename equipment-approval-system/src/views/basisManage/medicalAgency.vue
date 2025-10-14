@@ -84,15 +84,7 @@
         <!-- 社会统一信用代码 -->
         <el-table-column label="社会统一信用代码" prop="unifiedSocialCreditCode" align="center" />
         <!-- 机构级别 -->
-        <el-table-column label="机构级别" prop="institutionLevel" align="center">
-          <template #default="scope">
-            {{
-              scope.row.institutionLevel
-                ? orgLevelOptions.find((item) => item.value === scope.row.institutionLevel)?.label
-                : ''
-            }}
-          </template>
-        </el-table-column>
+        <el-table-column label="机构级别" prop="institutionLevel" align="center" />
         <!-- 机构类型 -->
         <el-table-column label="机构类型" prop="institutionType" align="center">
           <template #default="scope">
@@ -106,26 +98,9 @@
           </template>
         </el-table-column>
         <!-- 所有制性质 -->
-        <el-table-column label="所有制性质" prop="ownershipNature" align="center">
-          <template #default="scope">
-            {{
-              scope.row.ownershipNature
-                ? ownershipNatureOptions.find((item) => item.value === scope.row.ownershipNature)
-                    ?.label
-                : ''
-            }}
-          </template>
-        </el-table-column>
+        <el-table-column label="所有制性质" prop="ownershipNature" align="center" />
         <!-- 所属区域 -->
-        <el-table-column label="所属区域" prop="region" align="center">
-          <template #default="scope">
-            {{
-              scope.row.region
-                ? areaOptions.find((item) => item.value === scope.row.region)?.label
-                : ''
-            }}
-          </template>
-        </el-table-column>
+        <el-table-column label="所属区域" prop="region" align="center" />
         <!-- 设备数量 -->
         <el-table-column label="设备数量" prop="deviceNum" align="center" />
         <!-- 操作 -->

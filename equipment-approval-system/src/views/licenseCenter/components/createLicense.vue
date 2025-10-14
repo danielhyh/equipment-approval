@@ -320,6 +320,7 @@
 
 <script setup lang="ts">
 import { LicenseApi } from '@/api/biz/license'
+import { getHospitalDetail } from '@/api/biz/basisManagement'
 import { getDictOptions } from '@/utils/dict'
 import type { DictDataType } from '@/utils/dict'
 import { ElForm, ElMessage } from 'element-plus'
@@ -351,7 +352,7 @@ let ownershipNatureOptions = computed<DictDataTypeT[]>(() => {
 let ladderConfigModelOptions = computed<DictDataTypeT[]>(() => {
   return getDictOptions('biz_ladder_config_model')
 })
-let configUnitOptions = ref<{ label: string; value: any }[]>([])
+let configUnitOptions = ref<{ label: string; value: any; id: any }[]>([])
 let formRef = ref<InstanceType<typeof ElForm> | null>(null)
 interface formDataFace {
   originalId?: number | null
@@ -380,7 +381,7 @@ let formData = reactive<formDataFace>({
     productSerialNo: '',
     installationDate: '',
     infoSubmitDate: '',
-    duplicateIssuingAuthority: '',
+    duplicateIssuingAuthority: '陕西省卫生健康委员会',
     duplicateIssueDate: '',
     remark: '', //备注
     // 其他信息----------
@@ -443,12 +444,25 @@ let rules = reactive({
   //   { required: true, message: '请输入副本发证日期', trigger: 'blur' }
   // ]
 })
-const changeConfigUnit = (v) => {
-  let eg: { value: any; label: string } = configUnitOptions.value.find(
-    (item: { value: any; label: string }) => item.value === v
-  ) || { label: '', value: '' }
+const changeConfigUnit = async (v) => {
+  let eg: { value: any; label: string; id: any } = configUnitOptions.value.find(
+    (item: { value: any; label: string; id: any }) => item.value === v
+  ) || { label: '', value: '', id: '' }
   // 配置单位名称
   formData.originalLicense.configUnitName = eg.label || ''
+  // 获取配置单位信息
+  try {
+    let response = await getHospitalDetail(eg.id)
+    console.log(response, '------ 配置单位详情')
+    // 配置单位统一社会信用代码
+    formData.originalLicense.unifiedSocialCreditCode = response.unifiedSocialCreditCode || ''
+    // 配置单位法人
+    formData.originalLicense.legalPerson = response.legalPerson || ''
+    // 配置所有制性质
+    formData.originalLicense.ownershipNature = response.ownershipNature || ''
+  } catch (err: any) {
+    ElMessage.error(err.message || '获取配置单位信息失败')
+  }
 }
 watch(
   () => dialogVisible.value,
@@ -589,10 +603,12 @@ const submit = async () => {
 const getEditFn = async () => {
   try {
     loading.value = true
-    let response = await LicenseApi.getOfflineLicense({
+    let params = {
       oid: editLicenseRow.value.originalId,
       did: editLicenseRow.value.duplicateId
-    })
+    }
+    if (!params.did) delete params.did
+    let response = await LicenseApi.getOfflineLicense(params)
     Object.keys(formData).forEach((key1) => {
       if (key1 === 'originalId' || key1 === 'duplicateId') {
         formData[key1] = response[key1]
@@ -661,7 +677,8 @@ onMounted(async () => {
     let response = await LicenseApi.getConfigUnitList()
     configUnitOptions.value = (response || []).map((item) => ({
       label: item.institutionName,
-      value: item.id * 1
+      value: item.deptId * 1,
+      id: item.id * 1
     }))
   } catch (err) {
     ElMessage.error('获取配置单位列表失败')
