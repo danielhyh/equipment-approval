@@ -120,7 +120,7 @@
                 class="btn view-btn"
                 type="primary"
                 :icon="View"
-                @click.stop="gotoDetailFn(scope.row, 'view')"
+                @click.stop="gotoDetailFn(scope.row, 'view', '')"
               >
                 查看
               </el-button>
@@ -130,7 +130,7 @@
                 type="primary"
                 :icon="Search"
                 v-if="scope.row.appStatus === '1'"
-                @click.stop="gotoDetailFn(scope.row, 'perliminary')"
+                @click.stop="gotoDetailFn(scope.row, 'perliminary', 'firstAudit')"
               >
                 初步审核
               </el-button>
@@ -140,7 +140,7 @@
                 type="primary"
                 :icon="Avatar"
                 v-if="scope.row.appStatus === '3' && scope.row.appType !== '4'"
-                @click.stop="gotoDetailFn(scope.row, 'expert')"
+                @click.stop="gotoDetailFn(scope.row, 'expert', 'expertAudit')"
               >
                 专家审批
               </el-button>
@@ -479,11 +479,13 @@ const downloadFn = () => {
 }
 
 // 查看 审核 专家审批
-const gotoDetailFn = (row, type) => {
+const gotoDetailFn = (row, type, page) => {
   applicationDataStore.updateProcessingType(activeType.value) //当前类型
+  const query = { id: row.id, type: type, status: row.appStatus, appType: row.appType, page }
+  if (!page) delete query.page
   router.push({
     path: '/process-other',
-    query: { id: row.id, type: type, status: row.appStatus, appType: row.appType }
+    query: query
   })
 }
 

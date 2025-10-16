@@ -66,31 +66,42 @@
         v-loading="loading"
       >
         <!-- 序号 -->
-        <el-table-column prop="index" label="序号" width="60" :index="customIndex" align="center" />
+        <el-table-column
+          type="index"
+          label="序号2"
+          width="60"
+          :index="customIndex"
+          align="center"
+        />
         <!-- 所属机构 -->
-        <el-table-column prop="org_name" label="所属机构" align="center" />
+        <el-table-column prop="institutionName" label="所属机构" align="center" />
         <!-- 医疗机构 -->
-        <el-table-column prop="hospital_name" label="医疗机构" align="center" />
+        <!-- <el-table-column prop="hospital_name" label="医疗机构" align="center" /> -->
         <!-- 设备类型 -->
-        <el-table-column prop="device_type" label="设备类型" align="center" />
+        <el-table-column prop="licenseDeviceName" label="设备类型" align="center" />
         <!-- 阶梯配置 -->
-        <el-table-column prop="step_config" label="阶梯配置" align="center" />
+        <el-table-column prop="ladderConfigModel" label="阶梯配置" align="center" />
         <!-- 许可证编号 -->
-        <el-table-column prop="license_no" label="许可证编号" align="center" />
+        <el-table-column prop="licenseNo" label="许可证编号" align="center" />
         <!-- 发证日期 -->
-        <el-table-column prop="issue_date" label="发证日期" align="center" />
+        <el-table-column prop="issueDate" label="发证日期" align="center" />
         <!-- 装机日期 -->
-        <el-table-column prop="install_date" label="装机日期" align="center" />
+        <el-table-column prop="installationDate" label="装机日期" align="center" />
         <!-- 生产企业 -->
-        <el-table-column prop="manufacturer" label="生产企业" align="center" />
+        <el-table-column prop="productionEnterprise" label="生产企业" align="center" />
         <!-- 具体型号 -->
-        <el-table-column prop="model" label="具体型号" align="center" />
+        <el-table-column prop="specificModel" label="具体型号" align="center" />
         <!-- 副本发证日期 -->
-        <el-table-column prop="copy_issue_date" label="副本发证日期" align="center" />
+        <el-table-column prop="duplicateIssueDate" label="副本发证日期" align="center" />
         <!-- 状态 -->
-        <el-table-column prop="status" label="状态" align="center" />
+        <el-table-column prop="status" label="状态" align="center">
+          <template #default="{ row }">
+            {{ row.status === 1 ? '有效' : row.status === 2 ? '已注销' : '已变更' }}
+          </template>
+        </el-table-column>
+
         <!-- 统计年份 -->
-        <el-table-column prop="year" label="统计年份" align="center" />
+        <!-- <el-table-column prop="year" label="统计年份" align="center" /> -->
       </el-table>
 
       <Pagination
@@ -202,6 +213,7 @@
 </template>
 
 <script setup lang="ts">
+import { AnalysisApi } from '@/api/biz/analysis'
 import { Filter } from '@element-plus/icons-vue'
 import { getDictOptions } from '@/utils/dict'
 import type { DictDataType } from '@/utils/dict'
@@ -275,23 +287,7 @@ let stepData = ref([
   ]
 ])
 let loading = ref(false)
-let tableData = ref([
-  {
-    index: 1,
-    org_name: '陕西省西安市',
-    hospital_name: '陕西省西安市医院',
-    device_type: 'CT扫描器',
-    step_config: '阶梯1',
-    license_no: '123456789012345678',
-    issue_date: '2023-01-01',
-    install_date: '2023-02-01',
-    manufacturer: '中国医疗设备有限公司',
-    model: 'CT-123456',
-    copy_issue_date: '2023-03-01',
-    status: '正常',
-    year: '2023'
-  }
-])
+let tableData = ref([])
 let queryParams = reactive({
   pageNo: 1,
   pageSize: 10,
@@ -312,7 +308,34 @@ let queryParams = reactive({
 const customIndex = (index: number) => {
   return (queryParams.pageNo - 1) * queryParams.pageSize + index + 1
 }
-const getList = async () => {}
+const getList = async () => {
+  let params = {
+    pageNo: queryParams.pageNo,
+    pageSize: queryParams.pageSize,
+    // 搜索关键词
+    keywords: queryParams.keyword,
+    // 统计年份
+    year: queryParams.year,
+    // 行政区划
+    region: queryParams.region,
+    // 阶梯配置
+    ladderConfigModel: queryParams.step_config,
+    // 证书状态
+    status: queryParams.licenseStatus,
+    // 设备类型
+    deviceTypes: queryParams.device_type.join(',')
+  }
+  try {
+    loading.value = true
+    const response = await AnalysisApi.getDeviceDetail(params)
+    tableData.value = response.list || []
+    queryParams.total = response.total || 0
+  } catch (err) {
+    console.log(err)
+  } finally {
+    loading.value = false
+  }
+}
 
 // 弹窗
 let filterVisible = ref(false)
@@ -342,6 +365,9 @@ const openDialog = () => {
 const handleFilter = () => {
   filterVisible.value = false
 }
+onMounted(() => {
+  getList()
+})
 </script>
 
 <style lang="scss" scoped>

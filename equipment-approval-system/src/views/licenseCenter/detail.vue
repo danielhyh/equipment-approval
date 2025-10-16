@@ -1,20 +1,23 @@
 <template>
   <div class="license-detail-box" v-loading="loading">
-    <div class="header-row">
+    <!-- <div class="header-row">
       <div class="left">
         <el-icon><Monitor /></el-icon>
         <span>许可证详情 - {{ title }}</span>
       </div>
-      <div class="right">
-        <el-button type="primary" :icon="Back" @click="goBack">返回上一页</el-button>
-      </div>
-    </div>
+    </div> -->
     <div class="content-page">
       <div class="scroll-content">
         <div class="content-basis-msg">
-          <div class="title-row">
-            <el-icon><Management /></el-icon>
-            <span>{{ basice.title }}</span>
+          <div class="title-row title-flex">
+            <div class="left">
+              <el-icon><Management /></el-icon>
+              <span>{{ basice.title }}</span>
+            </div>
+
+            <div class="right">
+              <el-button type="primary" :icon="Back" @click="goBack">返回上一页</el-button>
+            </div>
           </div>
           <div class="other-row">
             <div class="col"
@@ -294,6 +297,13 @@ onMounted(() => {
             font-size: 24px;
             font-weight: 600;
             margin-left: 6px;
+          }
+          &.left {
+            display: flex;
+            justify-content: center;
+          }
+          &.title-flex {
+            justify-content: space-between;
           }
         }
         .other-row {

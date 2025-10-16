@@ -25,20 +25,36 @@
 </template>
 
 <script setup lang="ts" name="HistoryProcess">
+import { LicenseApi } from '@/api/biz/license'
+let route = useRoute()
 let historyList = ref([
   {
     time: '2023-08-01 10:00:00',
     content: '副本证书发放',
     operator: '张三',
     remark: '操作类型文本'
-  },
-  {
-    time: '2023-08-02 10:00:00',
-    content: '副本证书发放',
-    operator: '张三',
-    remark: '操作类型文本'
   }
 ])
+const getHistoryList = async () => {
+  try {
+    let id: any = route.query.id
+    if (!id) return
+    let response = await LicenseApi.getLicenseHistory({ id: id * 1 })
+    historyList.value = (response || []).map((eg) => {
+      return {
+        content: eg.actionDesc,
+        operator: eg.operatorName,
+        remark: eg.remark,
+        time: eg.createTime
+      }
+    })
+  } catch (err) {
+    ElMessage.error(`获取操作记录失败`)
+  }
+}
+onMounted(() => {
+  getHistoryList()
+})
 </script>
 
 <style lang="scss" scoped>

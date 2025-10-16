@@ -41,5 +41,9 @@ export const LicenseApi = {
   // 针对副本进行审核 {id:副本id,reviewResult:审核结果,reviewOpinion:审核意见,expertIds:专家id列表——逗号隔开的字符串,expertAttachments:专家审核附件path 逗号分隔}
   auditCopyLicense: async (data: any) => {
     return await request.post({ url: `/biz/license/approval`, data })
+  },
+  // 历史记录
+  getLicenseHistory: async (params: { id: number }) => {
+    return await request.get({ url: `/biz/log/list`, params })
   }
 }

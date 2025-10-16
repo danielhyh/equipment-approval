@@ -363,7 +363,8 @@ const copyInspectionFn = (row) => {
       id: row.id,
       originalId: row.originalId,
       duplicateId: row.duplicateId,
-      licenseCode: row.licenseNo
+      licenseCode: row.licenseNo,
+      page: 'copyInspection'
     }
   })
 }
@@ -423,13 +424,19 @@ const openLicense = async (row, type, command) => {
     let response =
       type === 'A'
         ? await Promise.all([LicenseApi.getLicenseOriginal(originalParam)])
-        : await Promise.all([
-            LicenseApi.getLicenseOriginal(originalParam),
-            LicenseApi.getLicenseCopy(copyParam)
-          ])
+        : !!row.duplicateId
+          ? await Promise.all([
+              LicenseApi.getLicenseOriginal(originalParam),
+              LicenseApi.getLicenseCopy(copyParam)
+            ])
+          : await Promise.all([LicenseApi.getLicenseOriginal(originalParam)])
     let result: any = null
     if (type === 'B') {
-      result = formateDialogLicense({ ...response[0], ...response[1] }, type)
+      if (row.duplicateId) {
+        result = formateDialogLicense({ ...response[0], ...response[1] }, type)
+      } else {
+        result = formateDialogLicense({ ...response[0] }, type)
+      }
     } else {
       result = formateDialogLicense({ ...response[0] }, type)
     }

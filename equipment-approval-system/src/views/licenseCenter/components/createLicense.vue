@@ -381,7 +381,7 @@ let formData = reactive<formDataFace>({
     productSerialNo: '',
     installationDate: '',
     infoSubmitDate: '',
-    duplicateIssuingAuthority: '陕西省卫生健康委员会',
+    duplicateIssuingAuthority: '',
     duplicateIssueDate: '',
     remark: '', //备注
     // 其他信息----------

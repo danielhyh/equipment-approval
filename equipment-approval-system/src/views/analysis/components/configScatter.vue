@@ -14,6 +14,22 @@
             设备配置分布情况
           </div>
         </div>
+        <div class="right">
+          <el-button type="primary" size="small" :icon="Filter" @click.stop="openDialog">
+            筛选
+          </el-button>
+          <el-button type="success" size="small">
+            <template #icon>
+              <Icon
+                icon="material-symbols:download-rounded"
+                color="#fff"
+                :size="18"
+                style="margin-right: 5px"
+              />
+            </template>
+            导出数据
+          </el-button>
+        </div>
       </div>
       <!-- 表格 -->
       <el-table
@@ -80,22 +96,6 @@
             设备详细信息
           </div>
         </div>
-        <div class="right">
-          <el-button type="primary" size="small" :icon="Filter" @click.stop="openDialog">
-            筛选
-          </el-button>
-          <el-button type="success" size="small">
-            <template #icon>
-              <Icon
-                icon="material-symbols:download-rounded"
-                color="#fff"
-                :size="18"
-                style="margin-right: 5px"
-              />
-            </template>
-            导出数据
-          </el-button>
-        </div>
       </div>
       <el-table
         :data="tableData"
@@ -108,7 +108,13 @@
         v-loading="loading"
       >
         <!-- 序号 -->
-        <el-table-column prop="index" label="序号" width="60" :index="customIndex" align="center" />
+        <el-table-column
+          prop="index"
+          label="序号3"
+          width="60"
+          :index="customIndex"
+          align="center"
+        />
         <!-- 所属机构 -->
         <el-table-column prop="org_name" label="所属机构" align="center" />
         <!-- 医疗机构 -->

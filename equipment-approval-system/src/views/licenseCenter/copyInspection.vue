@@ -1,20 +1,23 @@
 <template>
   <div class="license-detail-box" v-loading="loading">
-    <div class="header-row">
+    <!-- <div class="header-row">
       <div class="left">
         <el-icon><Monitor /></el-icon>
         <span>副本信息验收 - {{ title }}</span>
       </div>
-      <div class="right">
-        <el-button type="primary" :icon="Back" @click="goBack">返回上一页</el-button>
-      </div>
-    </div>
+     
+    </div> -->
     <div class="content-page">
       <div class="scroll-content">
         <div class="content-basis-msg">
-          <div class="title-row">
-            <el-icon><Management /></el-icon>
-            <span>{{ basice.title }}</span>
+          <div class="title-row title-flex">
+            <div class="left">
+              <el-icon><Management /></el-icon>
+              <span>{{ basice.title }}</span>
+            </div>
+            <div class="right">
+              <el-button type="primary" :icon="Back" @click="goBack">返回上一页</el-button>
+            </div>
           </div>
           <div class="other-row">
             <div class="col"
@@ -77,6 +80,7 @@ let licenseId = route.query.id
 const licenseCode = route.query.licenseCode
 const originalId = route.query.originalId
 const duplicateId = route.query.duplicateId
+const page = route.query.page
 let loading = ref(false)
 provide('licenseId', licenseId)
 provide('originalId', originalId)
@@ -148,14 +152,28 @@ const getBasisInfo = async () => {
     loading.value = false
 
     // 初始化第一个选中模块
-    typeActive.value.value = typeList.value[0].value
-    typeActive.value.component = typeList.value[0].component
+    // typeActive.value.value = typeList.value[0].value
+    // typeActive.value.component = typeList.value[0].component
   } catch (err) {
     loading.value = false
   }
 }
+const initPage = () => {
+  let pageValue: any = null
+  typeList.value.forEach((item) => {
+    if (item.value === page) {
+      pageValue = item
+    }
+  })
+  if (pageValue) {
+    handlerType(pageValue)
+  } else {
+    handlerType(typeList.value[0])
+  }
+}
 onMounted(() => {
   getBasisInfo()
+  initPage()
 })
 </script>
 
@@ -202,6 +220,10 @@ onMounted(() => {
           margin-bottom: 10px;
           display: flex;
           align-items: center;
+          > .left {
+            display: flex;
+            align-items: center;
+          }
           .el-icon {
             color: #165dff;
             font-size: 24px;
@@ -211,6 +233,9 @@ onMounted(() => {
             font-size: 24px;
             font-weight: 600;
             margin-left: 6px;
+          }
+          &.title-flex {
+            justify-content: space-between;
           }
         }
         .other-row {

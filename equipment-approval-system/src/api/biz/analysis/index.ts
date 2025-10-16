@@ -80,5 +80,29 @@ export const AnalysisApi = {
       url: `/biz/statistics/equipment-statistics-detail`,
       params
     })
+  },
+  /**
+   * 年度递增分量及总量
+   */
+  getAnnualAmount: async () => {
+    return await request.get({
+      url: `/biz/statistics/annual-incremental`
+    })
+  },
+  /**
+   * 阶梯分布配置
+   */
+  getLadderConfig: async () => {
+    return await request.get({
+      url: `/biz/statistics/ladder-config-distribution`
+    })
+  },
+  /**
+   * 配置分布情况
+   */
+  getConfigDistribution: async () => {
+    return await request.get({
+      url: `/biz/statistics/medical-device-distribution`
+    })
   }
 }

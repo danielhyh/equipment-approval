@@ -92,7 +92,7 @@ import { useApplicationDataStore } from '@/store/applicationData'
 let loading = ref(false)
 const router = useRouter()
 const route = useRoute()
-const { id, type, status, appType } = route.query
+const { id, type, status, appType, page } = route.query
 
 let bindComponent = computed(() => ({ disabled: checkDisabled.value }))
 // 校验当前组件是否可以编辑
@@ -231,8 +231,21 @@ const getBasicInfo = async () => {
     loading.value = false
   }
 }
+const initPage = () => {
+  let pageValue: any = null
+  typeList.value.forEach((item) => {
+    if (item.value === page) {
+      pageValue = item
+    }
+  })
+  if (pageValue) {
+    handlerType(pageValue)
+  } else {
+    handlerType(typeList.value[0])
+  }
+}
 onMounted(() => {
-  typeActive.value = { value: typeList.value[0].value, component: typeList.value[0].component }
+  initPage()
   getBasicInfo()
 })
 </script>
