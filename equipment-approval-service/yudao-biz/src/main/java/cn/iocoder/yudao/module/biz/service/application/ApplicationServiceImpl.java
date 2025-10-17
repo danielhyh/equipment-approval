@@ -191,7 +191,9 @@ public class ApplicationServiceImpl implements ApplicationService {
 
     @Override
     public ApplicationBasicInformationVO getApplicationBasicInformation(Long id) {
-        return applicationMapper.selectBasicInfo(id);
+        ApplicationBasicInformationVO vo = applicationMapper.selectBasicInfo(id);
+        vo.setRegion("陕西省" + vo.getRegion());
+        return vo;
     }
 
     @Override
@@ -344,11 +346,11 @@ public class ApplicationServiceImpl implements ApplicationService {
         String expertId = vo.getExpertId();
         if (StringUtils.isNotBlank(expertId)) {
             String[] split = expertId.split(",");
-//            List<String> nameList = jdbcClient.sql("select name from biz_expert_ext where id in (:ids)")
-//                    .param("ids", Arrays.asList(split))
-//                    .query(String.class)
-//                    .list();
-            vo.setExpertList(new ArrayList<>(Arrays.asList(split)));
+            List<Map<String, String>> nameList = jdbcClient.sql("select id, name from biz_expert_ext where id in (:ids)")
+                    .param("ids", Arrays.asList(split))
+                    .query(JdbcClientHelper::resultSetToMap)
+                    .list();
+            vo.setExpertList(nameList);
         }
         return vo;
     }

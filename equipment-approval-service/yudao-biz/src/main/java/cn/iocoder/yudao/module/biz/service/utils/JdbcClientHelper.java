@@ -2,6 +2,7 @@ package cn.iocoder.yudao.module.biz.service.utils;
 
 import com.google.common.base.CaseFormat;
 
+import java.sql.NClob;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.HashMap;
@@ -16,7 +17,13 @@ public class JdbcClientHelper {
             String columnName = rs.getMetaData().getColumnName(i);
             columnName = CaseFormat.LOWER_UNDERSCORE.to(CaseFormat.LOWER_CAMEL, columnName);
             Object value = rs.getObject(i);
-            row.put(columnName, value != null ? value.toString() : null);
+            String data = "";
+            if (value instanceof NClob clob) {
+                data = clob.getSubString(1, (int) clob.length());
+            }  else {
+                data = value != null ? value.toString() : "";
+            }
+            row.put(columnName, data);
         }
         return row;
     }

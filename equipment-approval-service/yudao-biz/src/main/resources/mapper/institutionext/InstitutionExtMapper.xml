@@ -30,8 +30,8 @@
                 INNER JOIN system_dept d1 ON b1.dept_id = d1.id
                 LEFT JOIN biz_institution_ext b2 ON d1.parent_id = b2.dept_id
         WHERE
-            b1.deleted = b'0'
-          AND d1.deleted = b'0'
+            b1.deleted = 0
+          AND d1.deleted = 0 and b1.id = #{id}
     </select>
 
     <update id="updateBasicInfo" parameterType="map">
@@ -53,6 +53,6 @@
                 business_license_pic = #{businessLicensePic},
             </if>
         </set>
-        where dept_id = #{id} and deleted = b'0'
+        where dept_id = #{id} and deleted = 0
     </update>
 </mapper>

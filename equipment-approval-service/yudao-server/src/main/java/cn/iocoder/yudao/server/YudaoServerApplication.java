@@ -1,8 +1,14 @@
 package cn.iocoder.yudao.server;
 
 import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.builder.SpringApplicationBuilder;
+import org.springframework.boot.context.metrics.buffering.BufferingApplicationStartup;
+import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.core.metrics.StartupStep;
+
+import java.util.Comparator;
+import java.util.stream.StreamSupport;
 
 /**
  * 项目的启动类
@@ -18,18 +24,12 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 public class YudaoServerApplication {
 
     public static void main(String[] args) {
-        // 如果你碰到启动的问题，请认真阅读 https://doc.iocoder.cn/quick-start/ 文章
-        // 如果你碰到启动的问题，请认真阅读 https://doc.iocoder.cn/quick-start/ 文章
-        // 如果你碰到启动的问题，请认真阅读 https://doc.iocoder.cn/quick-start/ 文章
 
         SpringApplication.run(YudaoServerApplication.class, args);
-//        new SpringApplicationBuilder(YudaoServerApplication.class)
-//                .applicationStartup(new BufferingApplicationStartup(20480))
+//        BufferingApplicationStartup startup = new BufferingApplicationStartup(20480);
+//        ConfigurableApplicationContext context = new SpringApplicationBuilder(YudaoServerApplication.class)
+//                .applicationStartup(startup)
 //                .run(args);
-
-        // 如果你碰到启动的问题，请认真阅读 https://doc.iocoder.cn/quick-start/ 文章
-        // 如果你碰到启动的问题，请认真阅读 https://doc.iocoder.cn/quick-start/ 文章
-        // 如果你碰到启动的问题，请认真阅读 https://doc.iocoder.cn/quick-start/ 文章
     }
 
 }

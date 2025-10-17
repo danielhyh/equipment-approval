@@ -1,6 +1,10 @@
 package cn.iocoder.yudao.module.biz.controller.admin.application.vo;
 
+import com.baomidou.mybatisplus.annotation.TableField;
+import com.baomidou.mybatisplus.annotation.TableName;
+import com.baomidou.mybatisplus.extension.handlers.JacksonTypeHandler;
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
@@ -39,4 +43,6 @@ public class ApplicationPageRespVO {
     private Long duplicateId;
 
     private String licenseNo;
+
+    private ObjectNode extra;
 }

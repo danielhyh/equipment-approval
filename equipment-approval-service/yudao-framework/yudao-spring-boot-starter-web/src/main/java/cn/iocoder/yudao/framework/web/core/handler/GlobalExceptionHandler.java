@@ -23,6 +23,7 @@ import jakarta.validation.ConstraintViolationException;
 import jakarta.validation.ValidationException;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.util.Assert;
@@ -64,7 +65,8 @@ public class GlobalExceptionHandler {
     @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
     private final String applicationName;
 
-    private final ApiErrorLogCommonApi apiErrorLogApi;
+    @Lazy
+    //private final ApiErrorLogCommonApi apiErrorLogApi;
 
     /**
      * 处理所有异常，主要是提供给 Filter 使用
@@ -317,7 +319,7 @@ public class GlobalExceptionHandler {
             // 初始化 errorLog
             buildExceptionLog(errorLog, req, e);
             // 执行插入 errorLog
-            apiErrorLogApi.createApiErrorLogAsync(errorLog);
+            //apiErrorLogApi.createApiErrorLogAsync(errorLog);
         } catch (Throwable th) {
             log.error("[createExceptionLog][url({}) log({}) 发生异常]", req.getRequestURI(),  JsonUtils.toJsonString(errorLog), th);
         }

@@ -51,8 +51,8 @@ public class InstitutionExtServiceImpl implements InstitutionExtService {
     private Long insertDept(InstitutionExtDO extDO) {
 
         KeyHolder keyHolder = new GeneratedKeyHolder();
-        jdbcClient.sql("insert into system_dept (name, phone, `status`) values (?, ?, ?)")
-                .params(extDO.getInstitutionName(), extDO.getContactPhone(), 0)
+        jdbcClient.sql("insert into system_dept (name, phone, `status`, parent_id) values (?, ?, ?, ?)")
+                .params(extDO.getInstitutionName(), extDO.getContactPhone(), 0, 100)
                 .update(keyHolder);
         return Optional.ofNullable(keyHolder.getKey()).map(Number::longValue)
                 .orElseThrow(() -> new ServiceException(1111, "插入dept部门失败"));
@@ -108,6 +108,11 @@ public class InstitutionExtServiceImpl implements InstitutionExtService {
     @Override
     public Boolean inUse(Long id) {
         return institutionExtMapper.inUse(id) > 0;
+    }
+
+    @Override
+    public List<Map<String, String>> getInstitutionExtList() {
+        return institutionExtMapper.selectList2();
     }
 
 }

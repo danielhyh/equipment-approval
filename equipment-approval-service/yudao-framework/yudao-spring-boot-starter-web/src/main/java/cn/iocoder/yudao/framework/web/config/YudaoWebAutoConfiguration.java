@@ -65,8 +65,9 @@ public class YudaoWebAutoConfiguration implements WebMvcConfigurer {
 
     @Bean
     @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
-    public GlobalExceptionHandler globalExceptionHandler(ApiErrorLogCommonApi apiErrorLogApi) {
-        return new GlobalExceptionHandler(applicationName, apiErrorLogApi);
+    public GlobalExceptionHandler globalExceptionHandler() {
+//        return new GlobalExceptionHandler(applicationName, apiErrorLogApi);
+        return new GlobalExceptionHandler(applicationName);
     }
 
     @Bean

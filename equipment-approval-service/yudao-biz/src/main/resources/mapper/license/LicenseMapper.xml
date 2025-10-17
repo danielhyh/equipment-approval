@@ -32,7 +32,7 @@
             <if test="vo.originalPosition != null and vo.originalPosition != ''">original_position = #{vo.originalPosition},</if>
             <if test="vo.remark != null and vo.remark != ''">remark = #{vo.remark}</if>
         </set>
-        WHERE id = #{id}
+        WHERE id = #{vo.id}
     </update>
 
 
@@ -49,7 +49,8 @@
             a.issue_date AS original_issuance_date,
             b.duplicate_issue_date AS duplicate_issue_date,
             c.app_type as license_type,
-            a.status
+            a.status,
+            b.acceptance_status
         from biz_license_original a
                  left join biz_license_duplicate b on a.id = b.original_id
                  left join biz_application c on a.application_id = c.id
@@ -75,6 +76,7 @@
                 )
             </if>
         </where>
+        order by a.create_time desc
     </select>
 
 
@@ -83,19 +85,25 @@
             config_unit_name,
             unified_social_credit_code,
             legal_person,
-            license_device_name,
+            a.license_device_name,
             ownership_nature,
-            ladder_config_model,
+            a.ladder_config_model,
             equipment_config_address,
             detailed_address,
             issuing_authority,
             issue_date,
-            license_no
-        from biz_license_original
-        where id = #{id}
+            a.license_no,
+            b.institution_id
+        from biz_license_original a
+        left join biz_application b on a.application_id = b.id
+        where a.id = #{id}
     </select>
 
-    <select id="getDuplicateById" resultType="cn.iocoder.yudao.module.biz.controller.admin.license.vo.DuplicateLicenseVO">
+    <resultMap id="map2" type="cn.iocoder.yudao.module.biz.controller.admin.license.vo.DuplicateLicenseVO">
+        <result property="equipmentUsers" column="equipment_users" typeHandler="com.baomidou.mybatisplus.extension.handlers.JacksonTypeHandler"/>
+    </resultMap>
+
+    <select id="getDuplicateById" resultMap="map2">
         SELECT
             a.production_enterprise,
             a.specific_model,
@@ -108,8 +116,8 @@
             b.purchase_price,
             b.equipment_users,
             b.special_description,
-            a.original_position
-
+            a.original_position,
+            equipment_id
         FROM
             biz_license_duplicate a
         left join biz_class_a_equipment b on a.equipment_id = b.id
@@ -130,18 +138,18 @@
         c.installation_date,
         d.app_type,
         IF(b.id IS NOT NULL, 'Y', 'N') AS has_duplicate,
-        IF(e.id IS NOT NULL, 'Y', 'N') AS has_acceptance_material
+        IF(b.acceptance_status = 1, 'Y', 'N') AS has_acceptance_material
         from biz_license_original a
         left join biz_license_duplicate b on a.id = b.original_id
         left join biz_application d on d.id = a.application_id
         left join biz_class_a_equipment c on d.equipment_id = c.id
-        left join biz_acceptance_material e on e.application_id = d.id
         <where>
             and d.creator = #{userId} and d.app_status = 5
             <if test="type != null and type != ''">
                 and a.license_device_name = #{type}
             </if>
         </where>
+        order by a.create_time desc
     </select>
 
     <insert id="insertDuplicateLicense"
@@ -158,6 +166,7 @@
             product_serial_no,
             duplicate_issue_date,
             installation_date,
+            acceptance_status,
             remark,
             status,
             creator,
@@ -171,6 +180,7 @@
                         #{vo.productSerialNo},
                         #{vo.duplicateIssueDate},
                         #{vo.installationDate},
+                        0,
                         #{vo.remark},
                         1,
                         #{creator},

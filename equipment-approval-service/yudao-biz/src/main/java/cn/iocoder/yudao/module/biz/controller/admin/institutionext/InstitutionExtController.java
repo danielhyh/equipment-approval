@@ -65,6 +65,9 @@ public class InstitutionExtController {
         if (institutionExtService.inUse(id)) {
             throw new ServiceException(1111, "此部门已被用户绑定");
         }
+        if (2 == id) {
+            throw new ServiceException(1111, "默认机构不能删除");
+        }
         institutionExtService.deleteInstitutionExt(id);
         return success(true);
     }
@@ -116,6 +119,13 @@ public class InstitutionExtController {
         // 导出 Excel
         ExcelUtils.write(response, "机构扩展信息.xls", "数据", InstitutionExtRespVO.class,
                         BeanUtils.toBean(list, InstitutionExtRespVO.class));
+    }
+
+    @GetMapping("/list")
+    @Operation(summary = "获得机构信息列表")
+    //@PreAuthorize("@ss.hasPermission('biz:institution-ext:query')")
+    public CommonResult<List<Map<String, String>>> getInstitutionExtList() {
+        return success(institutionExtService.getInstitutionExtList());
     }
 
 }

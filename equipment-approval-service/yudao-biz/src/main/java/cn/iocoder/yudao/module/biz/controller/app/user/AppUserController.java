@@ -66,7 +66,7 @@ public class AppUserController {
                   b1.institution_type,
                   b2.institution_name as superior_institution,
                   b1.institution_level,
-                  CONCAT('陕西省', b1.region) AS region,
+                  b1.region,
                   b1.contact_person,
                   b1.contact_phone,
                   b1.business_license_pic
@@ -75,13 +75,14 @@ public class AppUserController {
                   LEFT JOIN biz_institution_ext b1 ON su.dept_id = b1.dept_id
                   INNER JOIN system_dept d1 ON b1.dept_id = d1.id
                   LEFT JOIN biz_institution_ext b2 ON d1.parent_id = b2.dept_id
-                where su.id = ? and su.deleted = b'0' and b1.deleted = b'0'
+                where su.id = ? and su.deleted = 0 and b1.deleted = 0
                 """;
         Long loginUserId = SecurityFrameworkUtils.getLoginUserId();
         if (loginUserId == null) {
             throw new ServiceException(GlobalErrorCodeConstants.INTERNAL_SERVER_ERROR);
         }
         UserInstitutionInfo single = jdbcClient.sql(sql).param(loginUserId).query(UserInstitutionInfo.class).single();
+        single.setRegion("陕西省" + single.getRegion());
         return success(single);
     }
 
