@@ -80,7 +80,7 @@ public class ApplicationStatusScheduler {
         String licenseDeviceName = applicationDO.getLicenseDeviceName();
         CreateNotificationRequest createNotificationRequest = new CreateNotificationRequest();
         createNotificationRequest.setTitle(licenseDeviceName + "申请进度更新");
-        String format = String.format("您提交的%s配置许可证%s%s, 审核意见：%s。", licenseDeviceName, appTypeMap.get(applicationDO.getAppType()), "已过期，初步审核未通过", "未通过");
+        String format = String.format("提交的%s配置许可证%s%s, 审核意见：%s。", licenseDeviceName, appTypeMap.get(applicationDO.getAppType()), "已过期，初步审核未通过", "未通过");
         createNotificationRequest.setContent(format);
         createNotificationRequest.setPublishNow(true);
         createNotificationRequest.setCreator(String.valueOf((Long) 1L));

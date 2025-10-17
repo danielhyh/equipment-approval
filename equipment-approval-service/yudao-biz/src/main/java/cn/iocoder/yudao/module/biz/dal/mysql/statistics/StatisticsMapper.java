@@ -1,5 +1,6 @@
 package cn.iocoder.yudao.module.biz.dal.mysql.statistics;
 
+import cn.iocoder.yudao.module.biz.controller.admin.statistics.vo.DetailResponseVO;
 import cn.iocoder.yudao.module.biz.controller.admin.statistics.vo.FilterRequest;
 import cn.iocoder.yudao.module.biz.controller.admin.statistics.vo.QueryRequest;
 import com.baomidou.mybatisplus.core.metadata.IPage;
@@ -41,7 +42,7 @@ public interface StatisticsMapper {
     List<Map<String, Object>> equipmentStatisticsArea();
 
     //设备拥有量--设备详细信息
-    IPage<Map<String, Object>> equipmentStatisticsDetail(IPage<Map<String, Object>> page, @Param("req") FilterRequest filterRequest);
+    IPage<DetailResponseVO> equipmentStatisticsDetail(IPage<DetailResponseVO> page, @Param("req") FilterRequest filterRequest);
 
     //年度递增分量及总量-年度增量
     // prev_count 上年数量 inc_count 新增数量 yoy_rate 同比增长率百分比
@@ -50,4 +51,7 @@ public interface StatisticsMapper {
     //阶梯配置 -- 阶梯配置分布情况
     // model 机型名称 count 数量
     List<Map<String, Object>> ladderConfigDistribution();
+
+
+    List<Map<String, Object>> deviceModelDistribution(@Param("req") FilterRequest req);
 }

@@ -144,7 +144,7 @@
         left join biz_application d on d.id = a.application_id
         left join biz_class_a_equipment c on d.equipment_id = c.id
         <where>
-            and d.creator = #{userId} and d.app_status = 5
+            and (d.creator = #{userId} or d.institution_id =#{deptId}) and d.app_status = 5
             <if test="type != null and type != ''">
                 and a.license_device_name = #{type}
             </if>

@@ -13,6 +13,7 @@
   },
   "dependencies": {
     "vue": "3.4.38",
+    "vue-print-next": "^1.1.6",
     "vue-router": "4"
   },
   "devDependencies": {

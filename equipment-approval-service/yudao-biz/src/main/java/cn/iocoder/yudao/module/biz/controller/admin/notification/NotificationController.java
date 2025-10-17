@@ -32,15 +32,15 @@ public class NotificationController {
     public CommonResult<Map<String, String>> notificationSummary() {
         String sql = """
                 SELECT
-                    COALESCE(SUM(IF(b.app_type = 1, 1, 0)), 0) as apply,
-                    COALESCE(SUM(IF(b.app_type = 2, 1, 0)), 0) as renew,
-                    COALESCE(SUM(IF(b.app_type = 3, 1, 0)), 0) as `change`,
-                    COALESCE(SUM(IF(b.app_type = 4, 1, 0)), 0) as info_change,
-                    COUNT(b.app_type) as total
-                FROM
-                    biz_notifications a
-                LEFT JOIN biz_application b on a.app_id = b.id
-                where a.deleted = 0 and b.deleted = 0
+                      COALESCE(SUM(IF(b.app_type = 1, 1, 0)), 0) as apply,
+                      COALESCE(SUM(IF(b.app_type = 2, 1, 0)), 0) as renew,
+                      COALESCE(SUM(IF(b.app_type = 3, 1, 0)), 0) as `change`,
+                      COALESCE(SUM(IF(b.app_type = 4, 1, 0)), 0) as info_change,
+                      COUNT(b.id) as total
+                  FROM
+                       biz_application b
+                  left join biz_notifications a on b.id = a.app_id
+                  where  b.deleted = 0 and b.app_type in (1,2,3,4) and a.creator = '1'
                 """;
         Map<String, String> single = jdbcClient.sql(sql).query(JdbcClientHelper::resultSetToMap).single();
         return success(single);
@@ -52,7 +52,7 @@ public class NotificationController {
         String sql = """
                 select app_type, content, title, publish_time from biz_notifications a
                 left join biz_application b on a.app_id = b.id
-                where a.deleted = 0 and b.deleted = 0
+                where a.deleted = 0 and b.deleted = 0 and a.creator = '1'
                 """;
         List<Map<String, String>> list = jdbcClient.sql(sql).query(JdbcClientHelper::resultSetToMap).list();
         return success(list);

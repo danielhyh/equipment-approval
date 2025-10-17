@@ -11,6 +11,9 @@ importers:
       vue:
         specifier: 3.4.38
         version: 3.4.38
+      vue-print-next:
+        specifier: ^1.1.6
+        version: 1.1.6(vue@3.4.38)
       vue-router:
         specifier: '4'
         version: 4.5.1(vue@3.4.38)
@@ -2082,6 +2085,11 @@ packages:
     resolution: {integrity: sha512-zInUX69Ij8MhVR3XArpu4PqqBoufwKxS5UMutWCPm59VUaB5H6GtnaIzf9M+l6aYU+Kr8gF/W9dzWLgRuU6V+Q==}
     peerDependencies:
       vue: ^2.5.16
+
+  vue-print-next@1.1.6:
+    resolution: {integrity: sha512-lrUz9GuVBbM9P7q0xg4gWt7lGGks9ssg16RKoo7mLM3TN3SNwbPSK34HgdoxV3ft3CzLWzuZCU4VVgXcKT5csA==}
+    peerDependencies:
+      vue: ^2.0.0 || >=3.0.0
 
   vue-router@4.5.1:
     resolution: {integrity: sha512-ogAF3P97NPm8fJsE4by9dwSYtDwXIY1nFY9T6DyQnGHd1E2Da94w9JIolpe42LJGIl0DwOHBi8TcRPlPGwbTtw==}
@@ -4300,6 +4308,10 @@ snapshots:
   vue-lottie@0.2.1(vue@3.4.38):
     dependencies:
       lottie-web: 5.13.0
+      vue: 3.4.38
+
+  vue-print-next@1.1.6(vue@3.4.38):
+    dependencies:
       vue: 3.4.38
 
   vue-router@4.5.1(vue@3.4.38):

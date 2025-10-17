@@ -5,10 +5,14 @@ import com.google.common.base.CaseFormat;
 import java.sql.NClob;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.Map;
 
 public class JdbcClientHelper {
+
+    private static final DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
 
     public static Map<String, String> resultSetToMap(ResultSet rs, int rowNum) throws SQLException {
@@ -20,7 +24,9 @@ public class JdbcClientHelper {
             String data = "";
             if (value instanceof NClob clob) {
                 data = clob.getSubString(1, (int) clob.length());
-            }  else {
+            } else if (value instanceof LocalDateTime localDateTime) {
+                data = localDateTime.format(dateTimeFormatter);
+            } else {
                 data = value != null ? value.toString() : "";
             }
             row.put(columnName, data);

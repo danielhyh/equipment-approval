@@ -3,10 +3,11 @@ package cn.iocoder.yudao.module.biz.service.statistics;
 
 import cn.hutool.core.util.StrUtil;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
+import cn.iocoder.yudao.module.biz.controller.admin.statistics.vo.DetailResponseVO;
 import cn.iocoder.yudao.module.biz.controller.admin.statistics.vo.FilterRequest;
 import cn.iocoder.yudao.module.biz.controller.admin.statistics.vo.QueryRequest;
 import cn.iocoder.yudao.module.biz.dal.mysql.statistics.StatisticsMapper;
-import com.baomidou.mybatisplus.core.metadata.IPage;
+import cn.iocoder.yudao.module.biz.service.utils.NamedTransformation;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.google.common.base.CaseFormat;
 import jakarta.annotation.Resource;
@@ -52,7 +53,7 @@ public class StatisticsService {
     }
 
     public Map<String, Object> expertSummary() {
-        return convertKeysToCamelCase(statisticsMapper.expertSummary());
+        return NamedTransformation.convertKeysToCamelCase(statisticsMapper.expertSummary());
     }
 
     public Map<String, Object> noticeSummary(QueryRequest request) {
@@ -89,18 +90,94 @@ public class StatisticsService {
                 ORDER BY total DESC, r.region;
                 """;
         List<Map<String, Object>> result = jdbcClient.sql(sql).query().listOfRows();
-        return convertKeysToCamelCase(result);
+        return NamedTransformation.convertKeysToCamelCase(result);
     }
 
     public List<Map<String, Object>> annualIncremental() {
-        return convertKeysToCamelCase(statisticsMapper.annualIncremental());
+        String sql = """
+                        WITH yearly_counts AS (
+                            SELECT
+                                YEAR(create_time) AS `year`,
+                                COUNT(*) AS yearly_count
+                            FROM biz_license_original
+                            WHERE deleted = 0
+                            GROUP BY YEAR(create_time)
+                        ),
+                             yearly_growth AS (
+                                 SELECT
+                                     `year`,
+                                     yearly_count,
+                                     LAG(yearly_count, 1) OVER (ORDER BY `year`) AS prev_year_count
+                                 FROM yearly_counts
+                             )
+                        SELECT
+                            `year`,
+                            yearly_count AS inc_count,
+                            prev_year_count AS prev_count,
+                            ROUND(
+                                    CASE
+                                        WHEN prev_year_count IS NULL THEN NULL
+                                        WHEN prev_year_count = 0 THEN NULL
+                                        ELSE (yearly_count - prev_year_count) * 100.0 / prev_year_count
+                                        END,
+                                    2
+                            ) AS yoy_rate
+                        FROM yearly_growth
+                        ORDER BY `year`
+                """;
+        List<Map<String, Object>> maps = jdbcClient.sql(sql).query().listOfRows();
+        return NamedTransformation.convertKeysToCamelCase(maps);
     }
 
     public List<Map<String, Object>> ladderConfigDistribution() {
-        List<Map<String, Object>> maps = statisticsMapper.ladderConfigDistribution();
+        String sql = """
+                WITH models AS (
+                    SELECT '科研型' AS model UNION ALL
+                    SELECT '临床研究型' UNION ALL
+                    SELECT '临床实用型' UNION ALL
+                    SELECT '未实施阶梯分型'
+                )
+                    SELECT
+                    m.model AS model,
+                    COUNT(a.id) AS count,
+                    ROUND(COUNT(a.id) * 100.0 / SUM(COUNT(*)) OVER (), 1) AS percentage
+                    FROM models m
+                    LEFT JOIN biz_license_original a on m.model = a.ladder_config_model
+                    WHERE a.deleted = 0
+                    GROUP BY m.model
+                """;
+//        List<Map<String, Object>> maps = statisticsMapper.ladderConfigDistribution();
+        List<Map<String, Object>> maps = jdbcClient.sql(sql).query().listOfRows();
         adjustPercentage(maps);
         return maps;
     }
+
+    public List<Map<String, Object>> deviceModelDistribution(FilterRequest req) {
+//        String sql = """
+//                SELECT
+//                                  count(b.id) as num,
+//                                  a.region,
+//                                  b.license_device_name,
+//                                   case when a.institution_type = 1 then '社会办医'
+//                                   else '政府办医'
+//                                  END AS institution_type_label,
+//                                  SUM(CASE WHEN d.acceptance_status = 1 THEN 1 ELSE 0 END) as accepted,
+//                                  SUM(CASE WHEN d.acceptance_status = 0 THEN 1 ELSE 0 END) as not_accepted
+//                                FROM
+//                                  biz_institution_ext a
+//                                  LEFT JOIN biz_application b ON a.dept_id = b.institution_id
+//                                  left join biz_license_original c on b.id = c.application_id
+//                                  left join biz_license_duplicate d on c.id = d.original_id
+//                                  where b.app_status = 5 and b.deleted = 0
+//                                  GROUP BY a.region, b.license_device_name
+//        """;
+//        List<Map<String, Object>> dbResult = jdbcClient.sql(sql).query().listOfRows();
+        List<Map<String, Object>> dbResult = statisticsMapper.deviceModelDistribution(req);
+        List<Map<String, Object>> map = MedicalDeviceProcessor.processToFlatFormat(dbResult);
+        return NamedTransformation.convertKeysToCamelCase(map, CaseFormat.LOWER_UNDERSCORE);
+    }
+
+
 
     public void adjustPercentage(List<Map<String, Object>> maps) {
         if (maps == null || maps.isEmpty()) {
@@ -160,53 +237,19 @@ public class StatisticsService {
 
 
 
-    public PageResult<Map<String, Object>> equipmentStatisticsDetail(FilterRequest filterRequest) {
+    public PageResult<DetailResponseVO> equipmentStatisticsDetail(FilterRequest filterRequest) {
         String deviceTypes = filterRequest.getDeviceTypes();
         if (StrUtil.isNotBlank(deviceTypes)) {
             filterRequest.setTypes(Arrays.asList(deviceTypes.split(",")));
         }
-        Page<Map<String, Object>> page = new Page<>(filterRequest.getPageNo(), filterRequest.getPageSize());
+        Page<DetailResponseVO> page = new Page<>(filterRequest.getPageNo(), filterRequest.getPageSize());
+        if ("陕西省".equals(filterRequest.getRegion())) {
+            filterRequest.setRegion(null);
+        }
         statisticsMapper.equipmentStatisticsDetail(page, filterRequest);
-        List<Map<String, Object>> convertedRecords = convertKeysToCamelCase(page.getRecords());
+        //List<Map<String, Object>> convertedRecords = NamedTransformation.convertKeysToCamelCase(page.getRecords());
 
-        return new PageResult<>(convertedRecords, page.getTotal());
+        return new PageResult<>(page.getRecords(), page.getTotal());
     }
 
-
-    public List<Map<String, Object>> convertKeysToCamelCase(List<Map<String, Object>> list) {
-        if (list == null) {
-            return null;
-        }
-        List<Map<String, Object>> result = new ArrayList<>();
-        for (Map<String, Object> map : list) {
-            if (map != null) {
-                result.add(convertKeysToCamelCase(map));
-            } else {
-                result.add(null);
-            }
-        }
-        return result;
-    }
-
-    public Map<String, Object> convertKeysToCamelCase(Map<String, Object> map) {
-        Map<String, Object> result = new HashMap<>();
-        for (Map.Entry<String, Object> entry : map.entrySet()) {
-            String key = entry.getKey();
-            Object value = entry.getValue();
-
-            // 转换 key：snake_case -> camelCase
-            String convertedKey = CaseFormat.LOWER_UNDERSCORE.to(CaseFormat.LOWER_CAMEL, key);
-
-            // 如果 value 是 Map，递归处理
-            if (value instanceof Map) {
-                @SuppressWarnings("unchecked")
-                Map<String, Object> nestedMap = (Map<String, Object>) value;
-                value = convertKeysToCamelCase(nestedMap);
-            }
-            // 注意：如果还需要处理 List 或 Collection，可以进一步扩展
-
-            result.put(convertedKey, value);
-        }
-        return result;
-    }
 }
