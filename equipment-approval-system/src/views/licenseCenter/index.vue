@@ -173,7 +173,7 @@
               编辑
             </el-button>
             <el-button
-              v-if="scope.row.acceptanceStatus !== 1"
+              v-if="scope.row.acceptanceStatus !== 1 && !!scope.row.duplicateId"
               type="warning"
               size="small"
               @click="copyInspectionFn(scope.row)"
@@ -250,11 +250,25 @@ interface StatisticsType {
 }
 // 申请证书 | 补办证书 | 变更证书 | 总计
 let statisticsList = reactive<StatisticsType[]>([
-  { label: '申请证书', value: '239', key: 's-q-z-s', icon: 'ep:circle-plus-filled' },
-  { label: '补办证书', value: '134', key: 'b-c-z-s', icon: 'ep:refresh-right' },
-  { label: '变更证书', value: '24', key: 'g-c-z-s', icon: 'ep:edit' },
-  { label: '总计', value: '407', key: 'z-z-s', icon: 'mage:star-fill' }
+  { label: '申请证书', value: '0', key: 'cert_apply_count', icon: 'ep:circle-plus-filled' },
+  { label: '线下办理', value: '0', key: 'offline_count', icon: 'ep:circle-plus-filled' },
+  { label: '补办证书', value: '0', key: 'cert_renew_count', icon: 'ep:refresh-right' },
+  { label: '变更证书', value: '0', key: 'cert_change_count', icon: 'ep:edit' },
+  { label: '总计', value: '0', key: 'total_count', icon: 'mage:star-fill' }
 ])
+const getStatisticsFn = async () => {
+  LicenseApi.getLicenseStatistics()
+    .then((res) => {
+      statisticsList.forEach((item) => {
+        item.value = res[item.key] || '0'
+      })
+    })
+    .catch(() => {
+      statisticsList.forEach((item) => {
+        item.value = '0'
+      })
+    })
+}
 // 处理 许可证类型 列表样式
 const licenseTypeStyle = (row) => {
   let rowDict = licenseTypeOptions.value.find((item) => item.value === row.licenseType)
@@ -510,6 +524,7 @@ const editLicense = (row) => {
 
 onMounted(() => {
   getList()
+  getStatisticsFn()
 })
 </script>
 

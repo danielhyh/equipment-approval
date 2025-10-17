@@ -50,7 +50,12 @@ export const ApplicationMaterialApi = {
   exportApplicationMaterial: async (params) => {
     return await request.download({ url: `/biz/application-material/export-excel`, params })
   },
+  // 申请资料列表
   list: async (params) => {
     return await request.get({ url: `/biz/application-material/list`, params })
+  },
+  // 验收资料
+  materialList: async (params) => {
+    return await request.get({ url: `/biz/acceptance-material/list`, params })
   }
 }

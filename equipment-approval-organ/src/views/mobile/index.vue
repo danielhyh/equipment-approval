@@ -49,9 +49,9 @@ import allMsg from "./index";
 import { getOriginMsg, getCopyMsg } from "@/apis/mobile";
 const route = useRoute();
 
-let originId = computed(() => route.query.originId);
-let copyId = computed(() => route.query.duplicateId);
-let isCopy = computed(() => route.query.type === "1");
+let originId = computed(() => route.query.o);
+let copyId = computed(() => route.query.d);
+let isCopy = computed(() => route.query.c === "1");
 let loading = ref(false);
 let currentMsg = ref([]);
 let current = ref("origin");

@@ -89,6 +89,7 @@
         <svg-icon name="fa7-solid:certificate" size="24" style="margin-right: 2px" color="#237efd" />
         <span>证书列表</span>
       </template>
+      
       <LicenseList />
     </Card>
   </div>

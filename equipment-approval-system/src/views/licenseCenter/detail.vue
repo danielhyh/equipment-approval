@@ -124,6 +124,24 @@ let typeList = computed(() => {
           value: 'otherInfo',
           icon: 'ep:more-filled',
           component: markRaw(OtherMsg)
+        },
+        {
+          label: '验收材料列表',
+          value: 'material',
+          component: markRaw(Material),
+          icon: 'ep:connection'
+        },
+        {
+          label: '设备验收',
+          value: 'copyInspection',
+          component: markRaw(CopyExpert),
+          icon: 'ep:connection'
+        },
+        {
+          label: '操作历史',
+          value: 'operationHistory',
+          icon: 'lucide:history',
+          component: markRaw(history)
         }
       ]
     default:

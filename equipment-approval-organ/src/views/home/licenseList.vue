@@ -7,8 +7,8 @@
         :key="item.key"
         :title="item.label"
         class="license-type-item"
-        :class="{ active: item.key === paramsValue.type }"
-        @click.stop="handleChangeType(item.key)"
+        :class="{ active: item.label === paramsValue.type }"
+        @click.stop="handleChangeType(item.label)"
       >
         <span>{{ item.label }}</span>
         <i v-if="item.value" class="el-icon-check">{{ item.value }}</i>
@@ -114,7 +114,7 @@ let paramsValue = reactive({
   pageNum: 1,
   pageSize: 10,
   total: 0,
-  type: "all",
+  type: "全部证书",
 });
 let licenseListData = ref([]);
 let loading = ref(false);
@@ -153,7 +153,7 @@ const indexFn = (index) => {
 const getLicenseListFn = async () => {
   loading.value = true;
   let params = { pageSize: paramsValue.pageSize, pageNum: paramsValue.pageNum, type: paramsValue.type };
-  if (params.type === "all") {
+  if (params.type === "全部证书") {
     delete params.type;
   }
   getLicenseList(params)

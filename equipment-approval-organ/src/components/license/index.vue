@@ -5,6 +5,7 @@
       'is-preview': isPreview,
       'is-b-licence': isBLicenceSub,
       'is-b-accepted': isBAccepted,
+      'is-no-duplicate-id': NoDuplicateId,
     }"
     id="licenceID"
     ref="licenceIDRef"
@@ -161,6 +162,16 @@ let isBLicenceSub = computed(() => {
 let isPreview = computed(() => {
   return props.preview;
 });
+// 没有副本id
+let NoDuplicateId = computed(() => {
+  return (
+    props.duplicateId === "null" ||
+    props.duplicateId === "" ||
+    props.duplicateId === undefined ||
+    props.duplicateId === null ||
+    props.bAccepted === false
+  );
+});
 // 是否是副本验收
 let isBAccepted = computed(() => {
   return isBLicenceSub.value && props.bAccepted;
@@ -168,13 +179,13 @@ let isBAccepted = computed(() => {
 let qrocodeText = computed(() => {
   let text = window.location.origin + "/#/mobile/qrcode?";
   if (props.originalId) {
-    text += `originId=${props.originalId}&`;
+    text += `o=${props.originalId}&`;
   }
   if (props.duplicateId) {
-    text += `duplicateId=${props.duplicateId}&`;
+    text += `d=${props.duplicateId}&`;
   }
   if (isBLicenceSub.value) {
-    text += `copy=1`;
+    text += `c=1`;
   }
   return text;
 });
@@ -257,10 +268,8 @@ const downloadPdf = async () => {
       pdf.addImage(dataUrl, "PNG", 0, 0, pdfWidth, pdfHeight);
       pdf.save(`${licenceTitle.value}-${licenceSubtitle.value}.pdf`);
       loading.value = false;
-      resolve("PDF下载成功");
     } catch (err) {
       loading.value = false;
-      console.log(err, "----->>>>下载PDF失败");
       reject(err);
     }
   });
@@ -443,6 +452,13 @@ defineExpose({
   text-align: center;
   font-style: normal;
 }
+.is-no-duplicate-id {
+  &.is-b-licence {
+    .licence-qr-code {
+      opacity: 0;
+    }
+  }
+}
 .is-preview {
   .licence-out-border {
     background-image: none !important;
@@ -497,7 +513,7 @@ defineExpose({
       opacity: 0;
     }
     .licence-qr-code {
-      opacity: 0;
+      opacity: 1;
     }
   }
 }

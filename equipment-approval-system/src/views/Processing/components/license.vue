@@ -4,7 +4,8 @@
     :class="{
       'is-preview': isPreview,
       'is-b-licence': isBLicenceSub,
-      'is-b-accepted': isBAccepted
+      'is-b-accepted': isBAccepted,
+      'is-no-duplicate-id': NoDuplicateId
     }"
     id="licenceID"
     ref="licenceIDRef"
@@ -168,18 +169,28 @@ let isPreview = computed(() => {
 let isBAccepted = computed(() => {
   return isBLicenceSub.value && props.copyAccepted
 })
+// 没有副本id
+let NoDuplicateId = computed(() => {
+  return (
+    props.duplicateId === 'null' ||
+    props.duplicateId === '' ||
+    props.duplicateId === undefined ||
+    props.duplicateId === null
+  )
+})
 
 let qrocodeText = computed(() => {
   let text = 'http://hospital.fangliyun.com/#/mobile/qrcode?'
   if (props.originalId) {
-    text += `originId=${props.originalId}&`
+    text += `o=${props.originalId}&`
   }
   if (props.duplicateId) {
-    text += `duplicateId=${props.duplicateId}&`
+    text += `d=${props.duplicateId}&`
   }
   if (isBLicenceSub.value) {
-    text += `copy=1`
+    text += `c=1`
   }
+  console.log(text)
   return text
 })
 let licenceIDRef = ref<Element | null>(null)
@@ -470,7 +481,13 @@ defineExpose({
   width: 10.2mm;
   text-align: center;
 }
-
+.is-no-duplicate-id {
+  &.is-b-licence {
+    .licence-qr-code {
+      opacity: 0;
+    }
+  }
+}
 .is-preview {
   .licence-out-border {
     background-image: none !important;
@@ -508,6 +525,9 @@ defineExpose({
         opacity: 0;
       }
     }
+    .licence-qr-code {
+      opacity: 0;
+    }
   }
   &.is-b-accepted {
     .licence-code {
@@ -525,7 +545,7 @@ defineExpose({
       opacity: 0;
     }
     .licence-qr-code {
-      opacity: 0;
+      opacity: 1;
     }
   }
 }

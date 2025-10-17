@@ -443,7 +443,7 @@ onMounted(() => {
 .content-row {
   display: flex;
   flex-wrap: wrap;
-  justify-content: space-between;
+  justify-content: flex-start;
   align-items: center;
   gap: 20px;
   padding: 5px;

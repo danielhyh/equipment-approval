@@ -28,12 +28,12 @@
 import { LicenseApi } from '@/api/biz/license'
 let route = useRoute()
 let historyList = ref([
-  {
-    time: '2023-08-01 10:00:00',
-    content: '副本证书发放',
-    operator: '张三',
-    remark: '操作类型文本'
-  }
+  // {
+  //   time: '2023-08-01 10:00:00',
+  //   content: '副本证书发放',
+  //   operator: '张三',
+  //   remark: '操作类型文本'
+  // }
 ])
 const getHistoryList = async () => {
   try {

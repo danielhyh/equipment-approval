@@ -1,5 +1,5 @@
 <template>
-  <div v-if="componentList.length">
+  <div v-if="componentList.length" >
     <!-- 基本信息 -->
     <div class="card-title-head m-b-20">
       <div class="flex items-center m-b-10">
@@ -11,7 +11,7 @@
       </div>
     </div>
     <!-- 其他信息 -->
-    <div class="card-container-box">
+    <div class="card-container-box" v-loading="loading">
       <div class="select-com-box m-b-15">
         <div
           v-for="item in componentList"
@@ -66,13 +66,19 @@ const componentList = computed(() => {
 });
 let activeItem = ref(componentList.value[0]);
 let activeComRef = ref(null);
+let loading = ref(false);
 const handleClick = (item) => {
   activeItem.value = item;
 };
 const submitFn = () => {
   let pass = activeComRef.value?.submit();
   if (pass) {
-    router.replace({ path: "/home/index-page" });
+    // 提交成功后，后台存在数据延迟
+    loading.value = true;
+    setTimeout(() => {
+      loading.value = false;
+      router.replace({ path: "/home/index-page" });
+    }, 1300);
   }
 };
 onMounted(() => {

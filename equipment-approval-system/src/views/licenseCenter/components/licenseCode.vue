@@ -32,10 +32,10 @@ let loading = ref(false)
 let qrcodeText = computed(() => {
   let text = 'http://hospital.fangliyun.com/#/mobile/qrcode?'
   if (originalId) {
-    text += `originId=${originalId}&`
+    text += `o=${originalId}&`
   }
   if (duplicateId) {
-    text += `duplicateId=${duplicateId}`
+    text += `d=${duplicateId}`
   }
   return text
 })

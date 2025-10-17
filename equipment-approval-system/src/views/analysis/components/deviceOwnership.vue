@@ -11,7 +11,7 @@
               :size="18"
               style="margin-right: 5px"
             />
-            区域分布情况(覆盖8个地市)
+            区域分布情况(覆盖14个地市)
           </div>
         </div>
       </div>
@@ -227,7 +227,7 @@ let deviceTypeOptions = computed<DictDataTypeT[]>(() => {
 let licenseStatusOptions = computed<DictDataTypeT[]>(() => {
   return getDictOptions('biz_license_status')
 })
-let regionData = ref([
+let regionData = ref<{ key: string | number; label: string; value: number }[]>([
   {
     key: 'xiaan',
     label: '西安市',
@@ -276,6 +276,11 @@ let regionData = ref([
     value: 0
   }
 ])
+regionData.value = regionOptions.value.map((item) => ({
+  key: item.value,
+  label: item.label,
+  value: 0
+}))
 const getTotalData = async () => {
   try {
     const response = await AnalysisApi.getRegionDevice()
@@ -442,14 +447,11 @@ onMounted(() => {
   }
 }
 .content-row {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: space-between;
-  align-items: center;
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
   gap: 20px;
   margin-top: 20px;
   .item-box {
-    flex: 1;
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -462,7 +464,11 @@ onMounted(() => {
       font-weight: bold;
       color: #333;
     }
+    .value-unit {
+      flex-shrink: 0;
+    }
     .value {
+      flex-shrink: 0;
       color: #066de3;
       font-weight: bold;
       margin-right: 5px;

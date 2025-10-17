@@ -7,7 +7,7 @@
     <div class="file-list-box">
       <template v-if="filesData.length > 0">
         <div class="file-item" v-for="item in filesData" :key="item.id">
-          <Icon :icon="getFileIcon(item.fileType)" :size="32" color="#165DFF" />
+          <Icon :icon="getFileIcon(item?.fileType)" :size="32" color="#165DFF" />
           <div class="file-name">{{ item.name }}</div>
           <div class="file-des">
             <span>上传时间：{{ item.uploadTime }}</span>
@@ -43,15 +43,15 @@ const route = useRoute()
 const { id } = route.query
 // 修正 interface 定义
 interface fileItemType {
-  name: string
-  url: string
-  uploadTime: string
-  size: string
-  id: string | number
-  fileType: string
+  name?: string | undefined
+  url?: string | undefined
+  uploadTime?: string | undefined
+  size?: string | undefined
+  id?: string | number | undefined
+  fileType?: string | undefined
 }
 
-const getFileIcon = (type: string) => {
+const getFileIcon = (type: string | undefined) => {
   let str = 'svg-icon:'
   switch (type) {
     case 'pdf':
@@ -93,17 +93,18 @@ const bytesToMB = (bytes: number) => {
   return mb.toFixed(2) + ' MB' // 保留两位小数
 }
 const getInfoList = async () => {
-  const params = { id: id }
-  infoList.value = await ApplicationMaterialApi.list(params)
-  infoList.value.forEach((item) => {
+  const params = { applicationId: id }
+  const res = await ApplicationMaterialApi.materialList(params)
+  infoList.value = (res || []).map((item) => {
     let obj: Partial<fileItemType> = {}
-    obj.name = item?.materialName || ''
+    obj.name = item.materialName || ''
     obj.id = item?.id || ''
     obj.fileType = getFileType(item.filePath)
     obj.size = bytesToMB(item.fileSize)
     obj.url = item.filePath
     obj.uploadTime = new Date(item.uploadTime).toLocaleString()
     filesData.value.push(obj)
+    return item
   })
 }
 onMounted(() => {

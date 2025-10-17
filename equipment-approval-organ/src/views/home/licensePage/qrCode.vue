@@ -44,10 +44,10 @@ let listMsg = reactive([
 let qrcodeText = computed(() => {
   let text = window.location.origin + "/#/mobile/qrcode?";
   if (licenseBasis.value.originalId) {
-    text += `originId=${licenseBasis.value.originalId}&`;
+    text += `o=${licenseBasis.value.originalId}&`;
   }
   if (licenseBasis.value.duplicateId) {
-    text += `duplicateId=${licenseBasis.value.duplicateId}`;
+    text += `d=${licenseBasis.value.duplicateId}`;
   }
   return text;
 });

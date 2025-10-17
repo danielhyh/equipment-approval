@@ -94,6 +94,7 @@
         <el-form-item label="营业执照" prop="businessLicensePic" class="grid-item-row">
           <Upload
             v-model:filePath="formData.businessLicensePic"
+            :accept="'.jpg,.jpeg,.png'"
             :disabled="editKey === 'contactPerson' || editKey === 'contactPhone'"
           />
         </el-form-item>

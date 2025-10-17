@@ -59,7 +59,7 @@ export default defineComponent({
 
         <Backtop></Backtop>
 
-        <Setting></Setting>
+        {/* <Setting></Setting> */}
       </section>
     )
   }

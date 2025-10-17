@@ -69,10 +69,10 @@ const getFileIcon = (type: string) => {
   }
 }
 const $emit = defineEmits(['view'])
-// const viewFn = (item: fileItemType) => {
-//   console.log('useinfo view fn', item)
-//   ElMessage.warning('暂不支持在线查看，需下载后查看')
-// }
+const viewFn = (item: fileItemType) => {
+  console.log('useinfo view fn', item)
+  ElMessage.warning('暂不支持在线查看，需下载后查看')
+}
 const downLoadFn = (item: fileItemType) => {
   window.open(item.url, '_blank')
 }
@@ -98,7 +98,6 @@ const getInfoList = async () => {
   infoList.value.forEach((item) => {
     let obj: Partial<fileItemType> = {}
     obj.name = item.materialName
-
     obj.id = item.id
     obj.fileType = getFileType(item.filePath)
     obj.size = bytesToMB(item.fileSize)

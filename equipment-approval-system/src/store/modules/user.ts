@@ -68,7 +68,6 @@ export const useUserStore = defineStore('admin-user', {
       this.roles = userInfo.roles
       this.user = userInfo.user
       this.user.loginTime = new Date().toLocaleDateString() + ' ' + new Date().toLocaleTimeString()
-      console.log(this.user.loginTime)
       this.isSetUser = true
       wsCache.set(CACHE_KEY.USER, userInfo)
       wsCache.set(CACHE_KEY.ROLE_ROUTERS, userInfo.menus)

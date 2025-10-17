@@ -63,6 +63,7 @@ const initQrcode = async () => {
     // 容错率，默认对内容少的二维码采用高容错率，内容多的二维码采用低容错率
     options.errorCorrectionLevel =
       options.errorCorrectionLevel || getErrorCorrectionLevel(unref(renderText))
+
     const _width: number = await getOriginWidth(unref(renderText), options)
     options.scale = props.width === 0 ? undefined : (props.width / _width) * 4
     const canvasRef: HTMLCanvasElement | any = await toCanvas(
@@ -80,7 +81,7 @@ const initQrcode = async () => {
     }
   } else {
     const url = await toDataURL(renderText.value, {
-      errorCorrectionLevel: 'H',
+      errorCorrectionLevel: getErrorCorrectionLevel(unref(renderText)),
       width: props.width,
       ...options
     })
