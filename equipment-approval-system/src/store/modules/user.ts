@@ -11,6 +11,7 @@ interface UserVO {
   avatar: string
   nickname: string
   deptId: number
+  loginTime?: string
 }
 
 interface UserInfoVO {
@@ -30,7 +31,8 @@ export const useUserStore = defineStore('admin-user', {
       id: 0,
       avatar: '',
       nickname: '',
-      deptId: 0
+      deptId: 0,
+      loginTime: ''
     }
   }),
   getters: {
@@ -65,6 +67,8 @@ export const useUserStore = defineStore('admin-user', {
       this.permissions = new Set(userInfo.permissions || []) // 兜底为 [] https://t.zsxq.com/xCJew
       this.roles = userInfo.roles
       this.user = userInfo.user
+      this.user.loginTime = new Date().toLocaleDateString() + ' ' + new Date().toLocaleTimeString()
+      console.log(this.user.loginTime)
       this.isSetUser = true
       wsCache.set(CACHE_KEY.USER, userInfo)
       wsCache.set(CACHE_KEY.ROLE_ROUTERS, userInfo.menus)

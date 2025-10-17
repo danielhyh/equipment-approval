@@ -49,7 +49,7 @@
       </div>
 
       <div class="contact-row">
-        <div class="search-row">
+        <div class="search-row" v-if="!isDisabled">
           <el-input
             v-model.trim="searchExpertForm.keyword"
             placeholder="请输入专家姓名或医院"
@@ -78,6 +78,7 @@
           ref="multipleTableRef"
           @row-click="handleRowClick"
           @selection-change="handleSelectionChange"
+          v-if="!isDisabled"
         >
           <el-table-column type="selection" width="55" :selectable="selectableFn" align="center" />
           <el-table-column prop="name" label="专家姓名" />
