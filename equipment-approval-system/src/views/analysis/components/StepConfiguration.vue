@@ -42,7 +42,7 @@
           <el-button type="primary" size="small" :icon="Filter" @click.stop="openDialog">
             筛选
           </el-button>
-          <el-button type="success" size="small">
+          <el-button type="success" size="small" @click.stop="exportExcelFn">
             <template #icon>
               <Icon
                 icon="material-symbols:download-rounded"
@@ -66,13 +66,7 @@
         v-loading="loading"
       >
         <!-- 序号 -->
-        <el-table-column
-          type="index"
-          label="序号2"
-          width="60"
-          :index="customIndex"
-          align="center"
-        />
+        <el-table-column type="index" label="序号" width="60" :index="customIndex" align="center" />
         <!-- 所属机构 -->
         <el-table-column prop="institutionName" label="所属机构" align="center" />
         <!-- 医疗机构 -->
@@ -151,7 +145,7 @@
               v-for="item in regionOptions"
               :key="item.value"
               :label="item.label"
-              :value="item.value"
+              :value="item.label"
             />
           </el-select>
         </el-form-item>
@@ -167,7 +161,7 @@
               v-for="item in stepConfigOptions"
               :key="item.value"
               :label="item.label"
-              :value="item.value"
+              :value="item.label"
             />
           </el-select>
         </el-form-item>
@@ -190,12 +184,7 @@
         <!-- 设备类型 -->
         <el-form-item label="设备类型" prop="device_type" class="form-row">
           <el-checkbox-group v-model="queryParams.device_type" style="width: 100%">
-            <el-checkbox
-              v-for="item in deviceTypeOptions"
-              :key="item.value"
-              :label="item.value"
-              :value="item.value"
-            >
+            <el-checkbox v-for="item in deviceTypeOptions" :key="item.value" :value="item.label">
               {{ item.label }}
             </el-checkbox>
           </el-checkbox-group>
@@ -241,51 +230,69 @@ let stepData = ref([
     {
       label: '临床实用性',
       key: 'type',
-      value: '142'
+      value: '0'
     },
     {
       label: '占比',
       key: 'ratio',
-      value: '20.4%'
+      value: '0%'
     }
   ],
   [
     {
       label: '科研型',
       key: 'type',
-      value: '142'
+      value: '0'
     },
     {
       label: '占比',
       key: 'ratio',
-      value: '20.4%'
+      value: '0%'
     }
   ],
   [
     {
       label: '未实施阶梯分型',
       key: 'type',
-      value: '142'
+      value: '0'
     },
     {
       label: '占比',
       key: 'ratio',
-      value: '20.4%'
+      value: '0%'
     }
   ],
   [
     {
       label: '临床研究性',
       key: 'type',
-      value: '142'
+      value: '0'
     },
     {
       label: '占比',
       key: 'ratio',
-      value: '20.4%'
+      value: '0%'
     }
   ]
 ])
+const stepDataFn = () => {
+  AnalysisApi.getLadderConfig().then((res) => {
+    stepData.value = (res || []).map((item) => {
+      let arr: { key: string; label: string; value: number | string }[] = []
+      arr.push({
+        key: 'model',
+        label: item.model,
+        value: item.count || 0
+      })
+      arr.push({
+        key: 'percentage',
+        label: '占比',
+        value: (item.percentage || 0) + '%'
+      })
+      return arr
+    })
+  })
+}
 let loading = ref(false)
 let tableData = ref([])
 let queryParams = reactive({
@@ -354,7 +361,6 @@ const handleReset = () => {
 
   queryParams.pageNo = 1
   queryParams.total = 0
-  // filterVisible.value = false
   getList()
 }
 // 打开弹窗
@@ -363,14 +369,54 @@ const openDialog = () => {
 }
 // 处理筛选
 const handleFilter = () => {
+  getList()
   filterVisible.value = false
+}
+// 导出excel
+const exportExcelFn = () => {
+  let params = {
+    pageNo: queryParams.pageNo,
+    pageSize: queryParams.pageSize,
+    // 搜索关键词
+    keywords: queryParams.keyword,
+    // 统计年份
+    year: queryParams.year,
+    // 行政区划
+    region: queryParams.region,
+    // 阶梯配置
+    ladderConfigModel: queryParams.step_config,
+    // 证书状态
+    status: queryParams.licenseStatus,
+    // 设备类型
+    deviceTypes: queryParams.device_type.join(',')
+  }
+  loading.value = true
+  AnalysisApi.exportExcel(params)
+    .then((res) => {
+      const blob = new Blob([res], { type: 'application/vnd.ms-excel' })
+      const fileName = '设备详细信息.xlsx'
+      const link = document.createElement('a')
+      link.href = URL.createObjectURL(blob)
+      link.download = fileName
+      link.click()
+      URL.revokeObjectURL(link.href)
+    })
+    .finally(() => {
+      loading.value = false
+    })
 }
 onMounted(() => {
   getList()
+  stepDataFn()
 })
 </script>
 
 <style lang="scss" scoped>
+.device-info::after {
+  content: '';
+  display: block;
+  clear: both;
+}
 .region-coverage {
   background-color: #fff;
   padding: 10px;
@@ -446,6 +492,14 @@ onMounted(() => {
   }
   .form-row {
     grid-column: 1 / 5;
+  }
+  .el-checkbox-group {
+    background-color: #f9f9f9;
+    border-radius: 10px;
+    padding: 0px 30px;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    grid-gap: 10px;
   }
 }
 </style>

@@ -112,7 +112,7 @@ export default defineComponent({
         id={prefixCls}
         class={[
           `${prefixCls} ${prefixCls}__${unref(menuMode)}`,
-          'h-[100%] overflow-hidden flex-col bg-[var(--left-menu-bg-color)]',
+          'h-[100%] overflow-hidden ',
           {
             'w-[var(--left-menu-min-width)]': unref(collapse) && unref(layout) !== 'cutMenu',
             'w-[var(--left-menu-max-width)]': !unref(collapse) && unref(layout) !== 'cutMenu'
@@ -150,6 +150,11 @@ $prefix-cls: #{$namespace}-menu;
       &:hover {
         color: var(--left-menu-text-active-color) !important;
         background-color: var(--left-menu-bg-color) !important;
+        box-shadow: inset 0 0 10px 2px hsla(0, 0%, 100%, 0.21);
+        border-radius: 0 40px 40px 0;
+        border-left: 2px solid #fff;
+        transform: translateX(4px);
+        transition: all var(--transition-time-02);
       }
     }
 
@@ -157,6 +162,8 @@ $prefix-cls: #{$namespace}-menu;
     .#{$elNamespace}-menu-item.is-active {
       color: var(--left-menu-text-active-color) !important;
       background-color: var(--left-menu-bg-active-color) !important;
+      border-radius: 0 40px 40px 0;
+      border-left: 2px solid #fff;
 
       &:hover {
         background-color: var(--left-menu-bg-active-color) !important;

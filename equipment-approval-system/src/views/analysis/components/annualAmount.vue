@@ -42,7 +42,7 @@
           <el-button type="primary" size="small" :icon="Filter" @click.stop="openDialog">
             筛选
           </el-button>
-          <el-button type="success" size="small">
+          <el-button type="success" size="small" @click.stop="exportExcelFn">
             <template #icon>
               <Icon
                 icon="material-symbols:download-rounded"
@@ -66,13 +66,7 @@
         v-loading="loading"
       >
         <!-- 序号 -->
-        <el-table-column
-          type="index"
-          label="序号1"
-          width="60"
-          :index="customIndex"
-          align="center"
-        />
+        <el-table-column type="index" label="序号" width="60" :index="customIndex" align="center" />
         <!-- 所属机构 -->
         <el-table-column prop="institutionName" label="所属机构" align="center" />
         <!-- 医疗机构 -->
@@ -127,16 +121,7 @@
             clearable
           />
         </el-form-item>
-        <el-form-item label="统计年份" prop="year">
-          <el-date-picker
-            v-model="queryParams.year"
-            type="year"
-            format="YYYY年"
-            value-format="YYYY"
-            placeholder="请选择年份"
-            style="width: 100%"
-          />
-        </el-form-item>
+
         <el-form-item label="行政区域" prop="region">
           <el-select
             v-model="queryParams.region"
@@ -148,7 +133,7 @@
               v-for="item in regionOptions"
               :key="item.value"
               :label="item.label"
-              :value="item.value"
+              :value="item.label"
             />
           </el-select>
         </el-form-item>
@@ -164,7 +149,7 @@
               v-for="item in stepConfigOptions"
               :key="item.value"
               :label="item.label"
-              :value="item.value"
+              :value="item.label"
             />
           </el-select>
         </el-form-item>
@@ -184,15 +169,30 @@
             />
           </el-select>
         </el-form-item>
+        <el-form-item label="起始年份" prop="startYear">
+          <el-date-picker
+            v-model="queryParams.startYear"
+            type="year"
+            format="YYYY年"
+            value-format="YYYY"
+            placeholder="请选择起始年份"
+            style="width: 100%"
+          />
+        </el-form-item>
+        <el-form-item label="结束年份" prop="endYear">
+          <el-date-picker
+            v-model="queryParams.endYear"
+            type="year"
+            format="YYYY年"
+            value-format="YYYY"
+            placeholder="请选择结束年份"
+            style="width: 100%"
+          />
+        </el-form-item>
         <!-- 设备类型 -->
         <el-form-item label="设备类型" prop="device_type" class="form-row">
           <el-checkbox-group v-model="queryParams.device_type" style="width: 100%">
-            <el-checkbox
-              v-for="item in deviceTypeOptions"
-              :key="item.value"
-              :label="item.value"
-              :value="item.value"
-            >
+            <el-checkbox v-for="item in deviceTypeOptions" :key="item.value" :value="item.label">
               {{ item.label }}
             </el-checkbox>
           </el-checkbox-group>
@@ -251,7 +251,7 @@ let yearCountData = ref([
     {
       key: 'growth_rate',
       label: '增长率',
-      value: '10%'
+      value: '0%'
     }
   ],
   [
@@ -259,19 +259,19 @@ let yearCountData = ref([
     {
       key: 'total_count',
       label: '2024年总量',
-      value: 100
+      value: 0
     },
     // 新增数量
     {
       key: 'new_count',
       label: '新增数量',
-      value: 10
+      value: 0
     },
     // 增长率
     {
       key: 'growth_rate',
       label: '增长率',
-      value: '10%'
+      value: '0%'
     }
   ],
   [
@@ -279,19 +279,19 @@ let yearCountData = ref([
     {
       key: 'total_count',
       label: '2023年总量',
-      value: 100
+      value: 0
     },
     // 新增数量
     {
       key: 'new_count',
       label: '新增数量',
-      value: 10
+      value: 0
     },
     // 增长率
     {
       key: 'growth_rate',
       label: '增长率',
-      value: '10%'
+      value: '0%'
     }
   ],
   [
@@ -299,22 +299,45 @@ let yearCountData = ref([
     {
       key: 'total_count',
       label: '2022年总量',
-      value: 100
+      value: 0
     },
     // 新增数量
     {
       key: 'new_count',
       label: '新增数量',
-      value: 10
+      value: 0
     },
     // 增长率
     {
       key: 'growth_rate',
       label: '增长率',
-      value: '10%'
+      value: '0%'
     }
   ]
 ])
+const getYearCountFn = () => {
+  AnalysisApi.getAnnualAmount().then((res) => {
+    yearCountData.value = (res || []).map((item) => {
+      let arr: { key: string; label: string; value: number | string }[] = []
+      arr.push({
+        key: 'inc_count',
+        label: item.year + '年总量',
+        value: item.incCount || 0
+      })
+      arr.push({
+        key: 'new_count',
+        label: '新增数量',
+        value: item.incCount || 0
+      })
+      arr.push({
+        key: 'growth_rate',
+        label: '增长率',
+        value: item.yoy_rate || '0%'
+      })
+      return arr
+    })
+  })
+}
 let loading = ref(false)
 let tableData = ref([])
 let queryParams = reactive({
@@ -347,8 +370,6 @@ const getList = async () => {
     pageSize: queryParams.pageSize,
     // 搜索关键词
     keywords: queryParams.keyword,
-    // 统计年份
-    year: queryParams.year,
     // 行政区划
     region: queryParams.region,
     // 阶梯配置
@@ -356,7 +377,11 @@ const getList = async () => {
     // 证书状态
     status: queryParams.licenseStatus,
     // 设备类型
-    deviceTypes: queryParams.device_type.join(',')
+    deviceTypes: queryParams.device_type.join(','),
+    // 起始年份
+    startDate: queryParams.startYear,
+    // 结束年份
+    endDate: queryParams.endYear
   }
   try {
     loading.value = true
@@ -384,6 +409,10 @@ const handleReset = () => {
   queryParams.step_config = ''
   queryParams.licenseStatus = ''
   queryParams.device_type = []
+  // 起始年份
+  queryParams.startYear = ''
+  // 结束年份
+  queryParams.endYear = ''
 
   queryParams.pageNo = 1
   queryParams.total = 0
@@ -399,13 +428,54 @@ const handleFilter = () => {
   filterVisible.value = false
   getList()
 }
+// 导出excel
+const exportExcelFn = () => {
+  let params = {
+    pageNo: queryParams.pageNo,
+    pageSize: queryParams.pageSize,
+    // 搜索关键词
+    keywords: queryParams.keyword,
+    // 行政区划
+    region: queryParams.region,
+    // 阶梯配置
+    ladderConfigModel: queryParams.step_config,
+    // 证书状态
+    status: queryParams.licenseStatus,
+    // 设备类型
+    deviceTypes: queryParams.device_type.join(','),
+    // 起始年份
+    startDate: queryParams.startYear,
+    // 结束年份
+    endDate: queryParams.endYear
+  }
+  loading.value = true
+  AnalysisApi.exportExcel(params)
+    .then((res) => {
+      const blob = new Blob([res], { type: 'application/vnd.ms-excel' })
+      const fileName = '设备详细信息.xlsx'
+      const link = document.createElement('a')
+      link.href = URL.createObjectURL(blob)
+      link.download = fileName
+      link.click()
+      URL.revokeObjectURL(link.href)
+    })
+    .finally(() => {
+      loading.value = false
+    })
+}
 
 onMounted(() => {
   getList()
+  getYearCountFn()
 })
 </script>
 
 <style lang="scss" scoped>
+.device-info::after {
+  content: '';
+  display: block;
+  clear: both;
+}
 .region-coverage {
   background-color: #fff;
   padding: 10px;
@@ -432,7 +502,7 @@ onMounted(() => {
 .content-row {
   display: flex;
   flex-wrap: wrap;
-  justify-content: space-between;
+  // justify-content: space-between;
   align-items: center;
   gap: 20px;
   padding: 5px;
@@ -481,6 +551,14 @@ onMounted(() => {
   }
   .form-row {
     grid-column: 1 / 5;
+  }
+  .el-checkbox-group {
+    background-color: #f9f9f9;
+    border-radius: 10px;
+    padding: 0px 30px;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    grid-gap: 10px;
   }
 }
 </style>

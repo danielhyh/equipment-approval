@@ -15,9 +15,9 @@
             <span>文件大小：{{ item.size }}</span>
           </div>
           <div class="handler-box">
-            <el-button round size="small" type="primary" :icon="View" @click.stop="viewFn(item)">
+            <!-- <el-button round size="small" type="primary" :icon="View" @click.stop="viewFn(item)">
               查看
-            </el-button>
+            </el-button> -->
             <el-button
               round
               size="small"

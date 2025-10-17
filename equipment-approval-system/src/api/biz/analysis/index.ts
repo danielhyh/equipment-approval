@@ -104,5 +104,12 @@ export const AnalysisApi = {
     return await request.get({
       url: `/biz/statistics/medical-device-distribution`
     })
+  },
+  // 导出excal
+  exportExcel: async (params) => {
+    return await request.download({
+      url: `/biz/statistics/export-excel`,
+      params
+    })
   }
 }

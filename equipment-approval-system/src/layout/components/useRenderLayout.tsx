@@ -41,21 +41,21 @@ export const useRenderLayout = () => {
       <>
         <div
           class={[
-            'absolute top-0 left-0 h-full layout-border__right',
+            'absolute top-0 left-0 h-full layout-border__right bg-gradient-to-b from-[#165DFF] to-[#06B6D4]',
             { '!fixed z-3000': mobile.value }
           ]}
         >
           {logo.value ? (
             <Logo
               class={[
-                'bg-[var(--left-menu-bg-color)] relative',
+                ' relative',
                 {
                   '!pl-0': mobile.value && collapse.value,
                   'w-[var(--left-menu-min-width)]': appStore.getCollapse,
                   'w-[var(--left-menu-max-width)]': !appStore.getCollapse
                 }
               ]}
-              style="transition: all var(--transition-time-02);"
+              style="transition: all var(--transition-time-02);border-bottom: 2px solid #ffffff1a;"
             ></Logo>
           ) : undefined}
           <Menu class={[{ '!h-[calc(100%-var(--logo-height))]': logo.value }]}></Menu>

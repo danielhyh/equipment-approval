@@ -15,9 +15,9 @@
             <span>文件大小：{{ item.size }}</span>
           </div>
           <div class="handler-box">
-            <el-button round size="small" type="primary" :icon="View" @click.stop="viewFn(item)">
+            <!-- <el-button round size="small" type="primary" :icon="View" @click.stop="viewFn(item)">
               查看
-            </el-button>
+            </el-button> -->
             <el-button
               round
               size="small"
@@ -69,10 +69,10 @@ const getFileIcon = (type: string) => {
   }
 }
 const $emit = defineEmits(['view'])
-const viewFn = (item: fileItemType) => {
-  console.log('useinfo view fn', item)
-  ElMessage.warning('暂不支持在线查看，需下载后查看')
-}
+// const viewFn = (item: fileItemType) => {
+//   console.log('useinfo view fn', item)
+//   ElMessage.warning('暂不支持在线查看，需下载后查看')
+// }
 const downLoadFn = (item: fileItemType) => {
   window.open(item.url, '_blank')
 }

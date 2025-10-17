@@ -67,21 +67,24 @@ watch(
       to="/"
     >
       <img
-        class="h-[calc(var(--logo-height)-10px)] w-[calc(var(--logo-height)-10px)]"
+        class="h-[calc(var(--logo-height) - 20px)] w-[calc(var(--logo-height)-20px)]"
         src="@/assets/imgs/logo.png"
       />
-      <div
-        v-if="show"
-        :class="[
-          'ml-10px text-16px font-700',
-          {
-            'text-[var(--logo-title-text-color)]': layout === 'classic',
-            'text-[var(--top-header-text-color)]':
-              layout === 'topLeft' || layout === 'top' || layout === 'cutMenu'
-          }
-        ]"
-      >
-        {{ title }}
+      <div>
+        <div
+          v-if="show"
+          :class="[
+            'ml-10px text-14px font-700',
+            {
+              'text-[var(--logo-title-text-color)]': layout === 'classic',
+              'text-[var(--top-header-text-color)]':
+                layout === 'topLeft' || layout === 'top' || layout === 'cutMenu'
+            }
+          ]"
+        >
+          {{ title }}
+        </div>
+        <p class="ml-10px text-[var(--logo-title-text-color)] text-[12px] font-400">(管理端)</p>
       </div>
     </router-link>
   </div>

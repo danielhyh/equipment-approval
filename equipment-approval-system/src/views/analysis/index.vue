@@ -81,6 +81,7 @@ const changeType = (item) => {
   border-radius: 10px;
   position: sticky;
   top: 20px;
+  z-index: 300;
   .type-item {
     display: flex;
     justify-content: center;
