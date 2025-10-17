@@ -67,7 +67,7 @@ watch(
       to="/"
     >
       <img
-        class="h-[calc(var(--logo-height) - 20px)] w-[calc(var(--logo-height)-20px)]"
+        class="h-[calc(var(--logo-height)-20px)] w-[calc(var(--logo-height)-20px)]"
         src="@/assets/imgs/logo.png"
       />
       <div>
