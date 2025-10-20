@@ -15,7 +15,7 @@ public interface LicenseMapper {
 
     IPage<LicensePageVO> page( IPage<LicensePageVO> page, @Param("p") LicensePageRequestVO requestVO);
 
-    IPage<AppLicensePageRespVO> licensePage(IPage<AppLicensePageRespVO> page,@Param("type") String type, @Param("userId") Long id);
+    IPage<AppLicensePageRespVO> licensePage(IPage<AppLicensePageRespVO> page,@Param("type") String type, @Param("userId") Long id, @Param("deptId") Long deptId);
 
     OriginalLicenseVO getOriginalById(@Param("id") Long id);
 

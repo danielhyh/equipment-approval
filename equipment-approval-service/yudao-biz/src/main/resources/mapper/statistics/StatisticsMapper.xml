@@ -7,12 +7,16 @@
                 SUM(IF(app_type = 1, 1, 0)) AS cert_apply_count,
                 SUM(IF(app_type = 2, 1, 0)) AS cert_renew_count,
                SUM(IF(app_type = 3, 1, 0)) AS cert_change_count,
-               SUM(IF(app_type = 4, 1, 0)) AS info_change_count
+               SUM(IF(app_type = 4, 1, 0)) AS info_change_count,
+               SUM(IF(app_type = 5, 1, 0)) AS offline_count
         FROM biz_application a
         left join biz_institution_ext b on a.institution_id = b.dept_id
         where a.deleted = 0
         <if test="status != null and status == 1">
             and app_status = 1
+        </if>
+        <if test="status != null and status == 5">
+            and app_status = 5
         </if>
         <if test="req.region != null and req.region != ''">
             and b.region = #{req.region}
@@ -73,7 +77,7 @@
     </select>
 
 
-    
+
     <!--  设备生产企业汇总  -->
     <select id="equipmentManufacturerSummary" resultType="map">
         SELECT
@@ -134,7 +138,7 @@
         where a.deleted = 0 and b.deleted = 0
     </select>
 
-    <select id="equipmentStatisticsDetail" resultType="map">
+    <select id="equipmentStatisticsDetail" resultType="cn.iocoder.yudao.module.biz.controller.admin.statistics.vo.DetailResponseVO">
         select a.region, a.institution_name, b.license_device_name, b.ladder_config_model,
                b.license_no, b.issue_date, c.installation_date, c.production_enterprise,
                c.specific_model, c.duplicate_issue_date, b.status
@@ -143,11 +147,26 @@
         left join biz_license_original b on b.application_id = d.id
         left join biz_license_duplicate c on b.id = c.original_id
         where d.app_status = 5
-        <if test="req.region != null and req.region != ''">
+        <if test="req.region != null">
             and a.region = #{req.region}
         </if>
+        <if test="req.region != null and req.region == '其他城市'">
+            and a.region in ('铜川市', '渭南市', '安康市', '商洛市', '延安市', '榆林市')
+        </if>
+        <if test="req.acceptanceStatus != null">
+            and c.acceptance_status = #{req.acceptanceStatus}
+        </if>
+        <if test="req.institutionType != null and req.institutionType == 1">
+            and a.institution_type = 1
+        </if>
+        <if test="req.institutionType != null and req.institutionType == 2">
+            and a.institution_type in (2, 3, 4)
+        </if>
         <if test="req.year != null">
-            and YEAR(d.create_time) = #{req.year}
+            and YEAR(b.create_time) = #{req.year}
+        </if>
+        <if test="req.startDate != null and req.endDate != null">
+            and b.create_time between #{req.startDate} and #{req.endDate}
         </if>
         <if test="req.types != null and !req.types.isEmpty()">
             and b.license_device_name in
@@ -166,9 +185,10 @@
         </if>
     </select>
     <select id="annualIncremental" resultType="java.util.Map">
+
         WITH yearly_counts AS (
             SELECT
-                YEAR(create_time) AS "year",
+                YEAR(create_time) AS `year`,
                 COUNT(*) AS yearly_count
             FROM biz_license_original
             WHERE deleted = 0
@@ -176,13 +196,13 @@
         ),
              yearly_growth AS (
                  SELECT
-                     "year",
+                     `year`,
                      yearly_count,
-                     LAG(yearly_count, 1) OVER (ORDER BY "year") AS prev_year_count
+                     LAG(yearly_count, 1) OVER (ORDER BY `year`) AS prev_year_count
                  FROM yearly_counts
              )
         SELECT
-            "year",
+            `year`,
             yearly_count AS inc_count,
             prev_year_count AS prev_count,
             ROUND(
@@ -194,7 +214,7 @@
                     2
             ) AS yoy_rate
         FROM yearly_growth
-        ORDER BY "year";
+        ORDER BY `year`
     </select>
     <select id="ladderConfigDistribution" resultType="java.util.Map">
         SELECT
@@ -204,5 +224,44 @@
         FROM biz_license_original
         WHERE deleted = 0
         GROUP BY ladder_config_model
+    </select>
+    <select id="deviceModelDistribution" resultType="java.util.Map">
+        SELECT
+            count(b.id) as num,
+            a.region,
+            b.license_device_name,
+            case when a.institution_type = 1 then '社会办医'
+                 else '政府办医'
+                END AS institution_type_label,
+            SUM(CASE WHEN d.acceptance_status = 1 THEN 1 ELSE 0 END) as accepted,
+            SUM(CASE WHEN d.acceptance_status = 0 THEN 1 ELSE 0 END) as not_accepted
+        FROM
+            biz_institution_ext a
+                LEFT JOIN biz_application b ON a.dept_id = b.institution_id
+                left join biz_license_original c on b.id = c.application_id
+                left join biz_license_duplicate d on c.id = d.original_id
+        where b.app_status = 5 and b.deleted = 0
+        <if test="req.region != null">
+            and a.region = #{req.region}
+        </if>
+        <if test="req.region != null and req.region == '其他城市'">
+            and a.region in ('铜川市', '渭南市', '安康市', '商洛市', '延安市', '榆林市')
+        </if>
+        <if test="req.types != null and !req.types.isEmpty()">
+            and b.license_device_name in
+            <foreach collection="req.types" item="item" open="(" close=")" separator=",">
+                #{item}
+            </foreach>
+        </if>
+        <if test="req.acceptanceStatus != null">
+            and c.acceptance_status = #{req.acceptanceStatus}
+        </if>
+        <if test="req.institutionType != null and req.institutionType == 1">
+            and a.institution_type = 1
+        </if>
+        <if test="req.institutionType != null and req.institutionType == 2">
+            and a.institution_type in (2, 3, 4)
+        </if>
+        GROUP BY a.region, b.license_device_name
     </select>
 </mapper>

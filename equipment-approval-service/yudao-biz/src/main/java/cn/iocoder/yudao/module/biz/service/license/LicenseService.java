@@ -69,7 +69,11 @@ public class LicenseService {
     public PageResult<AppLicensePageRespVO> licensePage(Integer pageSize, Integer pageNum, String type) {
         IPage<AppLicensePageRespVO> page = new Page<>(pageNum, pageSize);
         Long loginUserId = SecurityFrameworkUtils.getLoginUserId();
-        licenseMapper.licensePage(page, type, loginUserId);
+        Long deptId = jdbcClient.sql("select dept_id from system_users where id = ?")
+                .param(loginUserId)
+                .query(Long.class)
+                .single();
+        licenseMapper.licensePage(page, type, loginUserId, deptId);
         return new PageResult<>(page.getRecords(), page.getTotal());
     }
 
@@ -322,7 +326,7 @@ public class LicenseService {
             req.setTitle(deviceName+"设备验收审批结果");
             String result = request.getReviewResult() == 1 ? "通过" : "不通过";
 
-            req.setContent(String.format("您的%s设备验收审批结果为：%s。审核意见为：%s。", deviceName, result, request.getReviewOpinion()));
+            req.setContent(String.format("%s设备验收审批结果为：%s。审核意见为：%s。", deviceName, result, request.getReviewOpinion()));
             req.setCreator(loginUserNickname);
             req.setPublishNow(true);
             req.setAppId(appId);

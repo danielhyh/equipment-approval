@@ -30,6 +30,7 @@ import org.springframework.validation.annotation.Validated;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
@@ -94,7 +95,7 @@ public class ApplicationServiceImpl implements ApplicationService {
         Long loginUserId = SecurityFrameworkUtils.getLoginUserId();
         String loginUserNickname = SecurityFrameworkUtils.getLoginUserNickname();
 
-        operationService.log(application.getId(), loginUserId, loginUserNickname, "您发起的" + actionDescMap.get(createReqVO.getAppType()));
+        operationService.log(application.getId(), loginUserId, loginUserNickname, "发起的" + actionDescMap.get(createReqVO.getAppType()));
         //发通知
         var request = new CreateNotificationRequest();
         String institutionName = jdbcClient.sql("select institution_name from biz_institution_ext where dept_id = ?")
@@ -172,8 +173,14 @@ public class ApplicationServiceImpl implements ApplicationService {
         // 必须使用 MyBatis Plus 的分页对象
         IPage<ApplicationPageRespVO> page = new Page<>(pageReqVO.getPageNo(), pageReqVO.getPageSize());
         applicationMapper.page(page, pageReqVO);
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
         for (ApplicationPageRespVO record : page.getRecords()) {
             String appStatus = record.getAppStatus();
+            String deadline = record.getDeadline();
+            LocalDateTime dateTime = LocalDateTime.parse(deadline, formatter);
+            LocalDate localDate = dateTime.toLocalDate();
+            long between = ChronoUnit.DAYS.between(LocalDate.now(), localDate);
+            record.setRemainingDays(String.valueOf(between));
             record.setRemainingDays(record.getRemainingDays() + "天");
             if ("5".equals(appStatus)) {
                 record.setRemainingDays("-");
@@ -214,7 +221,7 @@ public class ApplicationServiceImpl implements ApplicationService {
         ApplicationDO update = new ApplicationDO();
         update.setId(id);
         ApplicationDO applicationDO = applicationMapper.selectById(id);
-        String actionDescPrefix = "您发起的" + actionDescMap.get(applicationDO.getAppType());
+        String actionDescPrefix = "发起的" + actionDescMap.get(applicationDO.getAppType());
 
         if ("INITIAL".equals(reviewType)) {
             update.setInitialReviewResult(result);
@@ -274,10 +281,10 @@ public class ApplicationServiceImpl implements ApplicationService {
         String licenseDeviceName = applicationDO.getLicenseDeviceName();
         CreateNotificationRequest createNotificationRequest = new CreateNotificationRequest();
         createNotificationRequest.setTitle(licenseDeviceName + "申请进度更新");
-        String format = String.format("您提交的%s配置许可证%s%s, 审核意见：%s。", licenseDeviceName, appTypeMap.get(applicationDO.getAppType()), reviewRes, opinion);
+        String format = String.format("提交的%s配置许可证%s%s, 审核意见：%s。", licenseDeviceName, appTypeMap.get(applicationDO.getAppType()), reviewRes, opinion);
         createNotificationRequest.setContent(format);
         createNotificationRequest.setPublishNow(true);
-        createNotificationRequest.setCreator(String.valueOf(userId));
+        createNotificationRequest.setCreator(null);
         createNotificationRequest.setAppId(appId);
         String institutionName = jdbcClient.sql("select institution_name from biz_institution_ext where dept_id = ?")
                 .param(applicationDO.getInstitutionId())
