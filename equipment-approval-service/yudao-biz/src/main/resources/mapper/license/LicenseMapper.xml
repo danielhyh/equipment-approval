@@ -50,11 +50,13 @@
             b.duplicate_issue_date AS duplicate_issue_date,
             c.app_type as license_type,
             a.status,
-            b.acceptance_status
+            b.acceptance_status,
+            IF(e.application_id IS NOT NULL, 1, 0) AS is_upload
         from biz_license_original a
                  left join biz_license_duplicate b on a.id = b.original_id
                  left join biz_application c on a.application_id = c.id
                  left join biz_institution_ext d on c.institution_id = d.dept_id
+                 left join biz_acceptance_material e on c.id = e.application_id
         <where>
             <if test="p.licenseType != null and p.licenseType != ''">
                 and c.app_type = #{p.licenseType}
@@ -72,11 +74,13 @@
                 and (
                     a.license_no like concat('%', #{p.keywords}, '%') or
                     a.config_unit_name like concat('%', #{p.keywords}, '%') or
-                    a.license_device_name like concat('%', #{p.keywords}, '%') or
+                    a.license_device_name like concat('%', #{p.keywords}, '%')
                 )
             </if>
         </where>
+        GROUP BY a.id, a.create_time
         order by a.create_time desc
+
     </select>
 
 

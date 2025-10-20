@@ -56,7 +56,7 @@ public class SSOController {
     @GetMapping("/login-url")
     @Operation(summary = "获取登录单点登录 URL")
     public CommonResult<String> getLoginUrl() {
-        String url = ssoBaseUrl + ssoBaseUrl + "/sso/authorize.do" +
+        String url = ssoBaseUrl + "/sso/authorize.do" +
                 "?response_type=code" +
                 "&client_id=" + clientId +
                 "&client_secret=" + clientSecret +
@@ -66,7 +66,7 @@ public class SSOController {
     }
 
 
-    @PostMapping("/callback")
+    @GetMapping("/callback")
     public void handlerCallback(@RequestParam String code, HttpServletResponse response) throws IOException {
         log.info("收到SSO回调，授权码: {}", code);
 
@@ -116,7 +116,7 @@ public class SSOController {
             // 4. 生成本地Token
             OAuth2AccessTokenDO accessTokenDO = oauth2TokenService.createAccessToken(
                     user.getId(),
-                    1, // UserTypeEnum.ADMIN.getValue()
+                    2, // UserTypeEnum.ADMIN.getValue()
                     OAuth2ClientConstants.CLIENT_ID_DEFAULT,
                     null
             );

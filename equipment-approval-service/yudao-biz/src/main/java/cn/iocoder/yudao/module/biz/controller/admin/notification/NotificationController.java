@@ -3,6 +3,7 @@ package cn.iocoder.yudao.module.biz.controller.admin.notification;
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.module.biz.service.notification.BizNotificationDTO;
+import cn.iocoder.yudao.module.biz.service.notification.CreateNotificationRequest;
 import cn.iocoder.yudao.module.biz.service.notification.NotificationService;
 import cn.iocoder.yudao.module.biz.service.utils.JdbcClientHelper;
 import io.swagger.v3.oas.annotations.Operation;
@@ -61,8 +62,9 @@ public class NotificationController {
     @GetMapping("/page")
     @Operation(summary = "通知分页查询")
     public CommonResult<PageResult<BizNotificationDTO>> page(@RequestParam("pageNum") Integer pageNum,
-                                                             @RequestParam("pageSize") Integer pageSize) {
-        return success(notificationService.pageNotifications(pageNum, pageSize));
+                                                             @RequestParam("pageSize") Integer pageSize,
+                                                             @RequestParam(value = "status", required = false) String status) {
+        return success(notificationService.pageNotifications(pageNum, pageSize, status));
     }
 
     @PostMapping("/update-status")
@@ -78,11 +80,25 @@ public class NotificationController {
         notificationService.updateNotificationContent(req.getId(), req.getTitle(), req.getContent());
         return success(true);
     }
+    
+    @PostMapping("/create")
+    @Operation(summary = "创建通知")
+    public CommonResult<Long> create(@RequestBody CreateNotificationRequest req) {
+        //设置可见性为系统创建
+        req.setVisibility("system");
+        req.setAppId(0L);
+        return success(notificationService.createNotification(req));
+    }
 
     @DeleteMapping("/delete/{id}")
     public CommonResult<Boolean> deleteById(@PathVariable("id") Long id) {
         notificationService.deleteNotification(id);
         return success(true);
+    }
+
+    @GetMapping("/get")
+    public CommonResult<BizNotificationDTO> getById(@RequestParam("id") Long id) {
+        return success(notificationService.getNotification(id));
     }
 
 

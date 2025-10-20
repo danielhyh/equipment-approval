@@ -52,6 +52,7 @@
     "highlight.js": "^11.9.0",
     "jsencrypt": "^3.3.2",
     "lodash-es": "^4.17.21",
+    "mammoth": "^1.11.0",
     "markdown-it": "^14.1.0",
     "markmap-common": "^0.16.0",
     "markmap-lib": "^0.16.1",
@@ -77,6 +78,7 @@
     "vue3-signature": "^0.2.4",
     "vuedraggable": "^4.1.0",
     "web-storage-cache": "^1.1.1",
+    "xlsx": "^0.18.5",
     "xml-js": "^1.6.11"
   },
   "devDependencies": {

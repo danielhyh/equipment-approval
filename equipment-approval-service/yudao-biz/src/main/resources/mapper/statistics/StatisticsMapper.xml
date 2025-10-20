@@ -92,7 +92,7 @@
         biz_equipment_manufacturer
         WHERE deleted = 0
         <if test="req.year != null">
-            and YEAR(a.create_time) = #{req.year}
+            and YEAR(create_time) = #{req.year}
         </if>
     </select>
 
@@ -147,11 +147,11 @@
         left join biz_license_original b on b.application_id = d.id
         left join biz_license_duplicate c on b.id = c.original_id
         where d.app_status = 5
-        <if test="req.region != null">
-            and a.region = #{req.region}
+        <if test="req.ladderConfigModel != null and req.ladderConfigModel != ''">
+            and d.ladder_config_model = #{req.ladderConfigModel}
         </if>
-        <if test="req.region != null and req.region == '其他城市'">
-            and a.region in ('铜川市', '渭南市', '安康市', '商洛市', '延安市', '榆林市')
+        <if test="req.region != null and req.region != ''">
+            and a.region = #{req.region}
         </if>
         <if test="req.acceptanceStatus != null">
             and c.acceptance_status = #{req.acceptanceStatus}

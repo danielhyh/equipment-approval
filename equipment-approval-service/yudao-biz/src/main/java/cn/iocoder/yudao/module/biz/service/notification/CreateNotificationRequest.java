@@ -11,4 +11,5 @@ public class CreateNotificationRequest {
     private Boolean publishNow; // 是否立即发布
     private String unitName;
     private Long appId;
+    private String visibility = "user";
 }

@@ -20,7 +20,7 @@ export default defineConfig(({ command, mode }) => {
   let modeEnv = loadEnv(mode, process.cwd());
   console.log(modeEnv, "环境");
   return {
-    base: "/client/",
+    base: "/",
     resolve: {
       alias: {
         // vue: "@vue/compat", // 别名配置，确保使用兼容性版本的 Vue

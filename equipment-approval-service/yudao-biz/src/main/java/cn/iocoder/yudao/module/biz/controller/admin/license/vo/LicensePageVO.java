@@ -50,4 +50,7 @@ public class LicensePageVO {
     @Schema(description = "设备验收审核状态：1-已通过，0-未通过")
     private Integer acceptanceStatus;
 
+    @Schema(description = "是否上传验收资料 1上传 0未上传")
+    private Integer isUpload;
+
 }

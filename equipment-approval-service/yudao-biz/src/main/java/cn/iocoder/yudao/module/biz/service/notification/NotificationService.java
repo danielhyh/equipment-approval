@@ -1,17 +1,21 @@
 package cn.iocoder.yudao.module.biz.service.notification;
 
+import cn.hutool.core.util.StrUtil;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
+import org.springframework.jdbc.core.simple.JdbcClient;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Service;
 
 import java.sql.*;
 import java.time.LocalDateTime;
+import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Objects;
 
@@ -20,8 +24,11 @@ public class NotificationService {
 
     private final JdbcTemplate jdbcTemplate;
 
-    public NotificationService(JdbcTemplate jdbcTemplate) {
+    private final JdbcClient jdbcClient;
+
+    public NotificationService(JdbcTemplate jdbcTemplate, JdbcClient jdbcClient) {
         this.jdbcTemplate = jdbcTemplate;
+        this.jdbcClient = jdbcClient;
     }
 
     // 通知 DTO 映射器
@@ -31,7 +38,7 @@ public class NotificationService {
         dto.setTitle(rs.getString("title"));
         dto.setContent(rs.getString("content"));
         dto.setStatus(rs.getString("status"));
-        dto.setPublishTime(rs.getTimestamp("publish_time") != null ? rs.getTimestamp("publish_time").toLocalDateTime() : null);
+        dto.setPublishTime(rs.getTimestamp("publish_time") != null ? Date.from(rs.getTimestamp("publish_time").toInstant()) : null);
         dto.setViewCount(rs.getInt("view_count"));
         return dto;
     };
@@ -51,16 +58,21 @@ public class NotificationService {
     // ========== 管理端功能 ==========
 
     
-    public PageResult<BizNotificationDTO> pageNotifications(int pageNum, int pageSize) {
-        Long loginUserId = SecurityFrameworkUtils.getLoginUserId();
-        List<Long> appIdList = jdbcTemplate.query("select id from biz_application where deleted = 0 and creator = ?", (rs, rowNum) -> rs.getLong("id"), loginUserId);
+    public PageResult<BizNotificationDTO> pageNotifications(int pageNum, int pageSize, String status) {
+//        Long loginUserId = SecurityFrameworkUtils.getLoginUserId();
+//        List<Long> appIdList = jdbcTemplate.query("select id from biz_application where deleted = 0 and creator = ?", (rs, rowNum) -> rs.getLong("id"), loginUserId);
 
 
         NamedParameterJdbcTemplate template = new NamedParameterJdbcTemplate(jdbcTemplate);
-        String countSql = "SELECT COUNT(*) FROM biz_notifications WHERE deleted = 0 and app_id in (:appIds)";
-        MapSqlParameterSource totalQuery = new MapSqlParameterSource();
-        totalQuery.addValue("appIds", appIdList);
-        Long total = template.queryForObject(countSql, totalQuery, Long.class);
+
+        String countSql = "SELECT COUNT(*) FROM biz_notifications WHERE deleted = 0 and visibility = 'system'";
+        if (StrUtil.isNotBlank(status)) {
+            String res = " AND status = '%s'";
+            countSql += String.format(res, status);
+        }
+//        MapSqlParameterSource totalQuery = new MapSqlParameterSource();
+//        totalQuery.addValue("appIds", appIdList);
+        Long total = template.queryForObject(countSql, new HashMap<>(),  Long.class);
 
 
         String dataSql = """
@@ -68,7 +80,7 @@ public class NotificationService {
                    (SELECT COUNT(*) FROM biz_user_notification_status
                     WHERE notification_id = n.id AND is_read = 1) AS view_count
             FROM biz_notifications n
-            WHERE deleted = 0 and app_id in (:appIds)
+            WHERE deleted = 0 and visibility = 'system' %s
             ORDER BY create_time DESC LIMIT :pageNum, :pageSize
             """;
 
@@ -79,7 +91,14 @@ public class NotificationService {
 
 
 
-        paramSource.addValue("appIds", appIdList);
+//        paramSource.addValue("appIds", appIdList);
+        if (StrUtil.isNotBlank(status)) {
+            String res = " AND status = '%s'";
+            String res2 = String.format(res, status);
+            dataSql = String.format(dataSql, res2);
+        } else {
+            dataSql = String.format(dataSql, "");
+        }
         paramSource.addValue("pageSize", pageSize);
         paramSource.addValue("pageNum", offset);
         List<BizNotificationDTO> list = template.query(dataSql, paramSource, notificationRowMapper);
@@ -91,6 +110,7 @@ public class NotificationService {
         Long loginUserId = SecurityFrameworkUtils.getLoginUserId();
         String sql = "UPDATE biz_notifications SET `status` = ?,  updater = ?, publish_time = CASE WHEN ? = '已发布' AND publish_time IS NULL THEN NOW() ELSE publish_time END , update_time = NOW() WHERE id = ?";
         jdbcTemplate.update(sql, status, loginUserId, status, id);
+        insertUnreadRecordsForAllUsers(id);
     }
 
     
@@ -101,9 +121,8 @@ public class NotificationService {
     }
 
     public void deleteNotification(Long id) {
-        Long loginUserId = SecurityFrameworkUtils.getLoginUserId();
-        String sql = "update biz_notifications set deleted = 1, updater = ?, update_time = NOW() where id = ?";
-        jdbcTemplate.update(sql, id, loginUserId);
+        String sql = "update biz_notifications set deleted = 1, update_time = NOW() where id = ?";
+        jdbcTemplate.update(sql, id);
     }
 
     public Long createNotification(CreateNotificationRequest request) {
@@ -117,8 +136,8 @@ public class NotificationService {
 
         // SQL 插入通知
         String sql = """
-        INSERT INTO biz_notifications (title, content, unit_name, app_id, `status`, publish_time, creator, create_time, deleted)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+        INSERT INTO biz_notifications (title, content, unit_name, app_id, `status`, publish_time, creator, create_time, deleted, visibility)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """;
 
         KeyHolder keyHolder = new GeneratedKeyHolder();
@@ -133,6 +152,7 @@ public class NotificationService {
             ps.setString(7, creator != null ? creator : "");
             ps.setTimestamp(8, Timestamp.valueOf(now));
             ps.setBoolean(9, false);
+            ps.setString(10, request.getVisibility());
             return ps;
         }, keyHolder);
 
@@ -196,5 +216,18 @@ public class NotificationService {
             String insertSql = "INSERT INTO biz_user_notification_status (user_id, notification_id, is_read, read_at) VALUES (?, ?, 1, NOW())";
             jdbcTemplate.update(insertSql, userId, notificationId);
         }
+    }
+
+    public BizNotificationDTO getNotification(Long id) {
+        String sql = """
+                 SELECT id, title, content, status, publish_time,
+                   (SELECT COUNT(*) FROM biz_user_notification_status
+                    WHERE notification_id = n.id AND is_read = 1) AS view_count
+            FROM biz_notifications n where n.id = ?
+                """;
+        BizNotificationDTO single = jdbcClient.sql(sql)
+                .param(id)
+                .query(notificationRowMapper).single();
+        return single;
     }
 }

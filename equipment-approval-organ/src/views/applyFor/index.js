@@ -522,7 +522,7 @@ export default {
               notice: "无", // 填表须知
               sample: "", // 样表
               empty: "", // 空表
-              view: applyUnitLicense, // 查看模板
+              view: "", // 查看模板
             },
             {
               text: "营业执照", // 材料名称
@@ -537,7 +537,7 @@ export default {
               notice: "无", // 填表须知
               sample: "", // 样表
               empty: "", // 空表
-              view: businessLicense, // 查看模板
+              view: "", // 查看模板
             },
             {
               text: "与申请配置大型医用设备相应的技术条件、配套设备和专业技术人员资质、能力材料", // 材料名称
@@ -551,7 +551,7 @@ export default {
               source: "无", // 来源渠道
               notice: "无", // 填表须知
               sample: "", // 样表
-              empty: technicalConditions, // 空表
+              empty: "", // 空表
               view: "", // 查看模板
             },
             {
@@ -565,8 +565,8 @@ export default {
               standard: "无", // 受理标准
               source: "无", // 来源渠道
               notice: "无", // 填表须知
-              sample: largeMedicalSample, // 样表
-              empty: largeMedical, // 空表
+              sample: "", // 样表
+              empty: "", // 空表
               view: "", // 查看模板
             },
           ],
@@ -585,8 +585,8 @@ export default {
               standard: "无", // 受理标准
               source: "自备", // 来源渠道
               notice: "无", // 填表须知
-              sample: largeMedicalSample, // 样表
-              empty: largeMedical, // 空表
+              sample: "", // 样表
+              empty: "", // 空表
               view: "", // 查看模板
             },
             {
@@ -600,8 +600,8 @@ export default {
               standard: "无", // 受理标准
               source: "自备", // 来源渠道
               notice: "无", // 填表须知
-              sample: registerSample, // 样表
-              empty: register, // 空表
+              sample: "", // 样表
+              empty: "", // 空表
               view: "", // 查看模板
             },
             {
@@ -617,7 +617,7 @@ export default {
               notice: "无", // 填表须知
               sample: "", // 样表
               empty: "", // 空表
-              view: applyUnitLicense, // 查看模板
+              view: "", // 查看模板
             },
             {
               text: "营业执照", // 材料名称
@@ -632,7 +632,7 @@ export default {
               notice: "无", // 填表须知
               sample: "", // 样表
               empty: "", // 空表
-              view: businessLicense, // 查看模板
+              view: "", // 查看模板
             },
             {
               text: "与申请配置大型医用设备相应的技术条件、配套设备和专业技术人员资质、能力材料", // 材料名称
@@ -646,7 +646,7 @@ export default {
               source: "自备", // 来源渠道
               notice: "无", // 填表须知
               sample: "", // 样表
-              empty: technicalConditions, // 空表
+              empty: "", // 空表
               view: "", // 查看模板
             },
           ],
@@ -668,7 +668,7 @@ export default {
               notice: "无", // 填表须知
               sample: "", // 样表
               empty: "", // 空表
-              view: applyUnitLicense, // 查看模板
+              view: "", // 查看模板
             },
             // 营业执照
             {
@@ -684,7 +684,7 @@ export default {
               notice: "无", // 填表须知
               sample: "", // 样表
               empty: "", // 空表
-              view: businessLicense, // 查看模板
+              view: "", // 查看模板
             },
             // 与申请配置大型医用设备相应的技术条件、配套设备和专业技术人员资质、能力材料
             {
@@ -699,7 +699,7 @@ export default {
               source: "无", // 来源渠道
               notice: "无", // 填表须知
               sample: "", // 样表
-              empty: technicalConditions, // 空表
+              empty: "", // 空表
               view: "", // 查看模板
             },
             // 乙类大型医用设备配置许可申请表
@@ -714,8 +714,8 @@ export default {
               standard: "无", // 受理标准
               source: "无", // 来源渠道
               notice: "无", // 填表须知
-              sample: largeMedicalSample, // 样表
-              empty: largeMedical, // 空表
+              sample: "", // 样表
+              empty: "", // 空表
               view: "", // 查看模板
             },
           ],

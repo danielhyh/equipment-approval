@@ -115,17 +115,17 @@ public class MedicalDeviceProcessor {
         }
 
         // 4. 计算陕西省的汇总数据（所有其他市的总和）
-        Map<String, Integer> shaanxiData = new HashMap<>();
-        for (Map.Entry<String, Map<String, Integer>> entry : dataMap.entrySet()) {
-            if (!"陕西省".equals(entry.getKey())) {
-                for (Map.Entry<String, Integer> dataEntry : entry.getValue().entrySet()) {
-                    String key = dataEntry.getKey();
-                    Integer value = dataEntry.getValue();
-                    shaanxiData.put(key, shaanxiData.getOrDefault(key, 0) + value);
-                }
-            }
-        }
-        dataMap.put("陕西省", shaanxiData);
+//        Map<String, Integer> shaanxiData = new HashMap<>();
+//        for (Map.Entry<String, Map<String, Integer>> entry : dataMap.entrySet()) {
+//            if (!"陕西省".equals(entry.getKey())) {
+//                for (Map.Entry<String, Integer> dataEntry : entry.getValue().entrySet()) {
+//                    String key = dataEntry.getKey();
+//                    Integer value = dataEntry.getValue();
+//                    shaanxiData.put(key, shaanxiData.getOrDefault(key, 0) + value);
+//                }
+//            }
+//        }
+//        dataMap.put("陕西省", shaanxiData);
 
         // 5. 构建最终结果（按REGIONS顺序）
         List<Map<String, Object>> result = new ArrayList<>();
