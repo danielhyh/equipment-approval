@@ -33,6 +33,11 @@ public class AdminUserDO extends BaseDO {
      */
     @TableId
     private Long id;
+
+    /**
+     * 外部用户ID
+     */
+    private String externalUserId;
     /**
      * 用户账号
      */

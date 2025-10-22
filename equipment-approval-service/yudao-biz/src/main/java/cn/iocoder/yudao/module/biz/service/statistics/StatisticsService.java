@@ -243,13 +243,16 @@ public class StatisticsService {
             filterRequest.setTypes(Arrays.asList(deviceTypes.split(",")));
         }
         Page<DetailResponseVO> page = new Page<>(filterRequest.getPageNo(), filterRequest.getPageSize());
-        if ("陕西省".equals(filterRequest.getRegion())) {
-            filterRequest.setRegion(null);
-        }
+//        if ("陕西省".equals(filterRequest.getRegion())) {
+//            filterRequest.setRegion(null);
+//        }
         statisticsMapper.equipmentStatisticsDetail(page, filterRequest);
         //List<Map<String, Object>> convertedRecords = NamedTransformation.convertKeysToCamelCase(page.getRecords());
 
         return new PageResult<>(page.getRecords(), page.getTotal());
     }
 
+    public Map<String, Object> processedLicenseSummary(Integer year) {
+        return NamedTransformation.convertKeysToCamelCase(statisticsMapper.licenseCount(year));
+    }
 }

@@ -10,6 +10,7 @@ import jakarta.annotation.Resource;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.*;
 import cn.iocoder.yudao.module.biz.controller.app.acceptancematerial.vo.*;
 import cn.iocoder.yudao.module.biz.dal.dataobject.acceptancematerial.AcceptanceMaterialDO;
@@ -40,7 +41,7 @@ public class AcceptanceMaterialServiceImpl implements AcceptanceMaterialService 
     public Boolean createAcceptanceMaterial(List<AppAcceptanceMaterialSaveReqVO> createReqVO) {
         // 插入
         List<AcceptanceMaterialDO> acceptanceMaterial = BeanUtils.toBean(createReqVO, AcceptanceMaterialDO.class);
-
+        acceptanceMaterial.forEach(obj -> obj.setUploadTime(LocalDateTime.now()));
 
         // 返回
         return  acceptanceMaterialMapper.insertBatch(acceptanceMaterial);
@@ -88,10 +89,9 @@ public class AcceptanceMaterialServiceImpl implements AcceptanceMaterialService 
 
     @Override
     public List<AcceptanceMaterialDO> list(Long  id) {
-        Long loginUserId = SecurityFrameworkUtils.getLoginUserId();
+        //Long loginUserId = SecurityFrameworkUtils.getLoginUserId();
         LambdaQueryWrapper<AcceptanceMaterialDO> wrapper = Wrappers.lambdaQuery(AcceptanceMaterialDO.class)
-                .eq( AcceptanceMaterialDO::getApplicationId, id)
-                .eq(AcceptanceMaterialDO::getCreator, loginUserId);
+                .eq( AcceptanceMaterialDO::getApplicationId, id);
         return acceptanceMaterialMapper.selectList(wrapper);
     }
 

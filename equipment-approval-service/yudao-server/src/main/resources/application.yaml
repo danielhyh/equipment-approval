@@ -308,6 +308,6 @@ sso:
   client-name: shebei
   client-id: shebei_client
   client-secret: shebei_secret_789012
-  callback-url: http://172.29.77.100:48080/sso/callback
-  base-url: 172.29.75.191:8801/sxwstjzb
+  callback-url: http://127.0.0.1:48080/sso/callback
+  base-url: http://172.29.75.191:8801/sxwstjzb
   front-end-url: http://172.29.77.100:8801/

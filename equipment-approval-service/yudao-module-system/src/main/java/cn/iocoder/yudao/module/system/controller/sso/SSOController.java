@@ -9,6 +9,7 @@ import cn.iocoder.yudao.module.system.controller.admin.auth.vo.AuthLoginRespVO;
 import cn.iocoder.yudao.module.system.convert.auth.AuthConvert;
 import cn.iocoder.yudao.module.system.dal.dataobject.oauth2.OAuth2AccessTokenDO;
 import cn.iocoder.yudao.module.system.dal.dataobject.user.AdminUserDO;
+import cn.iocoder.yudao.module.system.dal.mysql.user.AdminUserMapper;
 import cn.iocoder.yudao.module.system.enums.oauth2.OAuth2ClientConstants;
 import cn.iocoder.yudao.module.system.service.oauth2.OAuth2TokenService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -53,10 +54,13 @@ public class SSOController {
     @Resource
     private OAuth2TokenService oauth2TokenService;
 
+    @Resource
+    private AdminUserMapper userMapper;
+
     @GetMapping("/login-url")
     @Operation(summary = "获取登录单点登录 URL")
     public CommonResult<String> getLoginUrl() {
-        String url = ssoBaseUrl + ssoBaseUrl + "/sso/authorize.do" +
+        String url = ssoBaseUrl + "/sso/authorize.do" +
                 "?response_type=code" +
                 "&client_id=" + clientId +
                 "&client_secret=" + clientSecret +
@@ -66,7 +70,7 @@ public class SSOController {
     }
 
 
-    @PostMapping("/callback")
+    @GetMapping("/callback")
     public void handlerCallback(@RequestParam String code, HttpServletResponse response) throws IOException {
         log.info("收到SSO回调，授权码: {}", code);
 
@@ -116,7 +120,7 @@ public class SSOController {
             // 4. 生成本地Token
             OAuth2AccessTokenDO accessTokenDO = oauth2TokenService.createAccessToken(
                     user.getId(),
-                    1, // UserTypeEnum.ADMIN.getValue()
+                    2, // UserTypeEnum.ADMIN.getValue()
                     OAuth2ClientConstants.CLIENT_ID_DEFAULT,
                     null
             );
@@ -135,7 +139,7 @@ public class SSOController {
     }
 
     private AdminUserDO getUserBySsoId(String ssoUserId) {
-        return null;
+        return userMapper.selectOne(AdminUserDO::getExternalUserId, ssoUserId);
     }
 
     @PostMapping("/logout")

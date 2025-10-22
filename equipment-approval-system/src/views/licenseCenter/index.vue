@@ -176,9 +176,10 @@
               v-if="scope.row.acceptanceStatus !== 1 && !!scope.row.duplicateId"
               type="warning"
               size="small"
-              @click="copyInspectionFn(scope.row)"
+              @click="scope.row.isUpload ? copyInspectionFn(scope.row) : null"
+              :disabled="!scope.row.isUpload"
             >
-              设备验收
+              {{ scope.row.isUpload ? '设备验收' : '设备未验收' }}
             </el-button>
           </template>
         </el-table-column>
@@ -328,7 +329,8 @@ const getList = () => {
           status: eg.status,
           originalId: eg.originalId,
           duplicateId: eg.duplicateId,
-          acceptanceStatus: eg.acceptanceStatus // 设备验收状态 1已验收 0未验收
+          acceptanceStatus: eg.acceptanceStatus, // 设备验收状态 1已验收 0未验收
+          isUpload: eg.isUpload // 是否上传验收资料 1已上传 0未上传
         }
       })
       paramsValue.total = total
@@ -440,9 +442,9 @@ const openLicense = async (row, type, command) => {
         ? await Promise.all([LicenseApi.getLicenseOriginal(originalParam)])
         : !!row.duplicateId
           ? await Promise.all([
-              LicenseApi.getLicenseOriginal(originalParam),
-              LicenseApi.getLicenseCopy(copyParam)
-            ])
+            LicenseApi.getLicenseOriginal(originalParam),
+            LicenseApi.getLicenseCopy(copyParam)
+          ])
           : await Promise.all([LicenseApi.getLicenseOriginal(originalParam)])
     let result: any = null
     if (type === 'B') {
@@ -530,111 +532,131 @@ onMounted(() => {
 
 <style lang="scss" scoped>
 .license-center-box {
-  border-radius: 10px;
-  background-color: #fff;
   padding: 10px;
+  background-color: #fff;
+  border-radius: 10px;
+
   .statistics-row {
     display: flex;
+    padding-bottom: 10px;
+    margin-bottom: 20px;
+    border-bottom: 1px solid #e5e5e5;
     align-items: center;
     justify-content: space-between;
-    margin-bottom: 20px;
-    padding-bottom: 10px;
-    border-bottom: 1px solid #e5e5e5;
+
     .left {
       display: flex;
       align-items: center;
       font-size: 20px;
       font-weight: bold;
       color: #1081f2;
+
       .title {
         margin-left: 4px;
       }
     }
+
     .right {
       display: flex;
       align-items: center;
     }
+
     .statistics-item {
       display: flex;
-      align-items: center;
       padding: 5px 14px;
-      border-radius: 6px;
-      box-sizing: border-box;
-      border: 1px solid rgba(8, 144, 178, 0.4);
-      background-color: rgba(8, 144, 178, 0.2);
       font-size: 14px;
       color: #0891b2;
+      background-color: rgb(8 144 178 / 20%);
+      border: 1px solid rgb(8 144 178 / 40%);
+      border-radius: 6px;
+      box-sizing: border-box;
+      align-items: center;
+
       &:deep(.statistics-icon) {
+        margin-right: 4px;
         font-size: 14px !important;
         vertical-align: baseline;
-        margin-right: 4px;
       }
+
       span {
         font-weight: bold;
       }
+
       span + span {
         margin-left: 5px;
       }
+
       &:nth-of-type(2) {
         color: #d97706;
-        background-color: rgba(217, 119, 6, 0.1);
-        border-color: rgba(255, 193, 7, 0.6);
+        background-color: rgb(217 119 6 / 10%);
+        border-color: rgb(255 193 7 / 60%);
       }
+
       &:nth-of-type(3) {
         color: #16a34a;
-        background-color: rgba(22, 163, 74, 0.1);
-        border-color: rgba(22, 163, 74, 0.6);
+        background-color: rgb(22 163 74 / 10%);
+        border-color: rgb(22 163 74 / 60%);
       }
+
       &:nth-of-type(4) {
-        color: rgb(66, 75, 248);
-        background-color: rgba(66, 75, 248, 0.1);
-        border-color: rgba(66, 75, 248, 0.6);
+        color: rgb(66 75 248);
+        background-color: rgb(66 75 248 / 10%);
+        border-color: rgb(66 75 248 / 60%);
       }
     }
+
     .statistics-item + .statistics-item {
       margin-left: 10px;
     }
   }
+
   .seach-row {
     display: flex;
     justify-content: space-between;
+
     .el-form {
       .el-form-item {
-        margin-bottom: 10px;
         margin-right: 10px;
+        margin-bottom: 10px;
       }
     }
   }
+
   .table-container {
     &:deep(.el-table) {
       .el-table__cell {
         .el-tag__content {
           display: flex;
           align-items: center;
+
           .el-icon {
             margin-right: 4px;
           }
         }
+
         .license-type-tag {
           color: var(--color);
           background-color: rgba(var(--color), 0.3);
         }
       }
     }
+
     .pagination-container {
       float: none;
       justify-content: flex-end;
     }
+
     &::after {
-      content: '';
       clear: both;
+      content: '';
     }
   }
 }
+
 .dialog-licence-content {
   .row {
-    padding: 0 20px;
     display: flex;
+    padding: 0 20px;
     align-items: center;
     justify-content: flex-end;
   }

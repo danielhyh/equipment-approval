@@ -21,7 +21,7 @@
           </div>
           <div class="other-row">
             <div class="col"
-              ><span class="label">申请编号：</span>
+            ><span class="label">申请编号：</span>
               <span class="value">{{ basice.code }}</span>
             </div>
             <div class="line"></div>
@@ -120,12 +120,6 @@ let typeList = computed(() => {
           icon: 'ep:document-copy'
         },
         {
-          label: '其他信息',
-          value: 'otherInfo',
-          icon: 'ep:more-filled',
-          component: markRaw(OtherMsg)
-        },
-        {
           label: '验收材料列表',
           value: 'material',
           component: markRaw(Material),
@@ -136,6 +130,12 @@ let typeList = computed(() => {
           value: 'copyInspection',
           component: markRaw(CopyExpert),
           icon: 'ep:connection'
+        },
+        {
+          label: '其他信息',
+          value: 'otherInfo',
+          icon: 'ep:more-filled',
+          component: markRaw(OtherMsg)
         },
         {
           label: '操作历史',
@@ -267,17 +267,19 @@ onMounted(() => {
 .license-detail-box {
   .header-row {
     display: flex;
-    justify-content: space-between;
-    align-items: center;
+    height: 54px;
     padding: 0 20px;
     background-image: linear-gradient(to right, #282ffc, #1c93f4);
-    height: 54px;
     border-radius: 8px;
+    justify-content: space-between;
+    align-items: center;
+
     .left {
       display: flex;
-      align-items: center;
-      color: #fff;
       font-size: 18px;
+      color: #fff;
+      align-items: center;
+
       span {
         margin-left: 10px;
       }
@@ -285,104 +287,125 @@ onMounted(() => {
     // .right {
     // }
   }
+
   .content-page {
     height: calc(100% - 54px);
     overflow-y: auto;
     background-color: #f5f7fa;
+
     .scroll-content {
-      margin: 0 auto;
       padding: 10px 0;
+      margin: 0 auto;
+
       .content-basis-msg {
         padding: 20px;
-        border-radius: 10px;
-        border: 1px solid rgba(226, 232, 240, 0.8);
-        border-left: 4px solid #165dff;
-        background-color: #fff;
-        box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
         margin-bottom: 20px;
+        background-color: #fff;
+        border: 1px solid rgb(226 232 240 / 80%);
+        border-left: 4px solid #165dff;
+        border-radius: 10px;
+        box-shadow: 0 2px 12px 0 rgb(0 0 0 / 10%);
+
         .title-row {
-          height: 32px;
-          line-height: 1;
-          margin-bottom: 10px;
           display: flex;
+          height: 32px;
+          margin-bottom: 10px;
+          line-height: 1;
           align-items: center;
+
           .el-icon {
-            color: #165dff;
             font-size: 24px;
-          }
-          span {
             color: #165dff;
+          }
+
+          span {
+            margin-left: 6px;
             font-size: 24px;
             font-weight: 600;
-            margin-left: 6px;
+            color: #165dff;
           }
+
           &.left {
             display: flex;
             justify-content: center;
           }
+
           &.title-flex {
             justify-content: space-between;
           }
         }
+
         .other-row {
           display: flex;
           align-items: center;
+
           .col {
-            color: #64748b;
             font-size: 14px;
+            color: #64748b;
+
             .label {
               margin-right: 6px;
             }
           }
+
           .line {
             width: 1px;
             height: 14px;
-            background-color: #e2e8f0;
             margin: 0 12px;
+            background-color: #e2e8f0;
           }
         }
       }
+
       .content-type-msg {
-        border: 1px solid rgba(226, 232, 240, 0.8);
         padding: 4px;
-        border-radius: 10px;
         background-color: #fff;
-        box-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.1);
+        border: 1px solid rgb(226 232 240 / 80%);
+        border-radius: 10px;
+        box-shadow: 0 2px 4px 0 rgb(0 0 0 / 10%);
+
         .type-tag-list {
           display: flex;
           align-items: center;
           overflow: auto;
+
           .type-tag-item {
-            height: 44px;
             display: flex;
-            align-items: center;
-            justify-content: center;
+            height: 44px;
+            padding: 4px 14px;
             font-size: 14px;
             color: #64748b;
-            border-radius: 8px;
-            padding: 4px 14px;
             cursor: pointer;
+            border-radius: 8px;
             transition: all 0.3s ease;
+            align-items: center;
+            justify-content: center;
             flex-shrink: 0;
+
             span {
               margin-left: 4px;
             }
+
             &.active {
-              background-image: linear-gradient(135deg, #165dff, #3b82f6);
               color: #fff;
+              background-image: linear-gradient(135deg, #165dff, #3b82f6);
             }
+
             &:hover {
-              background-image: linear-gradient(135deg, #165dff, #3b82f6);
               color: #fff;
+              background-image: linear-gradient(135deg, #165dff, #3b82f6);
             }
+
             & + .type-tag-item {
               margin-left: 12px;
             }
           }
         }
+
         .type-content-page {
           min-height: 320px;
         }
+
         .handler-list {
           display: flex;
           align-items: center;
