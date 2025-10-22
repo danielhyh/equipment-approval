@@ -49,9 +49,17 @@
           </el-table-column>
 
           <!-- 许可设备名称 -->
-          <el-table-column prop="licenseDeviceName" label="许可设备名称" align="center" />
+          <el-table-column prop="licenseDeviceName" label="许可设备名称" align="center" >
+            <template #default="{row}">
+              {{ row.licenseDeviceName || "-" }}
+            </template>
+          </el-table-column>
           <!-- 阶梯配置机型 -->
-          <el-table-column prop="ladderConfigModel" label="阶梯配置机型" width="180" align="center" />
+          <el-table-column prop="ladderConfigModel" label="阶梯配置机型" width="180" align="center" >
+            <template #default="{row}">
+              {{ row.ladderConfigModel || "-" }}
+            </template>
+          </el-table-column>
           <!-- 创建日期 -->
           <el-table-column prop="createTime" label="创建日期" width="180" align="center" />
           <!-- 进度状态 -->
@@ -63,9 +71,27 @@
 
           <el-table-column prop="guideProcess" label="操作" width="180" fixed="right" align="center">
             <template #default="scope">
-              <el-button type="primary" size="small" v-if="scope.row.appType !== 4" @click.stop="handleDetail(scope.row)">详情</el-button>
-              <el-button type="warning" size="small" v-if="scope.row.appStatus === 1" @click.stop="handleEdit(scope.row)">
+              <el-button type="primary" size="small" v-if="scope.row.appType !== 4" @click.stop="handleDetail(scope.row)">
+                详情
+              </el-button>
+              <el-button
+                type="warning"
+                size="small"
+                v-if="scope.row.appStatus === 1 && scope.row.appType !== 4"
+                @click.stop="handleEdit(scope.row)"
+              >
                 修改
+              </el-button>
+              <el-button
+                type="warning"
+                size="small"
+                v-if="scope.row.appStatus === 1 && scope.row.appType === 4"
+                @click.stop="handleBasisEdit(scope.row)"
+              >
+                修改
+              </el-button>
+              <el-button type="primary" size="small" v-if="scope.row.appType === 4" @click.stop="handleBasisInfo(scope.row)">
+                详情
               </el-button>
             </template>
           </el-table-column>
@@ -80,6 +106,7 @@
           :background="true"
           @changePageOrPageSize="getToDoListFn"
         />
+        <BasisMsgDialog ref="basisMsgDialogRef" @submit-pass="getToDoListFn" />
       </div>
     </Card>
 
@@ -89,7 +116,7 @@
         <svg-icon name="fa7-solid:certificate" size="24" style="margin-right: 2px" color="#237efd" />
         <span>证书列表</span>
       </template>
-      
+
       <LicenseList />
     </Card>
   </div>
@@ -97,9 +124,11 @@
 
 <script setup>
 import LicenseList from "./licenseList.vue";
+import BasisMsgDialog from "./dialog/basisMsgDialog.vue";
 import { useBasisStore } from "@/pinia/modules/basis";
 import { useDictStore } from "@/pinia/modules/dict";
 import { getApplyList } from "@/apis/home";
+import { getApplyDetail } from "@/apis/applyFor";
 import { formatDate } from "@/utils/tools";
 import { getApplyReviewedList } from "@/apis/applyFor";
 
@@ -229,6 +258,38 @@ const handleEdit = (row) => {
     path: `/deputy/apply-for`,
     query: { id, type: applyType },
   });
+};
+// 基础信息 编辑
+let basisMsgDialogRef = ref(null);
+const handleBasisEdit = async (row) => {
+  try {
+    let response = await getApplyDetail(row.id);
+    let {
+      data: { extra },
+    } = response;
+    let key = "";
+    let keys = Object.keys(extra);
+    if (keys.includes("detailedAddress") || keys.includes("legalPerson")) {
+      key = "legalPerson";
+    } else {
+      key = "contactPerson";
+    }
+    basisMsgDialogRef.value.handleEdit(key, extra);
+  } catch (err) {
+    ElMessage.error(err.message);
+  }
+};
+// 基础信息 详情
+const handleBasisInfo = async (row) => {
+  try {
+    let response = await getApplyDetail(row.id);
+    let {
+      data: { extra },
+    } = response;
+    basisMsgDialogRef.value.handleInfo(extra);
+  } catch (err) {
+    ElMessage.error(err.message);
+  }
 };
 // 查询
 onMounted(() => {

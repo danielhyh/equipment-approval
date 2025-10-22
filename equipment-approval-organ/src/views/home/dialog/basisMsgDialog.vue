@@ -1,27 +1,5 @@
 <template>
-  <!-- 这里可以添加模板内容 -->
-  <div class="basis-container">
-    <div class="basis-item">
-      <svg-icon name="fa-solid:hospital" />
-      <div class="value">{{ deptName || "--" }}</div>
-    </div>
-    <div class="basis-item">
-      <svg-icon name="fa-solid:user" />
-      <div class="value">{{ userName || "--" }}</div>
-    </div>
-    <div class="basis-item">
-      <svg-icon name="fa-solid:phone" />
-      <div class="value">{{ phone || "--" }}</div>
-    </div>
-    <div class="basis-item">
-      <el-button type="primary" size="small" @click="openBasisDialog">
-        <template #icon>
-          <svg-icon name="dashicons:info-outline" />
-        </template>
-        基础数据
-      </el-button>
-    </div>
-
+  <div>
     <!-- 基础信息弹窗 -->
     <Dialog v-model:visible="dialogVisible" :attr="dialogSetting">
       <template #header>
@@ -32,12 +10,7 @@
         <div class="item-msg" v-for="(item, index) in initDesc" :key="index">
           <span class="label">{{ item.label }}</span>
           <span class="value">{{ item.value }}</span>
-          <span class="handle">
-            <el-button v-if="item.edit" type="primary" size="small" :icon="EditPen" round @click.stop="handleEdit(item.key)">
-              编辑
-            </el-button>
-            <el-button v-else type="info" disabled size="small" :icon="Lock" round>不可编辑</el-button>
-          </span>
+          <span class="handle" />
         </div>
       </div>
       <div class="remark-box p-10">
@@ -131,26 +104,34 @@
   </div>
 </template>
 
-<script setup name="BasisInfo">
+<script setup name="BasisMsgDialog">
 import { Lock, EditPen, Close, Check } from "@element-plus/icons-vue";
 import { editUserInfo } from "@/apis/login";
 // 这里可以添加 setup 语法糖下的脚本逻辑
 import { useUserStore } from "@/pinia/modules/user";
 import { useDictStore } from "@/pinia/modules/dict";
+
 let userStore = useUserStore();
 let dictStore = useDictStore();
-let institutionDict = computed(() => dictStore.getDictTypeList("biz_institution_type"));
-
 const userData = computed(() => userStore.getUser);
-const deptName = computed(() => userData.value?.institutionName);
-const userName = computed(() => userData.value?.nickname);
-const phone = computed(() => userData.value?.contactPhone);
-
+let otherInfo = ref({
+  legalPerson: "",
+  businessLicensePic: "",
+  detailedAddress: "",
+  contactPerson: "",
+  contactPhone: "",
+});
+let institutionDict = computed(() => dictStore.getDictTypeList("biz_institution_type"));
 const institutionTypeName = computed(() => {
   return institutionDict.value.find((item) => item.value === userData.value?.institutionType)?.label || "--";
 });
-// 展示弹窗
-let dialogVisible = ref(false);
+let dialogVisible = defineModel("dialogVisible", {
+  default: false,
+});
+let editDialog = defineModel("editDialog", {
+  default: false,
+});
+let $emits = defineEmits(["submit-pass"]);
 let dialogSetting = {
   width: "650px",
   "append-to-body": true,
@@ -172,20 +153,15 @@ const initDesc = computed(() => {
     { label: "卫生机构级别", value: userData.value?.institutionLevel || "--", edit: false },
     // 所属区域
     { label: "所属区域", value: userData.value?.region || "--", edit: false },
-    { label: "法定代表人", value: userData.value?.legalPerson || "--", edit: true, key: "legalPerson" },
+    { label: "法定代表人", value: otherInfo.value?.legalPerson || "--", edit: true, key: "legalPerson" },
     // 注册地址
-    { label: "注册地址", value: userData.value?.detailedAddress || "--", edit: true, key: "detailedAddress" },
+    { label: "注册地址", value: otherInfo.value?.detailedAddress || "--", edit: true, key: "detailedAddress" },
     // 联系人
-    { label: "联系人", value: userData.value?.contactPerson || "--", edit: true, key: "contactPerson" },
+    { label: "联系人", value: otherInfo.value?.contactPerson || "--", edit: true, key: "contactPerson" },
     // 联系人电话
-    { label: "联系人电话", value: userData.value?.contactPhone || "--", edit: true, key: "contactPhone" },
+    { label: "联系人电话", value: otherInfo.value?.contactPhone || "--", edit: true, key: "contactPhone" },
   ];
 });
-const openBasisDialog = () => {
-  dialogVisible.value = true;
-};
-// 编辑弹窗
-let editDialog = ref(false);
 let loading = ref(false);
 let formRef = ref(null);
 let formData = ref({
@@ -210,8 +186,15 @@ let rules = ref({
   ],
 });
 let editKey = ref("");
-const handleEdit = (key) => {
+const handleEdit = (key, row) => {
   editKey.value = key;
+  formData.value = {
+    legalPerson: row.legalPerson || "",
+    businessLicensePic: row.businessLicensePic || "",
+    detailedAddress: row.detailedAddress || "",
+    contactPerson: row.contactPerson || "",
+    contactPhone: row.contactPhone || "",
+  };
   switch (key) {
     case "detailedAddress":
     case "legalPerson":
@@ -223,10 +206,17 @@ const handleEdit = (key) => {
       break;
   }
 
-  Object.keys(formData.value).forEach((key) => {
-    formData.value[key] = userData.value[key] || "";
-  });
   editDialog.value = true;
+};
+const handleInfo = (row) => {
+  otherInfo.value = {
+    legalPerson: row.legalPerson || "",
+    businessLicensePic: row.businessLicensePic || "",
+    detailedAddress: row.detailedAddress || "",
+    contactPerson: row.contactPerson || "",
+    contactPhone: row.contactPhone || "",
+  };
+  dialogVisible.value = true;
 };
 const handleSubmit = async () => {
   try {
@@ -242,50 +232,23 @@ const handleSubmit = async () => {
     await userStore.updateUser();
     ElMessage.success("修改成功");
     editDialog.value = false;
+    $emits("submit-pass");
   } catch (err) {
     ElMessage.error("修改失败");
   } finally {
     loading.value = false;
   }
 };
+defineExpose({
+  handleEdit,
+  handleInfo,
+});
 </script>
 
 <style lang="scss" scoped>
-// 这里可以添加 SCSS 样式
-.basis-container {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 12px;
-  &:deep(.basis-item) {
-    flex-shrink: 0;
-    display: flex;
-    align-items: center;
-    > .iconify {
-      font-size: 14px !important;
-      color: #fff;
-      margin-right: 4px;
-    }
-    .value {
-      font-size: 14px;
-      color: #fff;
-    }
-    .el-button {
-      font-size: 14px;
-      border-radius: 8px;
-      box-shadow: 0 0 10px rgba(199, 199, 199, 0.1);
-      border: 1px solid rgba(227, 227, 227, 0.3);
-      --el-button-bg-color: rgba(64, 158, 255, 0.27);
-      &:hover {
-        transform: translateY(-1px);
-      }
-    }
-  }
-}
-
 .item-msg {
   display: grid;
-  grid-template-columns: 150px 1fr 120px;
+  grid-template-columns: 150px 1fr 10px;
   border-bottom: 1px solid #efefef;
   > span {
     padding: 14px 10px;
