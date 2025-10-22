@@ -13,3 +13,12 @@ export function getTodoType() {
 export function getTodoList() {
   return request.get({ url: `/biz/notification/todo-notification` })
 }
+// 已办理许可证统计
+export function getProcessedLicenseSummary(year: number) {
+  return request.get({ url: `/biz/statistics/processed-license-summary`, params: { year } })
+}
+
+// 初审列表
+export function getPreliminaryReviewList() {
+  return request.get({ url: `/biz/application/preliminary-review` })
+}

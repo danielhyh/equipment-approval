@@ -94,4 +94,6 @@ public interface ApplicationService {
     List<ApplicationPageRespVO> list();
 
     Long recreate(ApplicationRecreateRequest req);
+
+    List<Map<String, Object>> preliminaryReview();
 }

@@ -14,6 +14,9 @@ import java.util.Map;
 @Mapper
 public interface StatisticsMapper {
 
+    //已办理许可证（总数量、线上办理证书数量、线下办理证书数量）
+    Map<String, Object> licenseCount(@Param("year") Integer year);
+
     //办件汇总
     Map<String, Object> applicationSummary(@Param("status") Integer status,@Param("req") QueryRequest request);
 

@@ -8,7 +8,7 @@
             <Icon icon="fa-solid:chart-pie" :size="18" color="#165DFF" style="margin-right: 5px" />
             <span>设备汇总统计</span>
           </h2>
-          <el-select v-model="selectedYear" class="year-selector" @change="getEquipmentSummaryData">
+          <el-select v-model="selectedYear" class="year-selector" @change="getStatisticsData">
             <el-option
               v-for="item in selectYearList"
               :key="item.value"
@@ -20,20 +20,8 @@
       </template>
       <!-- 统计卡片区域 -->
       <div class="stats-cards-container">
-        <!-- 设备总数卡片 -->
-        <div class="total-equipment-card">
-          <div class="card-content">
-            <div class="total-count">{{ totalEquipment }}</div>
-            <div class="count-label">设备总数量</div>
-            <!-- <div class="growth-rate">同比增长: 18.3%</div> -->
-          </div>
-          <div class="logo">
-            <Icon icon="fa-solid:procedures" :size="40" color="#fff" />
-          </div>
-        </div>
-
         <!-- 甲类大型医用设备卡片 -->
-        <div class="equipment-type-card">
+        <div class="equipment-type-card equipment-card-red">
           <div class="card-header">
             <h3 class="card-title c-ef4444">甲类大型医用设备</h3>
           </div>
@@ -47,7 +35,7 @@
         </div>
 
         <!-- 乙类大型医用设备卡片 -->
-        <div class="equipment-type-card">
+        <div class="equipment-type-card equipment-card-cyan">
           <div class="card-header">
             <h3 class="card-title c-06b6d4">乙类大型医用设备</h3>
           </div>
@@ -55,78 +43,84 @@
           <div class="equipment-list">
             <div class="equipment-item" v-for="item in equipmentB" :key="item.key">
               <span class="equipment-name">{{ item.label }}</span>
-              <span class="equipment-count c-ef4444">{{ item.value }}</span>
+              <span class="equipment-count c-06b6d4">{{ item.value }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 已办理许可证卡片 -->
+        <div class="equipment-type-card equipment-card-green">
+          <div class="card-header">
+            <h3 class="card-title c-10b981">已办理许可证</h3>
+          </div>
+          <div class="total-type-count c-10b981">{{ licenseData.total }} 个</div>
+          <div class="equipment-list">
+            <div class="equipment-item">
+              <span class="equipment-name">线上办理证书数量</span>
+              <span class="equipment-count c-10b981">{{ licenseData.onlineCount }}</span>
+            </div>
+            <div class="equipment-item">
+              <span class="equipment-name">线下办理证书数量</span>
+              <span class="equipment-count c-10b981">{{ licenseData.offlineCount }}</span>
             </div>
           </div>
         </div>
       </div>
     </el-card>
 
-    <!-- 代办通知 -->
+    <!-- 初审列表 -->
     <el-card class="card-box">
       <template #header>
         <div class="header-section">
           <h2 class="page-title">
             <Icon icon="tabler:bell-filled" :size="18" color="#165DFF" style="margin-right: 5px" />
-            <span>待办通知</span>
+            <span>初审列表</span>
           </h2>
-          <div class="todo-tabs">
-            <!-- 修改为仅展示的标签组 -->
-            <div class="todo-type-badge-group">
-              <div class="todo-type-badge" v-for="item in todoType" :key="item.key">
-                <Icon :icon="item.icon" :size="18" color="#fff" style="margin-right: 5px" />
-                <span>{{ item.name }}： {{ item.value || '--' }}</span>
-              </div>
-            </div>
-          </div>
         </div>
       </template>
 
-      <div class="todo-list-box" :class="{ empty: todoList.length === 0 }">
-        <template v-if="todoList.length > 0">
-          <div
-            class="todo-item"
-            :class="getTodoItemClass(item.status)"
-            v-for="item in todoList"
-            :key="item.id"
-          >
-            <!-- 顶部信息：医院名称和日期 -->
-            <div class="todo-header">
-              <!-- 状态标签 -->
-              <div class="todo-tags">
-                <span :class="getTodoTagClass(item.status)">
-                  <Icon :icon="getTodoIcon(item.type)" :size="14" style="margin-right: 5px" />
-                  {{ item.statusText }}
-                </span>
-              </div>
-
-              <div class="todo-date">{{ item.date }}</div>
-            </div>
-            <div class="hospital-name">{{ item.hospitalName }}</div>
-            <!-- 设备信息 -->
-            <div class="equipment-info">{{ item.equipmentInfo }}</div>
-
-            <!-- 截止信息或其他备注 -->
-            <div class="todo-remark" v-if="item.remainingTime || item.reason">
-              {{ item.remainingTime || item.reason }}
-            </div>
-
-            <!-- 底部操作按钮 -->
-            <div class="todo-actions">
-              <el-button type="primary" size="small" class="handle-btn" @click.stop="jumpTo(item)">
+      <div class="review-table-box">
+        <el-table :data="reviewList" style="width: 100%" stripe>
+          <el-table-column type="index" label="序号" width="80" align="center" />
+          <el-table-column
+            prop="institutionName"
+            label="配置单位"
+            min-width="200"
+            show-overflow-tooltip
+          />
+          <el-table-column
+            prop="deviceName"
+            label="设备名称"
+            min-width="180"
+            show-overflow-tooltip
+          />
+          <el-table-column label="类型" width="150" align="center">
+            <template #default="{ row }">
+              <el-tag :type="getReviewTagType(row.appType)" size="small">
+                {{ getReviewTypeText(row.appType) }}
+              </el-tag>
+            </template>
+          </el-table-column>
+          <el-table-column prop="createTime" label="申请时间" width="180" align="center" />
+          <el-table-column label="操作" width="120" align="center" fixed="right">
+            <template #default="{ row }">
+              <el-button type="primary" size="small" @click="handleReview(row)">
                 立即办理
               </el-button>
-            </div>
-          </div>
-        </template>
-        <el-empty v-else :image-size="130" description="暂无待办通知" />
+            </template>
+          </el-table-column>
+        </el-table>
       </div>
     </el-card>
   </div>
 </template>
 
 <script lang="ts" setup>
-import { getEquipmentSummary, getTodoType, getTodoList } from '@/api/biz/home/index'
+import {
+  getEquipmentSummary,
+  getProcessedLicenseSummary,
+  getPreliminaryReviewList
+} from '@/api/biz/home/index'
 import { useApplicationDataStore } from '@/store/applicationData'
 const applicationDataStore = useApplicationDataStore()
 
@@ -211,11 +205,20 @@ let equipmentB = ref<EquipmentItem[]>([
 let equipmentBTotal = computed<number>(() => {
   return equipmentB.value.reduce((pre, cur) => pre + Number(cur.value), 0)
 })
-// 设备总数量
-let totalEquipment = computed<number>(() => {
-  return equipmentATotal.value + equipmentBTotal.value
+
+// 已办理许可证数据
+interface LicenseData {
+  total: number | string
+  onlineCount: number | string
+  offlineCount: number | string
+}
+let licenseData = reactive<LicenseData>({
+  total: 0,
+  onlineCount: 0,
+  offlineCount: 0
 })
 
+// 获取设备汇总统计数据
 const getEquipmentSummaryData = async () => {
   try {
     const response = await getEquipmentSummary(Number(selectedYear.value))
@@ -230,72 +233,108 @@ const getEquipmentSummaryData = async () => {
     console.log(e)
   }
 }
-getEquipmentSummaryData()
-// 待办事项类型定义 - 重新定义数据结构
-interface TodoItem {
-  id: string
-  hospitalName: string
-  date: string
-  equipmentInfo: string
-  type: 'certApply' | 'certReissue' | 'certChange' | 'locationChange'
-  status: 'primary' | 'success' | 'warning' | 'danger'
-  statusText: string
-  appType?: string
-  remainingTime?: string
-  reason?: string
-}
-interface TodoType {
-  icon: string
-  bColor?: string
-  name: string
-  key: string
-  value: string
-}
-// 待办类型数据
-let todoType = reactive<TodoType[]>([
-  { icon: 'zondicons:add-solid', name: '证书申请', key: 'apply', value: '' },
-  { icon: 'fa-solid:redo', name: '证书补办', key: 'renew', value: '' },
-  { icon: 'mingcute:edit-4-fill', name: '证书变更', key: 'change', value: '' },
-  { icon: 'bxs:message-edit', name: '信息变更', key: 'infoChange', value: '' },
-  { icon: 'uiw:tag', name: '总计', key: 'total', value: '' }
-])
-const getTodoTypeData = async () => {
+
+// 获取已办理许可证统计数据
+const getProcessedLicenseSummaryData = async () => {
   try {
-    const res = await getTodoType()
-    todoType.forEach((item) => {
-      item.value = res[item.key] || ''
+    const response = await getProcessedLicenseSummary(Number(selectedYear.value))
+    licenseData.total = response.total || 0
+    licenseData.onlineCount = response.onlineCount || 0
+    licenseData.offlineCount = response.offlineCount || 0
+  } catch (e) {
+    console.log(e)
+  }
+}
+
+// 统一获取统计数据
+const getStatisticsData = () => {
+  getEquipmentSummaryData()
+  getProcessedLicenseSummaryData()
+}
+getStatisticsData()
+
+// 初审列表相关
+interface ReviewItem {
+  appType: string
+  institutionName: string
+  createTime: string
+  deviceName: string
+}
+let reviewList = ref<ReviewItem[]>([])
+
+// 时间戳转换为日期格式
+const formatTimestamp = (timestamp: number | string): string => {
+  if (!timestamp) return '--'
+  const date = new Date(Number(timestamp))
+  const year = date.getFullYear()
+  const month = String(date.getMonth() + 1).padStart(2, '0')
+  const day = String(date.getDate()).padStart(2, '0')
+  const hours = String(date.getHours()).padStart(2, '0')
+  const minutes = String(date.getMinutes()).padStart(2, '0')
+  const seconds = String(date.getSeconds()).padStart(2, '0')
+  return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`
+}
+
+const getPreliminaryReviewListData = async () => {
+  try {
+    const res = await getPreliminaryReviewList()
+    reviewList.value = res.map((item) => {
+      const appTypeStr = String(item.app_type)
+      return {
+        appType: appTypeStr,
+        institutionName: item.institution_name || '--',
+        createTime: formatTimestamp(item.create_time),
+        deviceName: appTypeStr === '4' ? '基本信息变更' : item.license_device_name || '--'
+      }
     })
   } catch (e) {
     console.log(e)
   }
 }
-getTodoTypeData()
-// 待办事项列表数据
-let todoList = ref<TodoItem[]>([])
-const getTodoListData = async () => {
-  try {
-    const res = await getTodoList()
-    todoList.value = res.map((item, index) => ({
-      id: `todo_${index}`,
-      hospitalName: item.title,
-      date: item.publishTime || '--',
-      equipmentInfo: item.content || '--',
-      appType: item.appType,
-      // remainingTime: '距离办理截止时间还剩3天',
-      ...getTodoTypeStatus(item.appType)
-    }))
-  } catch (e) {
-    console.log(e)
+getPreliminaryReviewListData()
+
+// 跳转到办件中心
+// const handleReview = (item: ReviewItem) => {
+//   applicationDataStore.updateProcessingType(getProcessType(item.appType))
+//   router.push({
+//     path: '/processing'
+//   })
+// }
+const handleReview = (item: ReviewItem) => {
+  applicationDataStore.updateProcessingType(getProcessType(item.appType))
+
+  // 根据类型跳转到不同页面
+  if (item.appType === '1') {
+    router.push({
+      path: '/processing',
+      query: {
+        type: 'apply' // 证书申请类型
+      }
+    })
+  } else if (item.appType === '2') {
+    router.push({
+      path: '/processing',
+      query: {
+        type: 'reissue' // 证书补办类型
+      }
+    })
+  } else if (item.appType === '3') {
+    router.push({
+      path: '/processing',
+      query: {
+        type: 'change' // 证书变更类型
+      }
+    })
+  } else if (item.appType === '4') {
+    router.push({
+      path: '/processing',
+      query: {
+        type: 'basicInfoChange' // 基本信息变更类型
+      }
+    })
   }
 }
-getTodoListData()
-// 跳转到办件中心
-const jumpTo = (item) => {
-  applicationDataStore.updateProcessingType(getProcessType(item.appType + ''))
-  router.push({
-    path: '/processing'
-  })
-}
+
 const getProcessType = (appType: string) => {
   switch (appType) {
     case '1':
@@ -310,56 +349,167 @@ const getProcessType = (appType: string) => {
       return 'apply'
   }
 }
-// 根据数据返回状态、类型
-const getTodoTypeStatus = (
-  appType: string
-): { status: string; type: string; statusText: string } => {
+
+// 获取类型文本
+const getReviewTypeText = (appType: string): string => {
   switch (appType) {
     case '1':
-      return { status: 'primary', type: 'certApply', statusText: '证书申请' }
+      return '乙类许可证申请'
     case '2':
-      return { status: 'success', type: 'certReissue', statusText: '证书补办' }
+      return '乙类许可证补办'
     case '3':
-      return { status: 'warning', type: 'certChange', statusText: '证书变更' }
+      return '乙类许可证变更'
     case '4':
-      return { status: 'danger', type: 'locationChange', statusText: '信息变更' }
+      return '基本信息变更'
     default:
-      return { status: 'primary', type: 'certApply', statusText: '证书申请' }
+      return '乙类许可证申请'
   }
 }
-// 根据状态获取标签样式类
-const getTodoTagClass = (status: string) => {
-  const tagClassMap: Record<string, string> = {
-    primary: 'el-tag--primary',
-    success: 'el-tag--success',
-    warning: 'el-tag--warning',
-    danger: 'el-tag--danger'
+
+// 获取标签类型
+const getReviewTagType = (appType: string): string => {
+  switch (appType) {
+    case '1':
+      return 'primary'
+    case '2':
+      return 'success'
+    case '3':
+      return 'warning'
+    case '4':
+      return 'danger'
+    default:
+      return 'primary'
   }
-  return `el-tag ${tagClassMap[status] || ''}`
-}
-// 根据状态获取卡片边框样式类
-const getTodoItemClass = (status: string) => {
-  const borderClassMap: Record<string, string> = {
-    primary: 'todo-item-primary',
-    success: 'todo-item-success',
-    warning: 'todo-item-warning',
-    danger: 'todo-item-danger'
-  }
-  return borderClassMap[status] || ''
-}
-// 根据状态配置icon
-const getTodoIcon = (type: string) => {
-  const iconMap: Record<string, string> = {
-    certApply: 'zondicons:add-solid',
-    certReissue: 'fa-solid:redo',
-    certChange: 'mingcute:edit-4-fill',
-    infoChange: 'bxs:message-edit',
-    total: 'uiw:tag'
-  }
-  return iconMap[type] || 'uiw:tag'
 }
 </script>
 
 <style lang="scss" scoped>
 @use './index.scss';
+
+.c-10b981 {
+  color: #10b981;
+}
+
+.review-table-box {
+  min-height: 300px;
+}
+
+// 甲类设备卡片 - 红色系
+.equipment-card-red {
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(135deg, #fee2e2 0%, #fef2f2 100%);
+  border: 2px solid #fecaca;
+  box-shadow: 0 4px 12px rgb(239 68 68 / 15%);
+
+  &::before {
+    position: absolute;
+    top: -50%;
+    right: -50%;
+    width: 200%;
+    height: 200%;
+    pointer-events: none;
+    background: radial-gradient(circle, rgb(239 68 68 / 8%) 0%, transparent 70%);
+    content: '';
+  }
+
+  .card-title,
+  .total-type-count,
+  .equipment-count {
+    font-weight: 600;
+    color: #dc2626 !important;
+  }
+
+  .equipment-item {
+    background: rgb(255 255 255 / 60%);
+  }
+}
+
+// 乙类设备卡片 - 青色系
+.equipment-card-cyan {
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(135deg, #cffafe 0%, #f0fdfa 100%);
+  border: 2px solid #a5f3fc;
+  box-shadow: 0 4px 12px rgb(6 182 212 / 15%);
+
+  &::before {
+    position: absolute;
+    top: -50%;
+    right: -50%;
+    width: 200%;
+    height: 200%;
+    pointer-events: none;
+    background: radial-gradient(circle, rgb(6 182 212 / 8%) 0%, transparent 70%);
+    content: '';
+  }
+
+  .card-title,
+  .total-type-count {
+    font-weight: 600;
+    color: #0891b2 !important;
+  }
+
+  .equipment-count {
+    font-weight: 600;
+    color: #0891b2 !important;
+  }
+
+  .equipment-item {
+    background: rgb(255 255 255 / 60%);
+  }
+}
+
+// 已办理许可证卡片 - 绿色系
+.equipment-card-green {
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(135deg, #d1fae5 0%, #f0fdf4 100%);
+  border: 2px solid #a7f3d0;
+  box-shadow: 0 4px 12px rgb(16 185 129 / 15%);
+
+  &::before {
+    position: absolute;
+    top: -50%;
+    right: -50%;
+    width: 200%;
+    height: 200%;
+    pointer-events: none;
+    background: radial-gradient(circle, rgb(16 185 129 / 8%) 0%, transparent 70%);
+    content: '';
+  }
+
+  .card-title,
+  .total-type-count,
+  .equipment-count {
+    font-weight: 600;
+    color: #059669 !important;
+  }
+
+  .equipment-item {
+    background: rgb(255 255 255 / 60%);
+  }
+}
+
+// 增强所有设备卡片的交互效果
+.equipment-type-card {
+  transition: all 0.3s ease;
+
+  // &:hover {
+  //   transform: translateY(-4px);
+  //   box-shadow: 0 8px 24px rgb(0 0 0 / 12%);
+  // }
+
+  .equipment-item {
+    position: relative;
+    z-index: 1;
+    transition: all 0.2s ease;
+    backdrop-filter: blur(10px);
+
+    &:hover {
+      background: rgb(255 255 255 / 90%);
+      transform: translateX(4px);
+    }
+  }
+}
 </style>

@@ -195,4 +195,15 @@
             biz_license_duplicate bld ON blo.id = bld.original_id
         where ba.deleted = 0 and ba.app_status = 5 and ba.creator = #{id}
     </select>
+    <select id="preliminaryReview" resultType="java.util.Map">
+        SELECT
+            license_device_name,
+            b.institution_name,
+            app_type,
+            a.create_time
+        FROM
+            biz_application a
+                LEFT JOIN biz_institution_ext b on a.institution_id = b.dept_id
+        where a.app_status = 1 and a.deleted = 0
+    </select>
 </mapper>

@@ -252,4 +252,7 @@ public class StatisticsService {
         return new PageResult<>(page.getRecords(), page.getTotal());
     }
 
+    public Map<String, Object> processedLicenseSummary(Integer year) {
+        return NamedTransformation.convertKeysToCamelCase(statisticsMapper.licenseCount(year));
+    }
 }

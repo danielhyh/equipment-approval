@@ -106,7 +106,7 @@ public class ApplicationServiceImpl implements ApplicationService {
         String format = String.format("%s(%s)", createReqVO.getLicenseDeviceName(), createReqVO.getLadderConfigModel());
         request.setContent(format);
         request.setPublishNow(false);
-        request.setCreator("1");
+        request.setCreator("0");
         notificationService.createNotification(request);
         // 返回
         return application.getId();
@@ -382,6 +382,11 @@ public class ApplicationServiceImpl implements ApplicationService {
         recreate.setAppStatus(1);//待初审
         recreate.setDeadline(LocalDate.now().plusDays(45));
         return 0L;
+    }
+
+    @Override
+    public List<Map<String, Object>> preliminaryReview() {
+        return applicationMapper.preliminaryReview();
     }
 
 }

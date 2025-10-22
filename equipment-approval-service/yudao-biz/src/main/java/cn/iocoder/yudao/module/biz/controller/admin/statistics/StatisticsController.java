@@ -38,6 +38,12 @@ public class StatisticsController {
     @Resource
     private StatisticsService statisticsService;
 
+    @GetMapping("/processed-license-summary")
+    @Operation(summary = "已办理许可证统计")
+    public CommonResult<Map<String, Object>> processedLicenseSummary(@RequestParam(required = false, name = "year") Integer year) {
+        return success(statisticsService.processedLicenseSummary(year));
+    }
+
     @GetMapping("/application-summary")
     @Operation(summary = "办件统计汇总")
     public CommonResult<Map<String, Object>> applicationSummary(@RequestParam(required = false, name = "status") Integer status, QueryRequest request) {

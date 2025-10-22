@@ -179,4 +179,10 @@ public class ApplicationController {
         return success(single);
     }
 
+    @GetMapping("/preliminary-review")
+    @Operation(summary = "初审列表")
+    public CommonResult<List<Map<String, Object>>> preliminaryReview() {
+        return success(applicationService.preliminaryReview());
+    }
+
 }
