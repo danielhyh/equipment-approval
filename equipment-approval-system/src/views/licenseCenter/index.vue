@@ -210,7 +210,9 @@
           <template #default="scope">
             <el-button type="primary" size="small" @click="handleDetail(scope.row)">详情</el-button>
             <el-button
-              v-show="scope.row.licenseType === '5' && scope.row.status !== '通过'"
+              v-show="
+                scope.row.licenseType === '5' && scope.row.status !== '通过' && !scope.row.isUpload
+              "
               type="primary"
               size="small"
               @click.stop="editLicense(scope.row)"

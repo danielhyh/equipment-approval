@@ -103,14 +103,20 @@
                     ? statusMap(scope.row[column.dataIndex]).label
                     : scope.row[column.dataIndex] === '3'
                       ? '已审批'
-                      : statusMap(scope.row[column.dataIndex]).label
+                      : statusMap(scope.row[column.dataIndex]).label === '初审不通过'
+                        ? '不通过'
+                        : statusMap(scope.row[column.dataIndex]).label === '待初审'
+                          ? '待审核'
+                          : statusMap(scope.row[column.dataIndex]).label
                 }}
               </span>
-              <span v-else>{{
-                column?.dataIndex2
-                  ? scope.row[column.dataIndex]?.[column.dataIndex2]
-                  : scope.row[column.dataIndex]
-              }}</span>
+              <span v-else>
+                {{
+                  column?.dataIndex2
+                    ? scope.row[column.dataIndex]?.[column.dataIndex2]
+                    : scope.row[column.dataIndex]
+                }}
+              </span>
             </template>
           </el-table-column>
           <el-table-column label="操作" min-width="120" :align="'center'">
@@ -132,7 +138,7 @@
                 v-if="scope.row.appStatus === '1'"
                 @click.stop="gotoDetailFn(scope.row, 'perliminary', 'firstAudit')"
               >
-                初步审核
+                {{ activeType === 'basicInfoChange' ? '信息审核' : '初步审核' }}
               </el-button>
               <el-button
                 size="small"

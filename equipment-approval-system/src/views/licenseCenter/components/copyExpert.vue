@@ -270,9 +270,6 @@ const submitFn = async () => {
       ElMessage.error('请先审核验收资料！')
       return
     }
-    if (materialStatus.includes('已驳回')) {
-      formValue.value.reviewResult = 2
-    }
   } catch (err) {
     ElMessage.error('获取验收资料信息失败')
     return

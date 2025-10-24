@@ -47,7 +47,7 @@
                 : 'info'
             "
           >
-            {{ row.status || "待审核" }}
+            {{ row.status || "待提交" }}
           </el-tag>
         </template>
       </el-table-column>
@@ -76,12 +76,17 @@
           <el-button
             type="success"
             size="small"
-            v-if="row.hasDuplicate === 'Y' && row.hasAcceptanceMaterial === 'N'"
+            v-if="row.hasDuplicate === 'Y' && row.hasAcceptanceMaterial === 'N' && row.status !== '不通过'"
             @click="handleFile(row)"
           >
             验收资料提交
           </el-button>
-          <el-tag v-if="!(row.hasDuplicate === 'Y' && row.hasAcceptanceMaterial === 'N') && !(row.hasDuplicate === 'N')">
+          <el-tag
+            v-if="
+              !(row.hasDuplicate === 'Y' && row.hasAcceptanceMaterial === 'N' && row.status !== '不通过') &&
+              !(row.hasDuplicate === 'N')
+            "
+          >
             已提交
           </el-tag>
         </template>
