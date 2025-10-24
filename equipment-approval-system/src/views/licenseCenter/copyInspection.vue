@@ -48,7 +48,7 @@
             <transition name="fade" mode="out-in">
               <KeepAlive>
                 <component
-                  ref="typeRef"
+                  ref="currentComRef"
                   :list="allLicenseData"
                   :is="typeActive.component"
                   :key="typeActive.value"
@@ -125,6 +125,7 @@ let typeActive = ref<{ value: string; component: any }>({
   value: 'basicInfo',
   component: markRaw(BasicInfo)
 })
+let currentComRef = ref(null)
 const handlerType = (item) => {
   if (!item.component) return
   typeActive.value.value = item.value

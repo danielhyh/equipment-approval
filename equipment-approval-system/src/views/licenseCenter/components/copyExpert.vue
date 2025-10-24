@@ -17,9 +17,14 @@
       >
         <el-form-item label="审核结果" prop="reviewResult">
           <el-radio-group v-model="formValue.reviewResult">
-            <el-radio :value="1">通过</el-radio>
-            <el-radio :value="0">不通过</el-radio>
-            <el-radio :value="2">驳回整改</el-radio>
+            <el-radio
+              v-for="item in reviewOptions"
+              :key="item.value"
+              :value="item.value"
+              :disabled="item.disabled"
+            >
+              {{ item.label }}
+            </el-radio>
           </el-radio-group>
         </el-form-item>
         <el-form-item label="审核备注" prop="reviewOpinion">
@@ -151,6 +156,11 @@ let props = defineProps({
 let isDisabled = computed(() => {
   return props.disabled
 })
+let reviewOptions = ref([
+  { label: '通过', value: 1, disabled: false },
+  { label: '不通过', value: 0, disabled: false },
+  { label: '驳回整改', value: 2, disabled: false }
+])
 interface formValueType {
   id: number
   reviewResult: number | string
@@ -258,7 +268,7 @@ const removeItem = (item: listDataType) => {
 
 // 附件
 let fileList = ref<string[]>([])
-const submitFn = async () => {
+const refreshFn = async () => {
   try {
     loading.value = true
     let responseMateria =
@@ -270,13 +280,19 @@ const submitFn = async () => {
       ElMessage.error('请先审核验收资料！')
       return
     }
+    if (materialStatus.includes('已驳回')) {
+      reviewOptions.value[0].disabled = true
+    } else {
+      reviewOptions.value[0].disabled = false
+    }
   } catch (err) {
     ElMessage.error('获取验收资料信息失败')
     return
   } finally {
     loading.value = false
   }
-
+}
+const submitFn = async () => {
   if (!formRef.value) {
     ElMessage.error('表单加载错误')
     return
@@ -318,9 +334,12 @@ onMounted(async () => {
   getSpecialtyList()
   updateFormValue()
 })
-
+onActivated(() => {
+  refreshFn()
+})
 defineExpose({
-  submitFn
+  submitFn,
+  refreshFn
 })
 </script>
 
