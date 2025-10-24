@@ -86,7 +86,9 @@ public class AppApplicationController {
     @Parameter(name = "id", description = "编号", required = true, example = "1024")
     public CommonResult<AppApplicationRespVO> getApplication(@RequestParam("id") Long id) {
         ApplicationDO application = applicationService.getApplication(id);
-        return success(BeanUtils.toBean(application, AppApplicationRespVO.class));
+        AppApplicationRespVO bean = BeanUtils.toBean(application, AppApplicationRespVO.class);
+        bean.setExtra(application.getExtra());
+        return success(bean);
     }
 
     @GetMapping("/list")

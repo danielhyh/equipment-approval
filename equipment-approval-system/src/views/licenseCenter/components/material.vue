@@ -13,6 +13,23 @@
             <span>上传时间:{{ item.uploadTime }}</span>
             <em>|</em>
             <span>文件大小:{{ item.size }}</span>
+            <em>|</em>
+            <span>状态:</span>
+            <!-- 状态标签 -->
+            <el-tag v-if="item.status === '待审核'" class="status-tag status-pending" size="small" round>
+              待审核
+            </el-tag>
+            <el-tag v-else-if="item.status === '已通过'" class="status-tag status-approved" size="small" round>
+              <Icon icon="ep:select" :size="12" />
+              <span>已通过</span>
+            </el-tag>
+            <el-tag v-else-if="item.status === '已驳回'" class="status-tag status-rejected" size="small" round>
+              <Icon icon="ep:close-bold" :size="12" />
+              <span>已驳回</span>
+            </el-tag>
+            <el-tag v-else class="status-tag status-empty" size="small" round>
+              -
+            </el-tag>
           </div>
           <div class="handler-box">
             <el-button round size="small" type="primary" :icon="View" @click.stop="viewFn(item)">
@@ -27,6 +44,28 @@
             >
               下载
             </el-button>
+            
+            <!-- 只有待审核状态才显示操作按钮 -->
+            <template v-if="item.status === '待审核'">
+              <el-button
+                round
+                size="small"
+                type="success"
+                :icon="Check"
+                @click.stop="handleApprove(item)"
+              >
+                通过
+              </el-button>
+              <el-button
+                round
+                size="small"
+                type="danger"
+                :icon="Close"
+                @click.stop="handleReject(item)"
+              >
+                驳回
+              </el-button>
+            </template>
           </div>
         </div>
       </template>
@@ -103,15 +142,16 @@
 
 <script setup lang="ts">
 import { ref, computed } from 'vue'
-import { List, View, Download } from '@element-plus/icons-vue'
-import { ElMessage } from 'element-plus'
+import { List, View, Download, Check, Close } from '@element-plus/icons-vue'
+import { ElMessage, ElMessageBox } from 'element-plus'
 import { ApplicationMaterialApi } from '@/api/biz/applicationmaterial'
+import { LicenseApi } from '@/api/biz/license'
 import { useRoute } from 'vue-router'
 import * as mammoth from 'mammoth'
 import * as XLSX from 'xlsx'
 
 const route = useRoute()
-const { id } = route.query
+const { id, duplicateId } = route.query
 
 interface fileItemType {
   name?: string | undefined
@@ -120,6 +160,7 @@ interface fileItemType {
   size?: string | undefined
   id?: string | number | undefined
   fileType?: string | undefined
+  status?: string | undefined
 }
 
 const getFileIcon = (type: string | undefined) => {
@@ -261,6 +302,56 @@ const downLoadFn = (item: fileItemType | null) => {
   }
 }
 
+const handleApprove = async (item: fileItemType) => {
+  try {
+    await ElMessageBox.confirm('确认通过该验收材料吗？', '提示', {
+      confirmButtonText: '确定',
+      cancelButtonText: '取消',
+      type: 'success'
+    })
+
+    await ApplicationMaterialApi.updateAcceptanceMaterial({
+      id: item.id as number,
+      status: '已通过'
+    } as any)
+
+    ElMessage.success('审核通过成功')
+    // 刷新列表
+    filesData.value = []
+    await getInfoList()
+  } catch (error) {
+    if (error !== 'cancel') {
+      console.error('审核失败:', error)
+      ElMessage.error('审核失败，请稍后重试')
+    }
+  }
+}
+
+const handleReject = async (item: fileItemType) => {
+  try {
+    await ElMessageBox.confirm('确认驳回该验收材料吗？', '提示', {
+      confirmButtonText: '确定',
+      cancelButtonText: '取消',
+      type: 'warning'
+    })
+
+    await ApplicationMaterialApi.updateAcceptanceMaterial({
+      id: item.id as number,
+      status: '已驳回'
+    } as any)
+
+    ElMessage.success('驳回成功')
+    // 刷新列表
+    filesData.value = []
+    await getInfoList()
+  } catch (error) {
+    if (error !== 'cancel') {
+      console.error('驳回失败:', error)
+      ElMessage.error('驳回失败，请稍后重试')
+    }
+  }
+}
+
 const getFileType = (filename) => {
   if (!filename) return ''
   const lastDotIndex = filename.lastIndexOf('.')
@@ -287,6 +378,7 @@ const getInfoList = async () => {
     obj.size = bytesToMB(item.fileSize)
     obj.url = item.filePath
     obj.uploadTime = new Date(item.uploadTime).toLocaleString()
+    obj.status = item.status
     filesData.value.push(obj)
     return item
   })
@@ -326,7 +418,7 @@ defineExpose({
 
     .file-item {
       position: relative;
-      padding: 15px 164px 15px 54px;
+      padding: 15px 280px 15px 54px;
       margin-bottom: 15px;
       background-color: rgb(248 250 252 / 80%);
       border: 1px solid rgb(226 232 240 / 60%);
@@ -349,6 +441,9 @@ defineExpose({
         position: absolute;
         top: 50%;
         right: 12px;
+        display: flex;
+        gap: 8px;
+        align-items: center;
         transform: translateY(-50%);
       }
 
@@ -363,12 +458,49 @@ defineExpose({
       }
 
       .file-des {
+        display: flex;
+        align-items: center;
         font-size: 12px;
         color: #64748b;
 
         em {
           margin: 0 6px;
           font-style: normal;
+        }
+
+        .status-tag {
+          margin-left: 4px;
+          font-size: 12px;
+          
+          .el-tag__content {
+            display: flex;
+            align-items: center;
+            gap: 2px;
+          }
+
+          &.status-pending {
+            color: #64748b;
+            background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+            border: 1px solid #cbd5e1;
+          }
+
+          &.status-approved {
+            color: #059669;
+            background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
+            border: 1px solid #6ee7b7;
+          }
+
+          &.status-rejected {
+            color: #dc2626;
+            background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
+            border: 1px solid #fca5a5;
+          }
+
+          &.status-empty {
+            color: #64748b;
+            background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+            border: 1px solid #cbd5e1;
+          }
         }
       }
     }

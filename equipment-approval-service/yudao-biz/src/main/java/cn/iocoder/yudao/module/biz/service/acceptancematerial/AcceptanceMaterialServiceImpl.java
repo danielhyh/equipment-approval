@@ -12,6 +12,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.stream.IntStream;
+
 import cn.iocoder.yudao.module.biz.controller.app.acceptancematerial.vo.*;
 import cn.iocoder.yudao.module.biz.dal.dataobject.acceptancematerial.AcceptanceMaterialDO;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
@@ -38,13 +40,17 @@ public class AcceptanceMaterialServiceImpl implements AcceptanceMaterialService 
     private AcceptanceMaterialMapper acceptanceMaterialMapper;
 
     @Override
+    @Transactional
     public Boolean createAcceptanceMaterial(List<AppAcceptanceMaterialSaveReqVO> createReqVO) {
         // 插入
         List<AcceptanceMaterialDO> acceptanceMaterial = BeanUtils.toBean(createReqVO, AcceptanceMaterialDO.class);
-        acceptanceMaterial.forEach(obj -> obj.setUploadTime(LocalDateTime.now()));
-
+        acceptanceMaterial.forEach(obj -> {
+            obj.setUploadTime(LocalDateTime.now());
+            obj.setStatus("待审核");
+        });
         // 返回
-        return  acceptanceMaterialMapper.insertBatch(acceptanceMaterial);
+        List<BatchResult> batchResults = acceptanceMaterialMapper.insertOrUpdate(acceptanceMaterial);
+        return batchResults.stream().flatMapToInt(rs -> IntStream.of(rs.getUpdateCounts())).allMatch(count -> count > 0);
     }
 
     @Override

@@ -8,8 +8,10 @@ import cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils;
 import cn.iocoder.yudao.module.biz.controller.admin.license.vo.*;
 import cn.iocoder.yudao.module.biz.controller.app.license.vo.AppDuplicateSubmitRequest;
 import cn.iocoder.yudao.module.biz.controller.app.license.vo.AppLicensePageRespVO;
+import cn.iocoder.yudao.module.biz.dal.dataobject.acceptancematerial.AcceptanceMaterialDO;
 import cn.iocoder.yudao.module.biz.dal.dataobject.application.ApplicationDO;
 import cn.iocoder.yudao.module.biz.dal.dataobject.classaequipment.ClassAEquipmentDO;
+import cn.iocoder.yudao.module.biz.dal.mysql.acceptancematerial.AcceptanceMaterialMapper;
 import cn.iocoder.yudao.module.biz.dal.mysql.application.ApplicationMapper;
 import cn.iocoder.yudao.module.biz.dal.mysql.classaequipment.ClassAEquipmentMapper;
 import cn.iocoder.yudao.module.biz.dal.mysql.license.LicenseMapper;
@@ -20,7 +22,9 @@ import cn.iocoder.yudao.module.biz.service.utils.JdbcClientHelper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -35,6 +39,9 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.*;
+import java.util.function.BiConsumer;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Service
 @Slf4j
@@ -74,13 +81,44 @@ public class LicenseService {
                 .query(Long.class)
                 .single();
         licenseMapper.licensePage(page, type, loginUserId, deptId);
-        return new PageResult<>(page.getRecords(), page.getTotal());
+        List<AppLicensePageRespVO> records = page.getRecords();
+        //设置设备验收状态
+        setStatus(records, AppLicensePageRespVO::getDuplicateId, AppLicensePageRespVO::setStatus);
+        return new PageResult<>(records, page.getTotal());
+    }
+
+    private <T> void setStatus(List<T> records, Function<T, Long> idExtractor, BiConsumer<T, String> statusSetter) {
+        List<Long> list = records.stream().map(idExtractor).filter(Objects::nonNull).toList();
+        List<String> extraJsonList = jdbcClient.sql("select extra from biz_license_duplicate where id in (:ids)")
+                .param("ids", list)
+                .query(String.class).list().stream().filter(Objects::nonNull).toList();
+        Map<Long, ObjectNode> jsonMap = extraJsonList.stream().map(s -> {
+            try {
+                return objectMapper.readValue(s, ObjectNode.class);
+            } catch (JsonProcessingException e) {
+                throw new RuntimeException(e);
+            }
+        }).collect(Collectors.toMap(o -> o.get("id").asLong(), v -> v));
+        records.forEach(record -> {
+            ObjectNode objectNode = jsonMap.getOrDefault(idExtractor.apply(record), null);
+            if (objectNode != null) {
+                String status = switch (objectNode.get("reviewResult").asInt()) {
+                    case 1 -> "通过";
+                    case 2 -> "驳回整改";
+                    case 0 -> "不通过";
+                    default -> ""; // 保留原有状态
+                };
+                statusSetter.accept(record, status);
+            }
+        });
     }
 
 
     public PageResult<LicensePageVO> page(LicensePageRequestVO param) {
         IPage<LicensePageVO> page = new Page<>(param.getPageNum(), param.getPageSize());
         licenseMapper.page(page, param);
+        List<LicensePageVO> records = page.getRecords();
+        setStatus(records, LicensePageVO::getDuplicateId, LicensePageVO::setStatus);
         return new PageResult<>(page.getRecords(), page.getTotal());
     }
 

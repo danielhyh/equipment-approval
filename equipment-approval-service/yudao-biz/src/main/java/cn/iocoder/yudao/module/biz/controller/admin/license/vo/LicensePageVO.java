@@ -44,7 +44,7 @@ public class LicensePageVO {
     @Schema(description = "许可证类型")
     private String licenseType;
 
-    @Schema(description = "状态：1-有效，2-已注销，3-已变更")
+    @Schema(description = "状态：0-不通过，1-通过，2-驳回整改")
     private String status;
 
     @Schema(description = "设备验收审核状态：1-已通过，0-未通过")

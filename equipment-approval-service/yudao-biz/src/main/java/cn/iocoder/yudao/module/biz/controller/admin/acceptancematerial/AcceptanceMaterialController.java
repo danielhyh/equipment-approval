@@ -2,8 +2,11 @@ package cn.iocoder.yudao.module.biz.controller.admin.acceptancematerial;
 
 import cn.iocoder.yudao.framework.common.pojo.CommonResult;
 import cn.iocoder.yudao.framework.common.util.object.BeanUtils;
+import cn.iocoder.yudao.module.biz.controller.admin.acceptancematerial.dto.AcceptanceMaterialUpdateDTO;
 import cn.iocoder.yudao.module.biz.controller.app.acceptancematerial.vo.AppAcceptanceMaterialRespVO;
 import cn.iocoder.yudao.module.biz.controller.app.acceptancematerial.vo.AppAcceptanceMaterialSaveReqVO;
+import cn.iocoder.yudao.module.biz.dal.dataobject.acceptancematerial.AcceptanceMaterialDO;
+import cn.iocoder.yudao.module.biz.dal.mysql.acceptancematerial.AcceptanceMaterialMapper;
 import cn.iocoder.yudao.module.biz.service.acceptancematerial.AcceptanceMaterialService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -21,11 +24,13 @@ import static cn.iocoder.yudao.framework.common.pojo.CommonResult.success;
 @Tag(name = "管理端 - 验收资料")
 @RestController
 @RequestMapping("/biz/acceptance-material")
-@Validated
 public class AcceptanceMaterialController {
 
     @Resource
     private AcceptanceMaterialService acceptanceMaterialService;
+
+    @Resource
+    private AcceptanceMaterialMapper acceptanceMaterialMapper;
 
     @PostMapping("/create")
     @Operation(summary = "创建验收资料")
@@ -36,8 +41,8 @@ public class AcceptanceMaterialController {
 
     @PutMapping("/update")
     @Operation(summary = "更新验收资料")
-    public CommonResult<Boolean> updateAcceptanceMaterial(@Valid @RequestBody AppAcceptanceMaterialSaveReqVO updateReqVO) {
-        acceptanceMaterialService.updateAcceptanceMaterial(updateReqVO);
+    public CommonResult<Boolean> updateAcceptanceMaterial(@RequestBody AcceptanceMaterialUpdateDTO updateReqVO) {
+        acceptanceMaterialMapper.updateById(BeanUtils.toBean(updateReqVO, AcceptanceMaterialDO.class));
         return success(true);
     }
 

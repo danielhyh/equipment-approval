@@ -1,5 +1,8 @@
 package cn.iocoder.yudao.module.system.service.datasync;
 
+import cn.iocoder.yudao.module.system.service.datasync.dto.SyncDeptDTO;
+import cn.iocoder.yudao.module.system.service.datasync.dto.SyncResult;
+import cn.iocoder.yudao.module.system.service.datasync.dto.SyncUserDTO;
 import com.alibaba.fastjson.JSONArray;
 
 public interface DataSyncService {
@@ -7,10 +10,10 @@ public interface DataSyncService {
     /**
      * 同步用户数据
      */
-    void syncUsers(JSONArray users);
+    SyncResult syncUser(SyncUserDTO user);
 
     /**
      * 同步部门数据
      */
-    void syncDepts(JSONArray depts);
+    SyncResult syncDept(SyncDeptDTO dept);
 }

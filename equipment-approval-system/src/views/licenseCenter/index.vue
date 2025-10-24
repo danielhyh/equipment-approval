@@ -125,13 +125,25 @@
           </template>
         </el-table-column>
         <!-- 状态 -->
-        <el-table-column label="状态" prop="status" align="center" width="90">
+        <el-table-column label="状态" prop="status" align="center" width="120">
           <template #default="scope">
-            <el-tag :type="scope.row.status === '1' ? 'success' : 'danger'" round>
-              <Icon :icon="scope.row.status === '1' ? 'ep:select' : 'ep:close-bold'" />
-              <span>
-                {{ statusOptions.find((item) => item.value === scope.row.status)?.label || '--' }}
-              </span>
+            <el-tag v-if="!scope.row.status" class="status-tag status-empty" round>
+              -
+            </el-tag>
+            <el-tag v-else-if="scope.row.status === '通过'" class="status-tag status-passed" round>
+              <Icon icon="ep:select" />
+              <span>通过</span>
+            </el-tag>
+            <el-tag v-else-if="scope.row.status === '驳回整改'" class="status-tag status-reject" round>
+              <Icon icon="ep:refresh-right" />
+              <span>驳回整改</span>
+            </el-tag>
+            <el-tag v-else-if="scope.row.status === '不通过' || scope.row.status === '未通过'" class="status-tag status-failed" round>
+              <Icon icon="ep:close-bold" />
+              <span>{{ scope.row.status }}</span>
+            </el-tag>
+            <el-tag v-else type="info" round>
+              {{ scope.row.status }}
             </el-tag>
           </template>
         </el-table-column>
@@ -637,6 +649,47 @@ onMounted(() => {
         .license-type-tag {
           color: var(--color);
           background-color: rgba(var(--color), 0.3);
+        }
+
+        .status-tag {
+          padding: 4px 12px;
+          font-size: 14px;
+          font-weight: 500;
+          border: none;
+
+          .el-tag__content {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+          }
+
+          &.status-passed {
+            color: #059669;
+            background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
+            border: 1px solid #6ee7b7;
+          }
+
+          &.status-reject {
+            color: #d97706;
+            background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+            border: 1px solid #fcd34d;
+          }
+
+          &.status-failed {
+            color: #dc2626;
+            background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
+            border: 1px solid #fca5a5;
+          }
+
+          &.status-empty {
+            min-width: 50px;
+            padding: 4px 16px;
+            font-size: 16px;
+            font-weight: 600;
+            color: #64748b;
+            background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+            border: 1px solid #cbd5e1;
+          }
         }
       }
     }

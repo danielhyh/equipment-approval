@@ -27,7 +27,7 @@ public interface AcceptanceMaterialService {
      *
      * @param updateReqVO 更新信息
      */
-    void updateAcceptanceMaterial(@Valid AppAcceptanceMaterialSaveReqVO updateReqVO);
+    void updateAcceptanceMaterial(AppAcceptanceMaterialSaveReqVO updateReqVO);
 
     /**
      * 删除验收资料

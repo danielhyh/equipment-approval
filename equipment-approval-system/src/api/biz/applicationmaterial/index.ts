@@ -57,5 +57,9 @@ export const ApplicationMaterialApi = {
   // 验收资料
   materialList: async (params) => {
     return await request.get({ url: `/biz/acceptance-material/list`, params })
-  }
+  },
+  //修改验收资料
+  updateAcceptanceMaterial: async (data: any) => {
+    return await request.put({ url: `/biz/acceptance-material/update`, data })
+  },
 }

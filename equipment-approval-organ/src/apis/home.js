@@ -58,6 +58,14 @@ export function createFilesMaterial(data){
     data,
   });
 }
+
+export function reUploadFilesMaterial(data){
+  return instance({
+    url: "/app-api/biz/acceptance-material/update",
+    method: "post",
+    data,
+  });
+}
 // 获取验收资料列表 {applicationId}
 export function getFilesMaterialList(params){
   return instance({

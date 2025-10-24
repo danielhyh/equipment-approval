@@ -49,7 +49,6 @@
             a.issue_date AS original_issuance_date,
             b.duplicate_issue_date AS duplicate_issue_date,
             c.app_type as license_type,
-            a.status,
             b.acceptance_status,
             IF(e.application_id IS NOT NULL, 1, 0) AS is_upload
         from biz_license_original a

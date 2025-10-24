@@ -53,5 +53,10 @@ public class AcceptanceMaterialDO extends BaseDO {
      */
     private LocalDateTime uploadTime;
 
+    /**
+     * 状态 待审核，已通过，已驳回
+     */
+    private String status;
+
 
 }

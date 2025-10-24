@@ -37,4 +37,7 @@ public class AppAcceptanceMaterialSaveReqVO {
     @NotNull(message = "上传时间不能为空")
     private LocalDateTime uploadTime;
 
+    @Schema(description = "状态 待审核，已通过，已驳回")
+    private String status;
+
 }

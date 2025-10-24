@@ -40,7 +40,17 @@
           <span v-else class="c-9ca3af">未上传</span>
         </template>
       </el-table-column>
-
+      <!--状态-->
+      <el-table-column prop="status" label="状态" width="100" align="center">
+        <template #default="{ row }">
+          <span :class="{
+            'c-dc2626': row.status === '已驳回',
+            'c-16a34a': row.status === '已通过'
+          }" class="f-w-600">
+            {{ row.status || '-' }}
+          </span>
+        </template>
+      </el-table-column>
       <!-- 操作 -->
       <el-table-column label="操作" width="220" align="center" fixed="right">
         <template #default="{ row, $index }">
@@ -54,9 +64,28 @@
               <el-icon><Download /></el-icon>
               <span>下载</span>
             </el-button>
-            <!-- 未禁用时显示删除按钮 -->
+            <!-- 已驳回状态显示重新上传按钮 -->
+            <el-upload
+                v-if="row.status === '已驳回' && !isDisabled"
+                :ref="(el) => setUploadRef(el, $index)"
+                class="upload-btn"
+                :show-file-list="false"
+                :before-upload="(file) => handleUpload(file, row)"
+                :limit="1"
+                :accept="row.accept || '*'"
+                :http-request="fileRequestFn"
+                :on-exceed="(file) => handleExceed(file, $index, row)"
+                :on-error="(file) => handleError(file, $index, row)"
+                :on-success="(file) => handleSuccess(file, $index, row)"
+            >
+              <el-button type="warning" size="small">
+                <el-icon><Upload /></el-icon>
+                <span>重新上传</span>
+              </el-button>
+            </el-upload>
+            <!-- 未禁用且非已驳回状态时显示删除按钮 -->
             <el-button
-                v-if="!isDisabled"
+                v-else-if="!isDisabled"
                 type="danger"
                 size="small"
                 @click="deleteFile(row)"
@@ -131,7 +160,7 @@
 
 <script setup>
 import { createUploadFile } from "@/apis/applyFor";
-import { createFilesMaterial, getFilesMaterialList } from "@/apis/home";
+import {createFilesMaterial, getFilesMaterialList, reUploadFilesMaterial} from "@/apis/home";
 import { genFileId } from "element-plus";
 import { Upload, Document, View, Download, Delete } from "@element-plus/icons-vue";
 import { useBasisStore } from "@/pinia/modules/basis";
@@ -169,6 +198,8 @@ let materialTable = ref([
     fileName: "",
     fileSize: "",
     filePath: null,
+    status: "",
+    id: null,
   },
   {
     text: "中标通知书",
@@ -178,6 +209,8 @@ let materialTable = ref([
     fileName: "",
     fileSize: "",
     filePath: null,
+    status: "",
+    id: null,
   },
   {
     text: "采购发票",
@@ -187,6 +220,8 @@ let materialTable = ref([
     fileName: "",
     fileSize: "",
     filePath: null,
+    status: "",
+    id: null,
   },
   {
     text: "验收表格",
@@ -196,6 +231,8 @@ let materialTable = ref([
     fileName: "",
     fileSize: "",
     filePath: null,
+    status: "",
+    id: null,
   },
   {
     text: "医疗器械注册证",
@@ -205,6 +242,8 @@ let materialTable = ref([
     fileName: "",
     fileSize: "",
     filePath: null,
+    status: "",
+    id: null,
   },
   {
     text: "承诺事项落实材料",
@@ -214,6 +253,8 @@ let materialTable = ref([
     fileName: "",
     fileSize: "",
     filePath: null,
+    status: "",
+    id: null,
   },
   {
     text: "乙类大型医用设备配置信息登记表",
@@ -223,6 +264,8 @@ let materialTable = ref([
     fileName: "",
     fileSize: "",
     filePath: null,
+    status: "",
+    id: null,
   },
   {
     text: "《乙类大型医用设备配置许可证》副本电子版",
@@ -232,6 +275,8 @@ let materialTable = ref([
     fileName: "",
     fileSize: "",
     filePath: null,
+    status: "",
+    id: null,
   },
 ]);
 
@@ -246,6 +291,8 @@ const initTableDataFn = async () => {
         item.fileName = res.materialName;
         item.fileSize = res.fileSize;
         item.filePath = res.filePath;
+        item.status = res.status;
+        item.id = res.id;
       }
     });
   } catch (err) {
@@ -254,6 +301,7 @@ const initTableDataFn = async () => {
     loading.value = false;
   }
 };
+
 
 // 用于存储所有upload实例的映射
 const uploadRefs = ref(new Map());
@@ -453,14 +501,21 @@ const validor = async () => {
 const submit = async () => {
   const isValid = await validor();
   if (!isValid) return false;
-  let params = materialTable.value.map((item) => ({
-    applicationId: licenseBasis.value?.applicationId || licenseBasis.value?.applicationId,
-    materialType: item.materialType,
-    materialName: item.fileName,
-    filePath: item.filePath,
-    fileSize: item.fileSize + "",
-    uploadTime: new Date().toLocaleString(),
-  }));
+  let params = materialTable.value.map((item) => {
+    let param = {
+      applicationId: licenseBasis.value?.applicationId || licenseBasis.value?.applicationId,
+      materialType: item.materialType,
+      materialName: item.fileName,
+      filePath: item.filePath,
+      fileSize: item.fileSize + "",
+      uploadTime: new Date().toLocaleString(),
+    };
+    // 如果有 id，则带上 id（重新上传的情况）
+    if (item.id) {
+      param.id = item.id;
+    }
+    return param;
+  });
   try {
     loading.value = true;
     await createFilesMaterial(params);
@@ -505,6 +560,15 @@ defineExpose({
 }
 .upload-btn {
   display: inline-block;
+}
+.c-dc2626 {
+  color: #dc2626;
+}
+.c-16a34a {
+  color: #16a34a;
+}
+.f-w-600 {
+  font-weight: 600;
 }
 
 .preview-container {

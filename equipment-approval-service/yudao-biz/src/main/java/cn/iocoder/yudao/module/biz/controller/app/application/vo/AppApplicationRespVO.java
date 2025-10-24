@@ -1,5 +1,6 @@
 package cn.iocoder.yudao.module.biz.controller.app.application.vo;
 
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.*;
 import java.util.*;
@@ -47,5 +48,8 @@ public class AppApplicationRespVO {
     @Schema(description = "创建时间", requiredMode = Schema.RequiredMode.REQUIRED)
     @ExcelProperty("创建时间")
     private LocalDateTime createTime;
+
+    @Schema(description = "扩展字段")
+    private ObjectNode extra;
 
 }

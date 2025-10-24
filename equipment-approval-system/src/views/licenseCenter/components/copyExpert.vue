@@ -19,6 +19,7 @@
           <el-radio-group v-model="formValue.reviewResult">
             <el-radio :value="1">通过</el-radio>
             <el-radio :value="0">不通过</el-radio>
+            <el-radio :value="2">驳回整改</el-radio>
           </el-radio-group>
         </el-form-item>
         <el-form-item label="审核备注" prop="reviewOpinion">

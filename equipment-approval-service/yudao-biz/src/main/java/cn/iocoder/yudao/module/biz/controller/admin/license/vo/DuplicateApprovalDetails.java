@@ -14,7 +14,7 @@ import java.util.Map;
 public class DuplicateApprovalDetails {
 
 
-    @Schema(description = "审核结果 1-通过，0-不通过")
+    @Schema(description = "审核结果 1-通过，0-不通过 2驳回整改")
     @NotNull(message = "审核结果不能为空")
     private Integer reviewResult;
 
