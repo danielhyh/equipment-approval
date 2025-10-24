@@ -49,14 +49,14 @@
           </el-table-column>
 
           <!-- 许可设备名称 -->
-          <el-table-column prop="licenseDeviceName" label="许可设备名称" align="center" >
-            <template #default="{row}">
+          <el-table-column prop="licenseDeviceName" label="许可设备名称" align="center">
+            <template #default="{ row }">
               {{ row.licenseDeviceName || "-" }}
             </template>
           </el-table-column>
           <!-- 阶梯配置机型 -->
-          <el-table-column prop="ladderConfigModel" label="阶梯配置机型" width="180" align="center" >
-            <template #default="{row}">
+          <el-table-column prop="ladderConfigModel" label="阶梯配置机型" width="180" align="center">
+            <template #default="{ row }">
               {{ row.ladderConfigModel || "-" }}
             </template>
           </el-table-column>
@@ -64,8 +64,18 @@
           <el-table-column prop="createTime" label="创建日期" width="180" align="center" />
           <!-- 进度状态 -->
           <el-table-column prop="appStatus" label="进度状态" align="center">
-            <template #default="scope">
-              {{ statusDict.find((item) => item.value === scope.row.appStatus + "")?.label || "-" }}
+            <template #default="{ row }">
+              {{
+                row.appType !== 4
+                  ? statusDict.find((item) => item.value === row.appStatus + "")?.label || "-"
+                  : row.appStatus === 1
+                  ? "待审核"
+                  : row.appStatus === 3 || row.appStatus === 5
+                  ? "完成审核"
+                  : row.appStatus === 4 || row.appStatus === 2
+                  ? "已驳回"
+                  : "-"
+              }}
             </template>
           </el-table-column>
 
