@@ -34,17 +34,27 @@
       <el-table-column prop="productionEnterprise" label="生产企业" align="center" />
       <el-table-column prop="specificModel" label="具体型号" align="center" />
       <el-table-column prop="installationDate" label="装机日期" align="center" />
-      <el-table-column label="操作" align="center" width="230" fixed="right">
+      <el-table-column label="状态" align="center" fixed="right" width="90">
         <template #default="{ row }">
-          <el-button type="primary" size="small" v-if="row.hasDuplicate === 'N'" @click="handleCopy(row)"> 副本提交 </el-button>
-          <el-button
-            type="success"
-            size="small"
-            v-if="row.hasDuplicate === 'Y' && row.hasAcceptanceMaterial === 'N'"
-            @click="handleFile(row)"
+          <el-tag
+            :type="
+              row.status === '通过'
+                ? 'success'
+                : row.status === '驳回整改' || row.status === '不通过'
+                ? 'danger'
+                : row.status === null
+                ? 'warning'
+                : 'info'
+            "
           >
-            验收资料提交
-          </el-button>
+            {{ row.status || "待审核" }}
+          </el-tag>
+        </template>
+      </el-table-column>
+      <!-- 许可证 -->
+      <el-table-column label="许可证" align="center" width="140" fixed="right">
+        <template #default="{ row }">
+          <el-button type="primary" size="small" @click="openLicense(row, 'A', 'view')">正本</el-button>
           <el-dropdown
             v-if="row.hasDuplicate === 'Y'"
             style="margin: 0 8px; vertical-align: middle"
@@ -57,12 +67,33 @@
               <el-dropdown-item command="preview">打印预览</el-dropdown-item>
             </template>
           </el-dropdown>
-
+        </template>
+      </el-table-column>
+      <!-- 资料填报 -->
+      <el-table-column label="资料填报" align="center" width="120" fixed="right">
+        <template #default="{ row }">
+          <el-button type="primary" size="small" v-if="row.hasDuplicate === 'N'" @click="handleCopy(row)"> 副本提交 </el-button>
+          <el-button
+            type="success"
+            size="small"
+            v-if="row.hasDuplicate === 'Y' && row.hasAcceptanceMaterial === 'N'"
+            @click="handleFile(row)"
+          >
+            验收资料提交
+          </el-button>
+          <el-tag v-if="!(row.hasDuplicate === 'Y' && row.hasAcceptanceMaterial === 'N') && !(row.hasDuplicate === 'N')">
+            已提交
+          </el-tag>
+        </template>
+      </el-table-column>
+      <el-table-column label="操作" align="center" width="120" fixed="right">
+        <template #default="{ row }">
           <el-button type="warning" size="small" v-if="row.hasDuplicate === 'Y'" @click="handleOther(row)">
             补充其他信息
           </el-button>
-          <el-button type="primary" size="small" v-if="row.hasDuplicate === 'Y'" @click="handleDetail(row)"> 详细信息 </el-button>
-          <el-button type="primary" size="small" v-if="row.hasDuplicate === 'Y'" @click="handleQrCode(row)">二维码信息</el-button>
+          <!-- todo 取消 详细信息 展示判断 v-if="row.hasDuplicate === 'Y'" -->
+          <el-button type="primary" size="small" @click="handleDetail(row)"> 详细信息 </el-button>
+          <!-- <el-button type="primary" size="small" v-if="row.hasDuplicate === 'Y'" @click="handleQrCode(row)">二维码信息</el-button> -->
         </template>
       </el-table-column>
       <template #empty>
@@ -93,7 +124,7 @@
     </Dialog>
     <!-- 查看/打印预览副本弹窗 -->
     <Dialog v-model:visible="previewCopy" title="打印预览副本" width="1200px">
-      <div class=" m-b-10" style="position: relative; text-align: right;">
+      <div class="m-b-10" style="position: relative; text-align: right">
         <el-button type="primary" @click="printFn">打印副本</el-button>
       </div>
       <license ref="licenseRef" v-bind="licenseProps" />
@@ -266,7 +297,8 @@ const openLicense = async (row, type, command) => {
   }
   if (command === "view") {
     basisStore.setLicenseBasis(row);
-    router.push({ name: "LicenseDetail", query: { key: "copyMsg" } });
+    let key = type === "A" ? "originMsg" : "copyMsg";
+    router.push({ name: "LicenseDetail", query: { key } });
     return;
   }
 };

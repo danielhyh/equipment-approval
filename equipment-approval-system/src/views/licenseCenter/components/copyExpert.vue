@@ -133,9 +133,10 @@ import { useRoute } from 'vue-router'
 import { ExpertExtApi } from '@/api/biz/expertext'
 import { DICT_TYPE, getDictLabel } from '@/utils/dict'
 import { LicenseApi } from '@/api/biz/license/index'
+import { ApplicationMaterialApi } from '@/api/biz/applicationmaterial'
 const route = useRoute()
 const router = useRouter()
-const { duplicateId } = route.query
+const { duplicateId, id } = route.query
 let loading = ref(false)
 
 const goBack = () => {
@@ -150,7 +151,14 @@ let props = defineProps({
 let isDisabled = computed(() => {
   return props.disabled
 })
-let formValue = ref({
+interface formValueType {
+  id: number
+  reviewResult: number | string
+  reviewOpinion: string
+  expertAttachments: string //上传附件的地址 多个以逗号隔开
+  expertIds: string //选中的专家的id
+}
+let formValue = ref<formValueType>({
   id: Number(duplicateId),
   reviewResult: '',
   reviewOpinion: '',
@@ -251,11 +259,33 @@ const removeItem = (item: listDataType) => {
 // 附件
 let fileList = ref<string[]>([])
 const submitFn = async () => {
+  try {
+    loading.value = true
+    let responseMateria =
+      (await ApplicationMaterialApi.materialList({
+        applicationId: Number(id)
+      })) || []
+    let materialStatus = responseMateria.map((item: any) => item.status)
+    if (materialStatus.includes('待审核')) {
+      ElMessage.error('请先审核验收资料！')
+      return
+    }
+    if (materialStatus.includes('已驳回')) {
+      formValue.value.reviewResult = 2
+    }
+  } catch (err) {
+    ElMessage.error('获取验收资料信息失败')
+    return
+  } finally {
+    loading.value = false
+  }
+
   if (!formRef.value) {
     ElMessage.error('表单加载错误')
     return
   }
   try {
+    loading.value = true
     await formRef.value.validate()
     //调用接口
     formValue.value.expertAttachments = fileList.value.join(',')
@@ -266,6 +296,8 @@ const submitFn = async () => {
   } catch (err) {
     // ElMessage.error('请填写完整信息')
     // console.log(err)
+  } finally {
+    loading.value = false
   }
 }
 const specialtyList = ref([])

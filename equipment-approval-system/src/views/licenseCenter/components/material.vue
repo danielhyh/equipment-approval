@@ -16,20 +16,33 @@
             <em>|</em>
             <span>状态:</span>
             <!-- 状态标签 -->
-            <el-tag v-if="item.status === '待审核'" class="status-tag status-pending" size="small" round>
+            <el-tag
+              v-if="item.status === '待审核'"
+              class="status-tag status-pending"
+              size="small"
+              round
+            >
               待审核
             </el-tag>
-            <el-tag v-else-if="item.status === '已通过'" class="status-tag status-approved" size="small" round>
+            <el-tag
+              v-else-if="item.status === '已通过'"
+              class="status-tag status-approved"
+              size="small"
+              round
+            >
               <Icon icon="ep:select" :size="12" />
               <span>已通过</span>
             </el-tag>
-            <el-tag v-else-if="item.status === '已驳回'" class="status-tag status-rejected" size="small" round>
+            <el-tag
+              v-else-if="item.status === '已驳回'"
+              class="status-tag status-rejected"
+              size="small"
+              round
+            >
               <Icon icon="ep:close-bold" :size="12" />
               <span>已驳回</span>
             </el-tag>
-            <el-tag v-else class="status-tag status-empty" size="small" round>
-              -
-            </el-tag>
+            <el-tag v-else class="status-tag status-empty" size="small" round> - </el-tag>
           </div>
           <div class="handler-box">
             <el-button round size="small" type="primary" :icon="View" @click.stop="viewFn(item)">
@@ -44,9 +57,9 @@
             >
               下载
             </el-button>
-            
+
             <!-- 只有待审核状态才显示操作按钮 -->
-            <template v-if="item.status === '待审核'">
+            <template v-if="item.status === '待审核' && !isDisabled">
               <el-button
                 round
                 size="small"
@@ -108,11 +121,11 @@
               <div class="excel-table-wrapper">
                 <table class="excel-table">
                   <tbody>
-                  <tr v-for="(row, rowIndex) in sheet.data" :key="rowIndex">
-                    <td v-for="(cell, colIndex) in row" :key="colIndex">
-                      {{ cell }}
-                    </td>
-                  </tr>
+                    <tr v-for="(row, rowIndex) in sheet.data" :key="rowIndex">
+                      <td v-for="(cell, colIndex) in row" :key="colIndex">
+                        {{ cell }}
+                      </td>
+                    </tr>
                   </tbody>
                 </table>
               </div>
@@ -152,6 +165,13 @@ import * as XLSX from 'xlsx'
 
 const route = useRoute()
 const { id, duplicateId } = route.query
+let props = defineProps({
+  disabled: {
+    type: Boolean,
+    default: false
+  }
+})
+let isDisabled = computed(() => props.disabled)
 
 interface fileItemType {
   name?: string | undefined
@@ -202,7 +222,6 @@ const toggleFullscreen = () => {
 }
 
 const viewFn = async (item: fileItemType) => {
-  console.log('useinfo view fn', item)
   currentFile.value = item
   previewTitle.value = item.name || '文件预览'
   previewVisible.value = true
@@ -471,7 +490,7 @@ defineExpose({
         .status-tag {
           margin-left: 4px;
           font-size: 12px;
-          
+
           .el-tag__content {
             display: flex;
             align-items: center;

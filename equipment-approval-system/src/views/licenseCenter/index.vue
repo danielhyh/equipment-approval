@@ -114,7 +114,7 @@
         <!-- 副本发证日期  -->
         <el-table-column label="副本发证日期" prop="copyIssueDate" align="center" />
         <!-- 许可证类型	 -->
-        <el-table-column label="许可证类型" prop="licenseType" align="center">
+        <el-table-column label="许可证类型" prop="licenseType" align="center" width="130">
           <template #default="scope">
             <el-tag :style="licenseTypeStyle(scope.row)" class="license-type-tag" round>
               {{
@@ -127,27 +127,56 @@
         <!-- 状态 -->
         <el-table-column label="状态" prop="status" align="center" width="120">
           <template #default="scope">
-            <el-tag v-if="!scope.row.status" class="status-tag status-empty" round>
-              -
+            <el-tag
+              v-if="scope.row.status === '通过'"
+              class="status-tag status-passed"
+              size="small"
+              round
+            >
+              <Icon icon="ep:select" :size="12" />
+              <span style="font-size: 12px">通过</span>
             </el-tag>
-            <el-tag v-else-if="scope.row.status === '通过'" class="status-tag status-passed" round>
-              <Icon icon="ep:select" />
-              <span>通过</span>
+            <el-tag
+              v-else-if="scope.row.status === '驳回整改'"
+              class="status-tag status-reject"
+              size="small"
+              round
+            >
+              <Icon icon="ep:refresh-right" :size="12" />
+              <span style="font-size: 12px">驳回整改</span>
             </el-tag>
-            <el-tag v-else-if="scope.row.status === '驳回整改'" class="status-tag status-reject" round>
-              <Icon icon="ep:refresh-right" />
-              <span>驳回整改</span>
+            <el-tag
+              v-else-if="scope.row.status === '不通过' || scope.row.status === '未通过'"
+              class="status-tag status-failed"
+              size="small"
+              round
+            >
+              <Icon icon="ep:close-bold" :size="12" />
+              <span style="font-size: 12px">{{ scope.row.status }}</span>
             </el-tag>
-            <el-tag v-else-if="scope.row.status === '不通过' || scope.row.status === '未通过'" class="status-tag status-failed" round>
-              <Icon icon="ep:close-bold" />
-              <span>{{ scope.row.status }}</span>
+            <el-tag v-else-if="scope.row.status === null" type="info" round size="small">
+              待验收
             </el-tag>
-            <el-tag v-else type="info" round>
-              {{ scope.row.status }}
-            </el-tag>
+            <el-tag v-else style="font-size: 12px"> {{ scope.row.status }}</el-tag>
           </template>
         </el-table-column>
-        <el-table-column label="操作" align="center" width="260">
+        <!-- 验收 -->
+        <el-table-column label="验收" align="center">
+          <template #default="{ row }">
+            <el-button
+              v-if="row.acceptanceStatus !== 1 && !!row.duplicateId && row.status === null"
+              type="warning"
+              size="small"
+              @click="row.isUpload ? copyInspectionFn(row) : null"
+              :disabled="!row.isUpload"
+            >
+              {{ row.isUpload ? '设备验收' : '设备未验收' }}
+            </el-button>
+            <span v-else>-</span>
+          </template>
+        </el-table-column>
+        <!-- 许可证 -->
+        <el-table-column label="许可证" align="center" width="140">
           <template #default="scope">
             <el-dropdown
               style="margin-right: 8px; vertical-align: middle"
@@ -175,23 +204,18 @@
                 </el-dropdown-menu>
               </template>
             </el-dropdown>
+          </template>
+        </el-table-column>
+        <el-table-column label="操作" align="center" width="160">
+          <template #default="scope">
             <el-button type="primary" size="small" @click="handleDetail(scope.row)">详情</el-button>
             <el-button
-              v-show="scope.row.licenseType === '5'"
+              v-show="scope.row.licenseType === '5' && scope.row.status !== '通过'"
               type="primary"
               size="small"
               @click.stop="editLicense(scope.row)"
             >
-              编辑
-            </el-button>
-            <el-button
-              v-if="scope.row.acceptanceStatus !== 1 && !!scope.row.duplicateId"
-              type="warning"
-              size="small"
-              @click="scope.row.isUpload ? copyInspectionFn(scope.row) : null"
-              :disabled="!scope.row.isUpload"
-            >
-              {{ scope.row.isUpload ? '设备验收' : '设备未验收' }}
+              副本填报
             </el-button>
           </template>
         </el-table-column>
@@ -454,9 +478,9 @@ const openLicense = async (row, type, command) => {
         ? await Promise.all([LicenseApi.getLicenseOriginal(originalParam)])
         : !!row.duplicateId
           ? await Promise.all([
-            LicenseApi.getLicenseOriginal(originalParam),
-            LicenseApi.getLicenseCopy(copyParam)
-          ])
+              LicenseApi.getLicenseOriginal(originalParam),
+              LicenseApi.getLicenseCopy(copyParam)
+            ])
           : await Promise.all([LicenseApi.getLicenseOriginal(originalParam)])
     let result: any = null
     if (type === 'B') {
@@ -642,7 +666,7 @@ onMounted(() => {
           align-items: center;
 
           .el-icon {
-            margin-right: 4px;
+            // margin-right: 4px;
           }
         }
 
@@ -653,14 +677,13 @@ onMounted(() => {
 
         .status-tag {
           padding: 4px 12px;
-          font-size: 14px;
+          font-size: 12px;
           font-weight: 500;
           border: none;
 
           .el-tag__content {
             display: flex;
             align-items: center;
-            gap: 4px;
           }
 
           &.status-passed {
