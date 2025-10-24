@@ -128,7 +128,6 @@ public class NotificationService {
     public Long createNotification(CreateNotificationRequest request) {
         String title = request.getTitle();
         String content = request.getContent();
-        String creator = String.valueOf(SecurityFrameworkUtils.getLoginUserId());
         boolean publishNow = request.getPublishNow() != null ? request.getPublishNow() : false;
 
         String status = publishNow ? "已发布" : "未发布";
@@ -149,7 +148,7 @@ public class NotificationService {
             ps.setLong(4, request.getAppId());
             ps.setString(5, status);
             ps.setTimestamp(6, publishNow ? Timestamp.valueOf(now) : null);
-            ps.setString(7, creator != null ? creator : "");
+            ps.setString(7, request.getCreator() != null ? request.getCreator() : "");
             ps.setTimestamp(8, Timestamp.valueOf(now));
             ps.setBoolean(9, false);
             ps.setString(10, request.getVisibility());

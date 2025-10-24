@@ -61,13 +61,14 @@
     <!--  公告统计汇总  -->
     <select id="noticeSummary" resultType="map">
         select count(a.id)                         as total,
-               SUM(IF(a.status = '已发布', 1, 0)) AS publishedCount,
-               SUM(IF(a.status = '未发布', 1, 0)) AS draftCount,
-               (SELECT COUNT(*) FROM biz_user_notification_status WHERE is_read = b'1') AS totalViews
+        SUM(IF(a.status = '已发布', 1, 0)) AS publishedCount,
+        SUM(IF(a.status = '未发布', 1, 0)) AS draftCount,
+        SUM(IF(d.is_read = 1, 1, 0)) AS totalViews
         from biz_notifications a
+        LEFT JOIN biz_user_notification_status d on a.id = d.notification_id
         left join biz_application b on a.app_id = b.id
         left join biz_institution_ext c on b.institution_id = c.dept_id
-        where a.deleted = 0
+        where a.deleted = 0 and a.visibility = 'system' and a.creator='0'
         <if test="req.region != null and req.region != ''">
             and c.region = #{req.region}
         </if>
@@ -166,7 +167,7 @@
             and YEAR(b.create_time) = #{req.year}
         </if>
         <if test="req.startDate != null and req.endDate != null">
-            and b.create_time between #{req.startDate} and #{req.endDate}
+            and YEAR(b.create_time) between #{req.startDate} and #{req.endDate}
         </if>
         <if test="req.types != null and !req.types.isEmpty()">
             and b.license_device_name in
@@ -178,8 +179,7 @@
             and b.status = #{req.status}
         </if>
         <if test="req.keywords != null and req.keywords != ''">
-            and (
-                (a.institution_name like concat('%', #{req.keywords}, '%')
+            and (a.institution_name like concat('%', #{req.keywords}, '%')
             or b.license_no like concat('%', #{req.keywords}, '%')
                  )
         </if>

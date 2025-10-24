@@ -19,6 +19,7 @@ import cn.iocoder.yudao.module.biz.service.devicelicense.DeviceLicenseService;
 import cn.iocoder.yudao.module.biz.service.notification.CreateNotificationRequest;
 import cn.iocoder.yudao.module.biz.service.notification.NotificationService;
 import cn.iocoder.yudao.module.biz.service.utils.JdbcClientHelper;
+import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -88,10 +89,19 @@ public class LicenseService {
     }
 
     private <T> void setStatus(List<T> records, Function<T, Long> idExtractor, BiConsumer<T, String> statusSetter) {
+        if (records.isEmpty()) {
+            return;
+        }
         List<Long> list = records.stream().map(idExtractor).filter(Objects::nonNull).toList();
+        if (list.isEmpty()) {
+            return;
+        }
         List<String> extraJsonList = jdbcClient.sql("select extra from biz_license_duplicate where id in (:ids)")
                 .param("ids", list)
                 .query(String.class).list().stream().filter(Objects::nonNull).toList();
+        if (extraJsonList.isEmpty()) {
+            return;
+        }
         Map<Long, ObjectNode> jsonMap = extraJsonList.stream().map(s -> {
             try {
                 return objectMapper.readValue(s, ObjectNode.class);
@@ -127,7 +137,24 @@ public class LicenseService {
     }
 
     public DuplicateLicenseVO getDuplicateById(Long id) {
-        return licenseMapper.getDuplicateById(id);
+        DuplicateLicenseVO duplicateLicenseVO = licenseMapper.getDuplicateById(id);
+        if (duplicateLicenseVO == null) {
+            return new DuplicateLicenseVO();
+        }
+        Integer reviewResult = Optional.ofNullable(duplicateLicenseVO.getExtra())
+                .map(JSONObject::parseObject)
+                .map(obj -> obj.getInteger("reviewResult"))
+                .orElse(null);
+        if (!Objects.equals(reviewResult, 1)) {
+            duplicateLicenseVO.setInfoSubmitDate(null);
+            duplicateLicenseVO.setInstallationDate(null);
+            duplicateLicenseVO.setProductionEnterprise( null);
+            duplicateLicenseVO.setProductSerialNo( null);
+            duplicateLicenseVO.setSpecificModel(null);
+            return duplicateLicenseVO;
+        }
+
+        return duplicateLicenseVO;
     }
 
     public Boolean updateOriginal(OriginalLicenseVO originalLicenseVO) {
@@ -337,7 +364,18 @@ public class LicenseService {
     }
 
     public void approval(DuplicateApprovalRequest request) {
+
         String loginUserNickname = SecurityFrameworkUtils.getLoginUserNickname();
+        String query = """
+                select b.status from biz_acceptance_material b left join biz_license_original c
+                on b.application_id = c.application_id
+                left join biz_license_duplicate a on c.id = a.original_id
+                where a.id = ?
+                """;
+        List<String> statusList = jdbcClient.sql(query).param(request.getId()).query(String.class).list();
+        if (statusList.contains("待审核")) {
+            throw new ServiceException(1111, "请审批验收资料");
+        }
         String extra;
         try {
             extra = objectMapper.writeValueAsString(request);

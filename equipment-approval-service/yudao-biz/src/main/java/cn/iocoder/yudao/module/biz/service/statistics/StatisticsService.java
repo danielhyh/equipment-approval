@@ -72,22 +72,30 @@ public class StatisticsService {
         String sql = """
                 WITH regions AS (
                     SELECT '西安市' AS region UNION ALL
-                    SELECT '宝鸡市' UNION ALL
-                    SELECT '汉中市' UNION ALL
-                    SELECT '咸阳市' UNION ALL
-                    SELECT '渭南市' UNION ALL
-                    SELECT '延安市' UNION ALL
-                    SELECT '安康市' UNION ALL
-                    SELECT '榆林市'
+                                SELECT '铜川市' UNION ALL
+                                SELECT '宝鸡市' UNION ALL
+                                SELECT '咸阳市' UNION ALL
+                                SELECT '渭南市' UNION ALL
+                                SELECT '延安市' UNION ALL
+                                SELECT '汉中市' UNION ALL
+                                SELECT '榆林市' UNION ALL
+                                SELECT '安康市' UNION ALL
+                                SELECT '商洛市' UNION ALL
+                                SELECT '杨凌区' UNION ALL
+                                SELECT '西咸新区' UNION ALL
+                                SELECT '中国（陕西）自由贸易试验区' UNION ALL
+                                SELECT '陕西省(仅本地市)'
                 )
                 SELECT
                     r.region,
                     COUNT(a.id) AS total
                 FROM regions r
-                LEFT JOIN biz_institution_ext b ON r.region = b.region\s
+                LEFT JOIN biz_institution_ext b ON r.region = b.region
                 LEFT JOIN biz_application a ON a.institution_id = b.dept_id
+
+                where a.app_status = 5
                 GROUP BY r.region
-                ORDER BY total DESC, r.region;
+                ORDER BY total DESC, r.region
                 """;
         List<Map<String, Object>> result = jdbcClient.sql(sql).query().listOfRows();
         return NamedTransformation.convertKeysToCamelCase(result);
@@ -132,22 +140,26 @@ public class StatisticsService {
     public List<Map<String, Object>> ladderConfigDistribution() {
         String sql = """
                 WITH models AS (
-                    SELECT '科研型' AS model UNION ALL
-                    SELECT '临床研究型' UNION ALL
-                    SELECT '临床实用型' UNION ALL
-                    SELECT '未实施阶梯分型'
-                )
-                    SELECT
-                    m.model AS model,
-                    COUNT(a.id) AS count,
-                    ROUND(COUNT(a.id) * 100.0 / SUM(COUNT(*)) OVER (), 1) AS percentage
-                    FROM models m
-                    LEFT JOIN biz_license_original a on m.model = a.ladder_config_model
-                    WHERE a.deleted = 0
-                    GROUP BY m.model
+                                    SELECT '科研型' as s UNION ALL
+                                    SELECT '临床研究型' UNION ALL
+                                    SELECT '临床实用型' UNION ALL
+                                    SELECT '未实施阶梯分型'
+                                )
+                                SELECT
+                                    m.s ,
+                                    COUNT(a.id) AS count,
+                                    ROUND(COUNT(a.id) * 100.0 / SUM(COUNT(*)) OVER (), 1) AS percentage
+                                FROM models m
+                                LEFT JOIN biz_license_original a ON m.s = a.ladder_config_model AND a.deleted = 0
+                                GROUP BY s
                 """;
 //        List<Map<String, Object>> maps = statisticsMapper.ladderConfigDistribution();
         List<Map<String, Object>> maps = jdbcClient.sql(sql).query().listOfRows();
+        //因为model为dm关键字 故此处理
+        for (Map<String, Object> map : maps) {
+            map.put("model", map.get("s"));
+            map.remove("s");
+        }
         adjustPercentage(maps);
         return maps;
     }

@@ -71,7 +71,6 @@
         ba.app_type,
         ba.app_no,
         ba.institution_id,
-        GREATEST(DATEDIFF(ba.deadline, NOW()), 0) AS remaining_days,
         blo.id as original_id,
         blo.license_no,
         bld.id as duplicate_id
