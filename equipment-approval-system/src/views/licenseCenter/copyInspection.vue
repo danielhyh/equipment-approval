@@ -29,6 +29,25 @@
               <span class="label">设备名称:</span>
               <span class="value">{{ basice.deviceName }}</span>
             </div>
+            <div class="line"></div>
+            <div class="col">
+              <span class="label">验收状态:</span>
+              <span class="value">
+                <el-tag
+                  :type="
+                    basice.status === '通过'
+                      ? 'success'
+                      : basice.status === '不通过'
+                        ? 'danger'
+                        : basice.status === '驳回整改'
+                          ? 'warning'
+                          : 'info'
+                  "
+                >
+                  {{ basice.status || '待验收' }}
+                </el-tag>
+              </span>
+            </div>
           </div>
         </div>
         <div class="content-type-msg">
@@ -90,7 +109,8 @@ let title = ref('陕西省大型医用设备在线审批归档系统')
 let basice = reactive({
   title: '--',
   code: 'DQ-2024-09-23-0931',
-  deviceName: '--'
+  deviceName: '--',
+  status: ''
 })
 
 let typeList = computed(() => {
@@ -140,6 +160,7 @@ const getBasisInfo = async () => {
     basice.title = response.institutionName
     basice.code = response.appNo
     basice.deviceName = response.licenseDeviceName
+    basice.status = response.status
 
     applictionStore.updateApplicationData(response)
     let response2 = await ApplicationApi.reviewDetail(licenseId)

@@ -21,13 +21,32 @@
           </div>
           <div class="other-row">
             <div class="col"
-            ><span class="label">申请编号：</span>
+              ><span class="label">申请编号：</span>
               <span class="value">{{ basice.code }}</span>
             </div>
             <div class="line"></div>
             <div class="col">
               <span class="label">设备名称:</span>
               <span class="value">{{ basice.deviceName }}</span>
+            </div>
+            <div class="line"></div>
+            <div class="col">
+              <span class="label">验收状态:</span>
+              <span class="value"
+                ><el-tag
+                  :type="
+                    basice.status === '通过'
+                      ? 'success'
+                      : basice.status === '不通过'
+                        ? 'danger'
+                        : basice.status === '驳回整改'
+                          ? 'warning'
+                          : 'info'
+                  "
+                >
+                  {{ basice.status || '待验收' }}
+                </el-tag>
+              </span>
             </div>
           </div>
         </div>
@@ -100,7 +119,8 @@ let basice = reactive({
   title: '西安交通大学第一附属医院',
   code: 'DQ-2024-09-23-0931',
   // 设备名称
-  deviceName: 'X线正电子发射断层扫描仪'
+  deviceName: 'X线正电子发射断层扫描仪',
+  status: ''
 })
 
 let typeList = computed(() => {
@@ -239,6 +259,7 @@ const getBasisInfo = async () => {
     basice.title = response.institutionName
     basice.code = response.appNo
     basice.deviceName = response.licenseDeviceName
+    basice.status = response.status
 
     applictionStore.updateApplicationData(response)
     let response2 = await ApplicationApi.reviewDetail(licenseId)

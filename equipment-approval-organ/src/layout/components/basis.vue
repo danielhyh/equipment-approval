@@ -36,7 +36,7 @@
             <el-button v-if="item.edit" type="primary" size="small" :icon="EditPen" round @click.stop="handleEdit(item.key)">
               编辑
             </el-button>
-            <el-button v-else type="info" disabled size="small" :icon="Lock" round>不可编辑</el-button>
+            <!-- <el-button v-else type="info" disabled size="small" :icon="Lock" round>不可编辑</el-button> -->
           </span>
         </div>
       </div>
