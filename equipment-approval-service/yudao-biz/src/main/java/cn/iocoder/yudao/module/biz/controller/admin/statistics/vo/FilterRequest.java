@@ -27,10 +27,10 @@ public class FilterRequest {
     private String region;
 
     @Schema(description = "起始范围")
-    private LocalDate startDate;
+    private Integer startDate;
 
     @Schema(description = "截至日期")
-    private LocalDate endDate;
+    private Integer endDate;
 
     @Schema(description = "阶梯配置机型")
     private String ladderConfigModel;

@@ -4,6 +4,8 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
 
+import java.time.LocalDate;
+
 @Data
 public class SyncUserDTO {
 
@@ -56,5 +58,14 @@ public class SyncUserDTO {
      */
     @Schema(description = "行政区划")
     private String xzqx;
+
+    @Schema(description = "操作类型 create/update/delete")
+    private String operation;
+
+    @Schema(description = "有效期起")
+    private LocalDate fromDate;
+
+    @Schema(description = "有效期止")
+    private LocalDate toDate;
 
 }

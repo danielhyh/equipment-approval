@@ -68,8 +68,9 @@
       >
         <!-- 序号 -->
         <el-table-column type="index" label="序号" width="60" :index="customIndex" align="center" />
+        <el-table-column prop="region" label="所属区域" align="center"/>
         <!-- 所属机构 -->
-        <el-table-column prop="institutionName" label="所属机构" align="center" />
+        <el-table-column prop="institutionName" label="医疗机构" align="center" />
         <!-- 医疗机构 -->
         <!-- <el-table-column prop="hospital_name" label="医疗机构" align="center" /> -->
         <!-- 设备类型 -->

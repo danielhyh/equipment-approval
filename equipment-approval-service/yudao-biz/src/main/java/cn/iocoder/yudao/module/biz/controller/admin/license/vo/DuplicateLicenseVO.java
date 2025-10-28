@@ -66,4 +66,7 @@ public class DuplicateLicenseVO {
 
     @JsonIgnore
     private Long equipmentId;
+
+    @JsonIgnore
+    private String extra;
 }

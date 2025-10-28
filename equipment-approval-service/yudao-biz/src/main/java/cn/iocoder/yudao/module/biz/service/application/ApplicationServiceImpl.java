@@ -173,6 +173,18 @@ public class ApplicationServiceImpl implements ApplicationService {
         // 必须使用 MyBatis Plus 的分页对象
         IPage<ApplicationPageRespVO> page = new Page<>(pageReqVO.getPageNo(), pageReqVO.getPageSize());
         applicationMapper.page(page, pageReqVO);
+        return processField(page);
+    }
+
+    @Override
+    public PageResult<ApplicationPageRespVO> getAppApplicationPage(ApplicationPageReqVO pageReqVO) {
+        IPage<ApplicationPageRespVO> page = new Page<>(pageReqVO.getPageNo(), pageReqVO.getPageSize());
+        applicationMapper.page2(page, pageReqVO);
+        return processField(page);
+    }
+
+
+    private PageResult<ApplicationPageRespVO> processField(IPage<ApplicationPageRespVO> page) {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
         for (ApplicationPageRespVO record : page.getRecords()) {
             String appStatus = record.getAppStatus();
@@ -186,13 +198,6 @@ public class ApplicationServiceImpl implements ApplicationService {
                 record.setRemainingDays("-");
             }
         }
-        return new PageResult<>(page.getRecords(), page.getTotal());
-    }
-
-    @Override
-    public PageResult<ApplicationPageRespVO> getAppApplicationPage(ApplicationPageReqVO pageReqVO) {
-        IPage<ApplicationPageRespVO> page = new Page<>(pageReqVO.getPageNo(), pageReqVO.getPageSize());
-        applicationMapper.page2(page, pageReqVO);
         return new PageResult<>(page.getRecords(), page.getTotal());
     }
 

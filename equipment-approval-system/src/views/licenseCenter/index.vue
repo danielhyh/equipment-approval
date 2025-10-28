@@ -41,14 +41,14 @@
               v-for="item in licenseDeviceOptions"
               :key="item.value"
               :label="item.label"
-              :value="item.value"
+              :value="item.label"
             />
           </el-select>
         </el-form-item>
         <!-- 阶梯配置 ladderConfig -->
         <el-form-item label="阶梯配置">
           <el-select
-            v-model="paramsValue.ladderConfig"
+            v-model="paramsValue.ladderConfigModel"
             placeholder="请选择 阶梯配置"
             style="width: 130px"
           >
@@ -56,7 +56,7 @@
               v-for="item in ladderConfigOptions"
               :key="item.value"
               :label="item.label"
-              :value="item.value"
+              :value="item.label"
             />
           </el-select>
         </el-form-item>
@@ -65,9 +65,9 @@
           <el-select v-model="paramsValue.area" placeholder="请选择 所属区域" style="width: 130px">
             <el-option
               v-for="item in areaOptions"
-              :key="item.value"
+              :key="item.label"
               :label="item.label"
-              :value="item.value"
+              :value="item.label"
             />
           </el-select>
         </el-form-item>
@@ -322,7 +322,7 @@ interface ParamsType {
   keyword: string
   licenseType: string
   licenseDevice: string
-  ladderConfig: string
+  ladderConfigModel: string
   area: string
 }
 let paramsValue = reactive<ParamsType>({
@@ -332,7 +332,7 @@ let paramsValue = reactive<ParamsType>({
   licenseType: '',
   keyword: '',
   licenseDevice: '',
-  ladderConfig: '',
+  ladderConfigModel: '',
   area: ''
 })
 const changeIndex = (index: number) => {
@@ -347,7 +347,7 @@ const getList = () => {
     licenseType: paramsValue.licenseType,
     keywords: paramsValue.keyword,
     deviceType: paramsValue.licenseDevice,
-    ladderConfigModel: paramsValue.ladderConfig,
+    ladderConfigModel: paramsValue.ladderConfigModel,
     region: paramsValue.area
   }
   LicenseApi.getLicensePage(params)
@@ -387,7 +387,7 @@ const resetSearch = () => {
     keyword: '',
     licenseType: '',
     licenseDevice: '',
-    ladderConfig: '',
+    ladderConfigModel: '',
     area: ''
   })
   getList()

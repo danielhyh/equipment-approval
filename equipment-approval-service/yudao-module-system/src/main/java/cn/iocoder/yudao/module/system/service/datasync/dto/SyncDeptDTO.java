@@ -111,4 +111,7 @@ public class SyncDeptDTO {
     @Schema(description = "卫生机构类别代码")
     private String deptClass;
 
+    @Schema(description = "操作类型 create/update/delete")
+    private String operation;
+
 }

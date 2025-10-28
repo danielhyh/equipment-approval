@@ -120,7 +120,8 @@
             b.equipment_users,
             b.special_description,
             a.original_position,
-            equipment_id
+            equipment_id,
+            a.extra
         FROM
             biz_license_duplicate a
         left join biz_class_a_equipment b on a.equipment_id = b.id
