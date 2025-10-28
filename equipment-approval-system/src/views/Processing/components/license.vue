@@ -190,7 +190,6 @@ let qrocodeText = computed(() => {
   if (isBLicenceSub.value) {
     text += `c=1`
   }
-  console.log(text)
   return text
 })
 let licenceIDRef = ref<Element | null>(null)

@@ -81,10 +81,8 @@
 
           <el-table-column prop="guideProcess" label="操作" width="180" fixed="right" align="center">
             <template #default="scope">
-              <el-button type="primary" size="small" v-if="scope.row.appType !== 4" @click.stop="handleDetail(scope.row)">
-                详情
-              </el-button>
-              <el-button
+
+               <el-button
                 type="warning"
                 size="small"
                 v-if="scope.row.appStatus === 1 && scope.row.appType !== 4"
@@ -92,13 +90,16 @@
               >
                 修改
               </el-button>
-              <el-button
+               <el-button
                 type="warning"
                 size="small"
                 v-if="scope.row.appStatus === 1 && scope.row.appType === 4"
                 @click.stop="handleBasisEdit(scope.row)"
               >
                 修改
+              </el-button>
+              <el-button type="primary" size="small" v-if="scope.row.appType !== 4" @click.stop="handleDetail(scope.row)">
+                详情
               </el-button>
               <el-button type="primary" size="small" v-if="scope.row.appType === 4" @click.stop="handleBasisInfo(scope.row)">
                 详情

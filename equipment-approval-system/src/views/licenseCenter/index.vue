@@ -471,6 +471,9 @@ const openLicense = async (row, type, command) => {
   dialogComponentProps.value.code = row.licenseNo
   // 设备验收状态 1已验收 0未验收
   dialogComponentProps.value.copyAccepted = row.acceptanceStatus === 1
+  if (row.acceptanceStatus !== 1) {
+    dialogComponentProps.value.duplicateId = ''
+  }
 
   dialogComponent.value = markRaw(License)
   dialogBind.width = '320mm'
@@ -478,7 +481,7 @@ const openLicense = async (row, type, command) => {
     let response =
       type === 'A'
         ? await Promise.all([LicenseApi.getLicenseOriginal(originalParam)])
-        : !!row.duplicateId
+        : !!dialogComponentProps.value.duplicateId
           ? await Promise.all([
               LicenseApi.getLicenseOriginal(originalParam),
               LicenseApi.getLicenseCopy(copyParam)

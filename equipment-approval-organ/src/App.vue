@@ -8,9 +8,30 @@
 
 <script setup>
 import zhCn from "element-plus/dist/locale/zh-cn.mjs";
+import { useWatermark } from "@/utils/watermark";
+import { useUserStore } from "@/pinia/modules/user";
+import Config from "./config";
 const language = computed(() => zhCn);
-
+let { clear, setWatermark } = useWatermark();
+let userStore = useUserStore();
+let userInfo = computed(() => userStore.getUser);
+let watermarkStr = ref(Config.systemName);
+watch(
+  () => userInfo.value,
+  (newVal) => {
+    if (newVal) {
+      let time = new Date().toLocaleString();
+      watermarkStr.value = `${newVal.legalPerson}_${time}`;
+      setWatermark(watermarkStr.value);
+    }
+  },
+  { immediate: true }
+);
 onMounted(() => {
+  setWatermark(watermarkStr.value);
+});
+onUnmounted(() => {
+  clear();
 });
 // import gsap from "gsap"
 // const target = ref(null);
