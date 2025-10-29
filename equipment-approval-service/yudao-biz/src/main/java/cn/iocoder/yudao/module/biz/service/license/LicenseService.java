@@ -38,6 +38,7 @@ import org.springframework.transaction.support.TransactionTemplate;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.*;
 import java.util.function.BiConsumer;
@@ -311,7 +312,7 @@ public class LicenseService {
                             originalLicense.getLadderConfigModel());
                     originalLicense.setLicenseNo(licenseCode);
                     // 插入正本记录
-                    int originalResult = licenseMapper.insertOriginalLicense(originalLicense, loginUserId, applicationId);
+                    int originalResult = licenseMapper.insertOriginalLicense(originalLicense, loginUserId, applicationId, LocalDateTime.now().plusYears(10));
                     if (originalResult <= 0) {
                         throw new RuntimeException("线下办理插入正本许可证失败");
                     }
@@ -383,9 +384,13 @@ public class LicenseService {
             logger.error("序列化 DuplicateApprovalRequest 失败，请求数据：{}", request, e);
             throw new RuntimeException(e);
         }
+        int acceptanceStatus = 0;
+        if (request.getReviewResult() == 1) {
+            acceptanceStatus = 1;
+        }
 
         int res = jdbcClient.sql("update biz_license_duplicate set acceptance_status = ?, extra = ? where id = ?")
-                .param(request.getReviewResult())
+                .param(acceptanceStatus)
                 .param(extra)
                 .param(request.getId())
                 .update();

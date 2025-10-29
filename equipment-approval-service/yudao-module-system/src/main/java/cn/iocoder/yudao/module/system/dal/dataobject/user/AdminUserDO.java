@@ -35,10 +35,6 @@ public class AdminUserDO extends BaseDO {
     private Long id;
 
     /**
-     * 外部用户ID
-     */
-    private String externalUserId;
-    /**
      * 用户账号
      */
     private String username;
@@ -97,5 +93,11 @@ public class AdminUserDO extends BaseDO {
      * 最后登录时间
      */
     private LocalDateTime loginDate;
+
+    /**
+     * 用户类型
+     * 枚举 {@link cn.iocoder.yudao.framework.common.enums.UserTypeEnum}
+     */
+    private Integer type;
 
 }

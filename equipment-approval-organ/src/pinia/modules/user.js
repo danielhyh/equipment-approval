@@ -69,6 +69,17 @@ export const useUserStore = defineStore("user", {
       this.token = token;
       setStorage("token", token);
     },
+    // 设置SSO token数据
+    setSsoToken(tokenData) {
+      if (tokenData && tokenData.accessToken) {
+        this.token = tokenData.accessToken;
+        setStorage("token", tokenData.accessToken);
+        // 如果有其他token信息也需要存储，可以在这里添加
+        if (tokenData.refreshToken) {
+          setStorage("refreshToken", tokenData.refreshToken);
+        }
+      }
+    },
     loginOut() {
       this.user = null;
       this.token = null;

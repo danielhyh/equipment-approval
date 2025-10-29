@@ -2,7 +2,7 @@ spring:
   application:
     name: yudao-server
   profiles:
-    active: local
+    active: prod
   main:
     allow-circular-references: true # 允许循环依赖，因为项目是三层架构，无法避免这个情况。
     banner-mode: off
@@ -246,7 +246,7 @@ yudao:
       - /admin-api/mp/open/** # 微信公众号开放平台，微信回调接口，不需要登录
       - /app-api/biz/license/getOriginalById #二维码扫描正本
       - /app-api/biz/license/getDuplicateById #二维码扫描副本
-      - /sso/**
+      - /sync/**
   websocket:
     enable: true # websocket的开关
     path: /infra/ws # 路径
@@ -305,9 +305,11 @@ pf4j:
   pluginsDir: /Users/anhaohao/code/gitee/ruoyi-vue-pro/plugins # 插件目录
 # 单点登录配置
 sso:
-  client-name: shebei
+  clientName: shebei
   client-id: shebei_client
   client-secret: shebei_secret_789012
-  callback-url: http://127.0.0.1:48080/sso/callback
+  callback-url: http://172.29.77.100:48080/sso/callback
+#  callback-url: http://127.0.0.1:48080/sso/callback
   base-url: http://172.29.75.191:8801/sxwstjzb
   front-end-url: http://172.29.77.100:8801/
+#  front-end-url: http://192.168.1.26:8080/

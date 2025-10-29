@@ -83,3 +83,9 @@ export const reqCheck = (data: any) => {
 export const smsResetPassword = (data: any) => {
   return request.post({ url: '/system/auth/reset-password', data })
 }
+
+//获取sso登录地址
+export const getSsoLoginUrl = () => {
+  return request.get({ url: '/sso/login-url' })
+
+}

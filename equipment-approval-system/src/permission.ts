@@ -9,6 +9,7 @@ import { useDictStoreWithOut } from '@/store/modules/dict'
 import { useUserStoreWithOut } from '@/store/modules/user'
 import { usePermissionStoreWithOut } from '@/store/modules/permission'
 import { getUrlValue } from '@/utils'
+import { getSsoLoginUrl } from './api/login'
 import type { TokenType } from '@/api/login/types'
 
 const { start, done } = useNProgress()
@@ -101,23 +102,30 @@ const handleSsoCallback = async () => {
   return false
 }
 
-// 防止重复请求SSO登录URL
+// 内存变量：防止重复请求SSO登录URL
+let isSsoRequesting = false
 
 // 路由加载前
 router.beforeEach(async (to, from, next) => {
   start()
   loadStart()
-  const ENABLE_SSO = import.meta.env.VUE_APP_ENABLE_SSO === 'true'
+  console.log('[路由守卫] 进入路由:', to.path, '来自:', from.path, 'query:', to.query)
+  const ENABLE_SSO = import.meta.env.VITE_APP_ENABLE_SSO === 'true'
   // 首先检查是否为SSO回调，处理URL中的token（后端直接重定向到首页带token）
   if (ENABLE_SSO  && (to.query.token || to.query.access_token)) {
+    console.log('[SSO回调] 检测到token参数，开始处理...')
     const ssoCallbackHandled = await handleSsoCallback()
     if (ssoCallbackHandled) {
-      // SSO回调处理成功，继续正常的路由流程
-      // 由于token已经设置，后续的getAccessToken()检查会通过
+      // SSO回调处理成功，重置标志位并重新进入路由守卫
+      console.log('[SSO回调] 处理成功，清除query参数并重新进入路由')
+      isSsoRequesting = false
+      next({ ...to, query: {}, replace: true }) // 清除query参数并重新进入路由
+      return
     }
   }
 
   if (getAccessToken()) {
+    console.log('[路由守卫] 已登录，token存在')
     if (to.path === '/login') {
       next({ path: '/' })
     } else {
@@ -125,15 +133,22 @@ router.beforeEach(async (to, from, next) => {
       const dictStore = useDictStoreWithOut()
       const userStore = useUserStoreWithOut()
       const permissionStore = usePermissionStoreWithOut()
+      console.log('[路由守卫] 检查字典和用户信息状态:', {
+        isSetDict: dictStore.getIsSetDict,
+        isSetUser: userStore.getIsSetUser
+      })
       if (!dictStore.getIsSetDict) {
+        console.log('[路由守卫] 开始加载字典...')
         await dictStore.setDictMap()
       }
       if (!userStore.getIsSetUser) {
+        console.log('[路由守卫] 开始加载用户信息和菜单...')
         isRelogin.show = true
         await userStore.setUserInfoAction()
         isRelogin.show = false
         // 后端过滤菜单
         await permissionStore.generateRoutes()
+        console.log('[路由守卫] 动态路由列表:', permissionStore.getAddRouters)
         permissionStore.getAddRouters.forEach((route) => {
           router.addRoute(route as unknown as RouteRecordRaw) // 动态添加可访问路由表
         })
@@ -142,8 +157,10 @@ router.beforeEach(async (to, from, next) => {
         const redirect = decodeURIComponent(redirectPath as string)
         const { paramsObject: query } = parseURL(redirect)
         const nextData = to.path === redirect ? { ...to, replace: true } : { path: redirect, query }
+        console.log('[路由守卫] 用户信息加载完成，跳转到:', nextData)
         next(nextData)
       } else {
+        console.log('[路由守卫] 用户信息已存在，直接放行')
         next()
       }
     }
@@ -153,27 +170,37 @@ router.beforeEach(async (to, from, next) => {
     } else {
       if (ENABLE_SSO) {
         // 检测到没有token，尝试获取SSO登录地址并重定向
-        const ssoRequesting = localStorage.getItem('ssoRequesting')
-        if (!ssoRequesting || ssoRequesting === '0') {
-
+        if (!isSsoRequesting) {
+          isSsoRequesting = true
           try {
-            // 使用正确的API函数获取SSO登录URL
-            const response = await fetch('http://127.0.0.1:48080/sso/login-url')
-            const res = await response.json()
+            const res = await getSsoLoginUrl()
             console.log('获取SSO登录地址成功:', res)
-            if (res?.data) {
-              localStorage.setItem('ssoRequesting', '1')
-              window.location.href = res.data
+            if (res) {
+              window.location.href = res
+              return // 阻止后续next()调用，页面即将跳转
+            } else {
+              // SSO地址为空，回退到普通登录
+              console.warn('SSO登录地址为空，回退到普通登录')
+              isSsoRequesting = false
+              next(`/login?redirect=${to.fullPath}`)
+              return
             }
           } catch (error) {
             console.error('获取SSO登录地址失败:', error)
-            localStorage.setItem('ssoRequesting', '0')
+            isSsoRequesting = false
+            // SSO失败，回退到普通登录
+            next(`/login?redirect=${to.fullPath}`)
+            return
           }
+        } else {
+          // 正在请求SSO中，回退到登录页避免卡住
+          console.warn('SSO正在请求中，回退到登录页')
+          next(`/login?redirect=${to.fullPath}`)
+          return
         }
       }
 
-      //
-      // // 如果SSO URL获取失败或为空，回退到普通登录
+      // 如果未启用SSO，回退到普通登录
       next(`/login?redirect=${to.fullPath}`) // 否则全部重定向到登录页
     }
   }
