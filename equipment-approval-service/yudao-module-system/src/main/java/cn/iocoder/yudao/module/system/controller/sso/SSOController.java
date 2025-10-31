@@ -20,6 +20,7 @@ import jakarta.annotation.security.PermitAll;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.jdbc.core.simple.JdbcClient;
 import org.springframework.web.bind.annotation.*;
 
@@ -69,6 +70,9 @@ public class SSOController {
 
     @Resource
     private AdminUserMapper userMapper;
+
+    @Resource
+    private StringRedisTemplate template;
 
     @GetMapping("/login-url")
     @PermitAll
@@ -122,7 +126,7 @@ public class SSOController {
 
             String ssoUserId = userJson.getStr("userId");
             String userCaption = userJson.getStr("userCaption");
-
+            String cacheKey = userJson.getStr("cacheKey");
             // 3. 查找或创建本地用户
             AdminUserDO user = getUserBySsoId(ssoUserId);
             if (user == null) {
@@ -141,7 +145,7 @@ public class SSOController {
                     null
             );
             AuthLoginRespVO loginResp = AuthConvert.INSTANCE.convert(accessTokenDO);
-
+            template.opsForValue().set(cacheKey, loginResp.getAccessToken());
             // 5. 重定向到前端
             String postfix = "";
             if (userTypeEnum == UserTypeEnum.ADMIN) {
@@ -173,7 +177,10 @@ public class SSOController {
     }
 
     @PostMapping("/logout")
-    public String logout() {
-        return "登出成功";
+    public void logout(Map<String, String> params) {
+        if (params.containsKey("cacheKey")) {
+            String accessToken = template.opsForValue().get(params.get("cacheKey"));
+            oauth2TokenService.removeAccessToken(accessToken);
+        }
     }
 }

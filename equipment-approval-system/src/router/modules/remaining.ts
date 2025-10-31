@@ -254,6 +254,19 @@ const remainingRouter: AppRouteRecordRaw[] = [
       hidden: true,
       breadcrumb: false
     }
+  },
+  // 历史数据详情
+  {
+    path: '/history-detail',
+    component: () => import('@/views/history/detail.vue'),
+    name: 'HistoryDetail',
+    meta: {
+      title: '历史数据详情',
+      hidden: true,
+      noTagsView: false,
+      canTo: true,
+      activeMenu: '/history'
+    }
   }
 ]
 

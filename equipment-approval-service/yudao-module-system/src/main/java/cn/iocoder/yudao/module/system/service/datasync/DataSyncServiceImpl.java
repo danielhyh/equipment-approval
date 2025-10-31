@@ -7,6 +7,7 @@ import cn.hutool.json.JSONUtil;
 import cn.iocoder.yudao.framework.common.enums.CommonStatusEnum;
 import cn.iocoder.yudao.framework.common.enums.UserTypeEnum;
 import cn.iocoder.yudao.framework.common.util.object.BeanUtils;
+import cn.iocoder.yudao.framework.ip.core.Area;
 import cn.iocoder.yudao.framework.ip.core.utils.AreaUtils;
 import cn.iocoder.yudao.module.system.dal.dataobject.datasync.PushRecordDO;
 import cn.iocoder.yudao.module.system.dal.dataobject.dept.DeptDO;
@@ -21,12 +22,11 @@ import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.jdbc.core.simple.JdbcClient;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionTemplate;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 
 @Service
 @Slf4j
@@ -47,6 +47,9 @@ public class DataSyncServiceImpl implements DataSyncService{
     @Resource
     private ExternalUserMapper externalUserMapper;
 
+    @Resource
+    private TransactionTemplate transactionTemplate;
+
     @Override
     public PushResultVO syncUser(SyncUserDTO user) {
         PushRecordDO recordDO = new PushRecordDO();
@@ -57,17 +60,21 @@ public class DataSyncServiceImpl implements DataSyncService{
         recordDO.setPushTime(LocalDateTime.now());
 
         try {
-            switch (user.getOperation()) {
-                case "create":
-                case "update":
-                    saveOrUpdateUser(user);
-                    break;
-                case "delete":
-                    deleteUser(user.getUserId());
-                    break;
-                default:
-                    throw new IllegalArgumentException("不支持的操作类型: " + user.getOperation());
-            }
+            transactionTemplate.execute(status -> {
+                switch (user.getOperation()) {
+                    case "create":
+                    case "update":
+                        saveOrUpdateUser(user);
+                        break;
+                    case "delete":
+                        deleteUser(user.getUserId());
+                        break;
+                    default:
+                        throw new IllegalArgumentException("不支持的操作类型: " + user.getOperation());
+                }
+                return null;
+            });
+
 
             recordDO.setStatus(1);
             recordDO.setProcessTime(LocalDateTime.now());
@@ -93,6 +100,8 @@ public class DataSyncServiceImpl implements DataSyncService{
     private void saveOrUpdateUser(SyncUserDTO user) {
         //TODO user表加字段
         ExternalUser externalUser = BeanUtils.toBean(user, ExternalUser.class);
+        externalUser.setId(user.getUserId());
+        externalUser.setCreateTime(LocalDateTime.now());
         externalUserMapper.insertOrUpdate(externalUser);
     }
 
@@ -106,17 +115,21 @@ public class DataSyncServiceImpl implements DataSyncService{
         recordDO.setPushTime(LocalDateTime.now());
 
         try {
-            switch (dept.getOperation()) {
-                case "create":
-                case "update":
-                    saveOrUpdateDept(dept, userType);
-                    break;
-                case "delete":
-                    deleteDept(dept.getOrgId());
-                    break;
-                default:
-                    throw new IllegalArgumentException("不支持的操作类型: " + dept.getOperation());
-            }
+            transactionTemplate.execute(status -> {
+                switch (dept.getOperation()) {
+                    case "create":
+                    case "update":
+                        saveOrUpdateDept(dept, userType);
+                        break;
+                    case "delete":
+                        deleteDept(dept.getOrgId());
+                        break;
+                    default:
+                        throw new IllegalArgumentException("不支持的操作类型: " + dept.getOperation());
+                }
+                return null;
+            });
+
 
             recordDO.setStatus(1);
             recordDO.setProcessTime(LocalDateTime.now());
@@ -137,11 +150,13 @@ public class DataSyncServiceImpl implements DataSyncService{
 
     private void deleteDept(String orgId) {
         DeptDO dept = deptMapper.selectOne(DeptDO::getExternalId, orgId);
-        if (dept != null) {
-            deptMapper.deleteById(dept.getId());
+        if (dept != null && dept.getId() != null) {
+            jdbcClient.sql("delete from system_dept where id = ?").param(dept.getId()).update();
+            jdbcClient.sql("delete from biz_institution_ext where dept_id = ?").param(dept.getId()).update();
             AdminUserDO adminUserDO = adminUserMapper.selectOne(AdminUserDO::getDeptId, dept.getId());
             Optional.ofNullable(adminUserDO)
-                    .map(user -> adminUserMapper.deleteById(user.getId()));
+                    .map(AdminUserDO::getId)
+                    .map(id -> jdbcClient.sql("delete from system_users where id = ?").param(id).update());
         }
     }
 
@@ -160,6 +175,7 @@ public class DataSyncServiceImpl implements DataSyncService{
         deptDO.setExternalPid(dept.getParent());
         deptDO.setExternalId(dept.getOrgId());
         deptDO.setPhone(dept.getTxDhhm());
+        deptDO.setStatus(0);
         if (existDept != null) {
             deptDO.setId(existDept.getId());
             deptMapper.updateById(deptDO);
@@ -194,29 +210,110 @@ public class DataSyncServiceImpl implements DataSyncService{
 
 
     }
-
     private void insertInstitutionExt(Long deptId, SyncDeptDTO dept) {
         String insertSql = """
-                INSERT INTO biz_institution_ext (
-                    dept_id, institution_name, unified_social_credit_code,
-                    institution_level, region,license_no, legal_person, address, detailed_address, contact_person,
-                    contact_phone
-                ) VALUES
-                (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-                """;
-        jdbcClient.sql(insertSql).params(deptId, dept.getCaption(), dept.getDeptShxydm(), dept.getYydjJ()+dept.getYydjD(), AreaUtils.getArea(Integer.valueOf(dept.getDeptAddressCode())),
-                dept.getDeptZyxkzdjh(), dept.getFzr(), dept.getTxDz(), dept.getTxDz(), dept.getGovernor(), dept.getTel()).update();
+            INSERT INTO biz_institution_ext (
+                dept_id, institution_name, unified_social_credit_code,
+                institution_level, region, license_no, legal_person, 
+                address, detailed_address, contact_person, contact_phone
+            ) VALUES (
+                :deptId, :institutionName, :unifiedSocialCreditCode,
+                :institutionLevel, :region, :licenseNo, :legalPerson,
+                :address, :detailedAddress, :contactPerson, :contactPhone
+            )
+            """;
+
+        jdbcClient.sql(insertSql)
+                .params(buildInstitutionParams(deptId, dept))
+                .update();
     }
 
     private void updateInstitutionExt(Long deptId, SyncDeptDTO dept) {
         String updateSql = """
-                UPDATE biz_institution_ext SET institution_name = ?, unified_social_credit_code = ?, institution_level = ?,
-                  region = ?,  license_no = ?, legal_person = ?, address = ?,
-                  detailed_address = ?, contact_person = ?, contact_phone = ? WHERE id = ?
-                """;
-        jdbcClient.sql(updateSql).params(dept.getCaption(), dept.getDeptShxydm(), dept.getYydjJ()+dept.getYydjD(), AreaUtils.getArea(Integer.valueOf(dept.getDeptAddressCode())),
-                dept.getDeptZyxkzdjh(), dept.getFzr(), dept.getTxDz(), dept.getTxDz(), dept.getGovernor(), dept.getTel(), deptId).update();
+            UPDATE biz_institution_ext SET
+                institution_name = :institutionName,
+                unified_social_credit_code = :unifiedSocialCreditCode,
+                institution_level = :institutionLevel,
+                region = :region,
+                license_no = :licenseNo,
+                legal_person = :legalPerson,
+                address = :address,
+                detailed_address = :detailedAddress,
+                contact_person = :contactPerson,
+                contact_phone = :contactPhone
+            WHERE dept_id = :deptId
+            """;
+
+        jdbcClient.sql(updateSql)
+                .params(buildInstitutionParams(deptId, dept))
+                .update();
     }
+
+    // 构建参数 Map
+    private Map<String, Object> buildInstitutionParams(Long deptId, SyncDeptDTO dept) {
+        String region = Optional.ofNullable(dept.getDeptAddressCode())
+                .map(code -> AreaUtils.getArea(Integer.valueOf(code)))
+                .map(Area::getName)
+                .orElse(null);
+
+        String institutionLevel = (dept.getYydjJ() != null && dept.getYydjD() != null)
+                ? dept.getYydjJ() + dept.getYydjD()
+                : null;
+
+        Map<String, Object> params = new HashMap<>();
+        params.put("deptId", deptId);
+        params.put("institutionName", dept.getCaption());
+        params.put("unifiedSocialCreditCode", dept.getDeptShxydm());
+        params.put("institutionLevel", institutionLevel);
+        params.put("region", region);
+        params.put("licenseNo", dept.getDeptZyxkzdjh());
+        params.put("legalPerson", dept.getFzr());
+        params.put("address", dept.getTxDz());
+        params.put("detailedAddress", dept.getTxDz());
+        params.put("contactPerson", dept.getGovernor());
+        params.put("contactPhone", dept.getTel());
+        return params;
+    }
+
+
+//    private void insertInstitutionExt(Long deptId, SyncDeptDTO dept) {
+//        String insertSql = """
+//                INSERT INTO biz_institution_ext (
+//                    dept_id, institution_name, unified_social_credit_code,
+//                    institution_level, region,license_no, legal_person, address, detailed_address, contact_person,
+//                    contact_phone
+//                ) VALUES
+//                (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+//                """;
+//        String area = Optional.ofNullable(dept.getDeptAddressCode())
+//                .map(code -> AreaUtils.getArea(Integer.valueOf(code)))
+//                .map(Area::getName)
+//                .orElse(null);
+//        String institutionLevel = null;
+//        if (dept.getYydjJ() != null && dept.getYydjD() != null) {
+//            institutionLevel = dept.getYydjJ() + dept.getYydjD();
+//        }
+//        jdbcClient.sql(insertSql).params(deptId, dept.getCaption(), dept.getDeptShxydm(), institutionLevel, area,
+//                dept.getDeptZyxkzdjh(), dept.getFzr(), dept.getTxDz(), dept.getTxDz(), dept.getGovernor(), dept.getTel()).update();
+//    }
+//
+//    private void updateInstitutionExt(Long deptId, SyncDeptDTO dept) {
+//        String updateSql = """
+//                UPDATE biz_institution_ext SET institution_name = ?, unified_social_credit_code = ?, institution_level = ?,
+//                  region = ?,  license_no = ?, legal_person = ?, address = ?,
+//                  detailed_address = ?, contact_person = ?, contact_phone = ? WHERE dept_id = ?
+//                """;
+//        String area = Optional.ofNullable(dept.getDeptAddressCode())
+//                .map(code -> AreaUtils.getArea(Integer.valueOf(code)))
+//                .map(Area::getName)
+//                .orElse(null);
+//        String institutionLevel = null;
+//        if (dept.getYydjJ() != null && dept.getYydjD() != null) {
+//            institutionLevel = dept.getYydjJ() + dept.getYydjD();
+//        }
+//        jdbcClient.sql(updateSql).params(dept.getCaption(), dept.getDeptShxydm(), institutionLevel, area,
+//                dept.getDeptZyxkzdjh(), dept.getFzr(), dept.getTxDz(), dept.getTxDz(), dept.getGovernor(), dept.getTel(), deptId).update();
+//    }
 
 
     @Override
@@ -253,14 +350,17 @@ public class DataSyncServiceImpl implements DataSyncService{
                                 continue;
                             }
                         }
-                        Integer userType;
-                        if (adminOrgId.contains(dept.getOrgId())) {
-                            userType = UserTypeEnum.ADMIN.getValue();
-                        } else {
-                            userType = UserTypeEnum.MEMBER.getValue();
-                        }
-                        // 父级存在或不需要父级，直接处理
-                        saveOrUpdateDept(dept, UserTypeEnum.valueOf(userType));
+                        // 👇 加事务：确保单条记录的原子性
+                        transactionTemplate.execute(status -> {
+                            Integer userType;
+                            if (adminOrgId.contains(dept.getOrgId())) {
+                                userType = UserTypeEnum.ADMIN.getValue();
+                            } else {
+                                userType = UserTypeEnum.MEMBER.getValue();
+                            }
+                            saveOrUpdateDept(dept, UserTypeEnum.valueOf(userType));
+                            return null;
+                        });
                         result.addDeptSuccess();
 
                     } catch (Exception e) {
@@ -302,7 +402,11 @@ public class DataSyncServiceImpl implements DataSyncService{
                         }
                     }
 
-                    saveOrUpdateUser(user);
+                    // 👇 加事务
+                    transactionTemplate.execute(status -> {
+                        saveOrUpdateUser(user);
+                        return null;
+                    });
                     result.addUserSuccess();
 
                 } catch (Exception e) {
