@@ -118,6 +118,7 @@ export const beforeEach = async function (to, from, next) {
             if (response?.data) {
               // 重定向到SSO登录页面
               window.location.href = response.data;
+              next(false); // 取消当前路由导航
               return; // 阻止后续执行
             } else {
               // 如果没有获取到SSO地址，回退到普通登录
@@ -134,7 +135,8 @@ export const beforeEach = async function (to, from, next) {
         } else {
           // 正在请求SSO，阻止路由跳转
           nProgress.done();
-          return;
+          next(false); // 取消当前路由导航
+          return; // 阻止后续执行
         }
       } else {
         // 未启用SSO，使用普通登录

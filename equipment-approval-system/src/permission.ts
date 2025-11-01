@@ -177,7 +177,7 @@ router.beforeEach(async (to, from, next) => {
             console.log('获取SSO登录地址成功:', res)
             if (res) {
               window.location.href = res
-              return // 阻止后续next()调用，页面即将跳转
+              next(false) // 阻止后续next()调用，页面即将跳转
             } else {
               // SSO地址为空，回退到普通登录
               console.warn('SSO登录地址为空，回退到普通登录')
