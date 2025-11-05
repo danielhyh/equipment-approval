@@ -48,7 +48,7 @@ export default defineConfig(({ command, mode }) => {
     build: {
       target: "es2015",
       outDir: "dist",
-      assetsDir: "/assets",
+      assetsDir: "assets",
       minify: "terser",
       terserOptions: {
         compress: {

@@ -99,9 +99,13 @@ import OtherMsg from './components/otherMsg.vue'
 import history from './components/history.vue'
 import QrCode from './components/licenseCode.vue'
 import { useApplicationDataStore } from '@/store/applicationData'
+import { useTagsViewStore } from '@/store/modules/tagsView'
 const router = useRouter()
 const route = useRoute()
+const tagsViewStore = useTagsViewStore()
 const goBack = () => {
+  // 关闭当前标签页并返回
+  tagsViewStore.delView(route)
   router.back()
 }
 let licenseId = route.query.id

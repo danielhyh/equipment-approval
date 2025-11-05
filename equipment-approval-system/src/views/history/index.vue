@@ -103,11 +103,11 @@
         <el-table-column label="正本发证日期" prop="originalIssueDate" align="center" />
         <!-- 副本发证日期  -->
         <el-table-column label="副本发证日期" prop="copyIssueDate" align="center" />
-<!--        <el-table-column label="操作" align="center" width="100">-->
-<!--          <template #default="scope">-->
-<!--            <el-button type="primary" size="small" @click="handleDetail(scope.row)">详情</el-button>-->
-<!--          </template>-->
-<!--        </el-table-column>-->
+        <el-table-column label="操作" align="center" width="100">
+          <template #default="scope">
+            <el-button type="primary" size="small" @click="handleDetail(scope.row)">详情</el-button>
+          </template>
+        </el-table-column>
       </el-table>
       <Pagination
         class="pagination-container"
@@ -238,7 +238,7 @@ const searchFn = () => {
 let router = useRouter()
 const handleDetail = (row) => {
   router.push({
-    path: '/history-detail',
+    path: '/history/detail',
     query: {
       id: row.id,
       deviceStatus: row.deviceStatus,

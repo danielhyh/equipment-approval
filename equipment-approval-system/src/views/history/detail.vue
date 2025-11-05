@@ -64,11 +64,15 @@ import { HistoryApi } from '@/api/biz/history'
 import { Back, Management } from '@element-plus/icons-vue'
 import OriginalInfo from './components/historyOriginal.vue'
 import CopyInfo from './components/historyCopy.vue'
+import { useTagsViewStore } from '@/store/modules/tagsView'
 
 const router = useRouter()
 const route = useRoute()
+const tagsViewStore = useTagsViewStore()
 
 const goBack = () => {
+  // 关闭当前标签页并返回
+  tagsViewStore.delView(route)
   router.back()
 }
 

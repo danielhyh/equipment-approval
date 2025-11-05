@@ -50,6 +50,9 @@ public class SSOController {
     @Value("${sso.base-url}")
     private String ssoBaseUrl;
 
+    @Value("${sso.intranet-base-url}")
+    private String intranetBaseUrl;
+
     @Value("${sso.callback-url}")
     private String callbackUri;
 
@@ -95,7 +98,7 @@ public class SSOController {
 
         try {
             // 1. 用授权码换取Token
-            String tokenUrl = ssoBaseUrl + "/sso/accessToken.do";
+            String tokenUrl = intranetBaseUrl + "/sso/accessToken.do";
             Map<String, Object> tokenParams = new HashMap<>();
             tokenParams.put("code", code);
             tokenParams.put("client_id", clientId);
@@ -112,7 +115,7 @@ public class SSOController {
             String accessToken = tokenJson.getStr("access_token");
 
             // 2. 获取用户信息
-            String userUrl = ssoBaseUrl + "/sso/userInfo.do";
+            String userUrl = intranetBaseUrl + "/sso/userInfo.do";
             Map<String, Object> userParams = new HashMap<>();
             userParams.put("access_token", accessToken);
 
