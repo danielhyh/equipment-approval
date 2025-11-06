@@ -614,16 +614,24 @@ const updateChartsData = (data: any) => {
     { name: '证书申请', value: data.application?.cert_apply_count || 0 },
     { name: '证书补办', value: data.application?.cert_renew_count || 0 },
     { name: '证书变更', value: data.application?.cert_change_count || 0 },
-    { name: '基本信息变更', value: data.application?.info_change_count || 0 }
+    { name: '基本信息变更', value: data.application?.info_change_count || 0 },
+    { name: '线下办理', value: data.application?.offline_count || 0 }
   ]
 
   // 许可证统计数据
   chartData.license = [
-    { name: '正电子发射型磁共振', value: data.license?.petCtScanner || 0 },
-    { name: 'X线正电子发射断层扫描仪', value: data.license?.ctScanner64SlicePlus || 0 },
-    { name: '腹腔内窥镜手术系统', value: data.license?.endoscopicSurgicalSystem || 0 },
-    { name: '常规放射治疗类设备', value: data.license?.gammaRayStereotacticRtSystem || 0 },
-    { name: '首次配置大型医疗器械', value: data.license?.first_config_count || 0 }
+   {
+      name: '1.5T及以上磁共振成像系统放射治疗类设备',
+      value: data.device?.mriSystem1_5tPlus || 0
+    },
+    { name: 'X线正电子发射断层扫描仪', value: data.device?.petCtScanner || 0 },
+    { name: '内窥镜手术器械控制系统', value: data.device?.endoscopicSurgicalSystem || 0 },
+    {
+      name: '64排及以上X线计算机断层扫描仪',
+      value: data.device?.ctScanner64SlicePlus || 0
+    },
+    { name: '直线加速器', value: data.device?.linearAccelerator || 0 },
+    { name: '伽玛射线立体定向放射治疗系统', value: data.device?.gammaRayStereotacticRtSystem || 0 }
   ]
 
   // 历史数据统计
@@ -659,31 +667,33 @@ const updateChartsData = (data: any) => {
   // 设备生产企业数据
   chartData.device = [
     {
-      name: '正电子发射型核磁共振成像系统',
+      name: '1.5T及以上磁共振成像系统放射治疗类设备',
       value: data.device?.mriSystem1_5tPlus || 0
     },
     { name: 'X线正电子发射断层扫描仪', value: data.device?.petCtScanner || 0 },
-    { name: '腹腔内窥镜手术系统', value: data.device?.endoscopicSurgicalSystem || 0 },
+    { name: '内窥镜手术器械控制系统', value: data.device?.endoscopicSurgicalSystem || 0 },
     {
-      name: '常规放射治疗类设备',
-      value: data.device?.gammaRayStereotacticRtSystem || 0
+      name: '64排及以上X线计算机断层扫描仪',
+      value: data.device?.ctScanner64SlicePlus || 0
     },
-    { name: '大型医疗器械', value: data.device?.linearAccelerator || 0 }
+    { name: '直线加速器', value: data.device?.linearAccelerator || 0 },
+    { name: '伽玛射线立体定向放射治疗系统', value: data.device?.gammaRayStereotacticRtSystem || 0 }
   ]
 
   // 医疗机构数据
   chartData.hospital = [
     {
-      name: '正电子发射型核磁共振成像系统',
-      value: data.hospital?.mriSystem1_5tPlus || 0
+      name: '1.5T及以上磁共振成像系统放射治疗类设备',
+      value: data.device?.mriSystem1_5tPlus || 0
     },
-    { name: 'X线正电子发射断层扫描仪', value: data.hospital?.petCtScanner || 0 },
-    { name: '腹腔内窥镜手术系统', value: data.hospital?.endoscopicSurgicalSystem || 0 },
+    { name: 'X线正电子发射断层扫描仪', value: data.device?.petCtScanner || 0 },
+    { name: '内窥镜手术器械控制系统', value: data.device?.endoscopicSurgicalSystem || 0 },
     {
-      name: '常规放射治疗类设备',
-      value: data.hospital?.gammaRayStereotacticRtSystem || 0
+      name: '64排及以上X线计算机断层扫描仪',
+      value: data.device?.ctScanner64SlicePlus || 0
     },
-    { name: '首次配置大型医疗器械', value: data.hospital?.linearAccelerator || 0 }
+    { name: '直线加速器', value: data.device?.linearAccelerator || 0 },
+    { name: '伽玛射线立体定向放射治疗系统', value: data.device?.gammaRayStereotacticRtSystem || 0 }
   ]
 
   // 重新渲染所有图表

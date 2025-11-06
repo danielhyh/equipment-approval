@@ -7,6 +7,7 @@ import { useDesign } from '@/hooks/web/useDesign'
 import { useTagsViewStore } from '@/store/modules/tagsView'
 import { useUserStore } from '@/store/modules/user'
 import avatarImg from '@/assets/imgs/avatar.gif'
+import { getSsoLoginUrl } from '@/api/login'
 
 const tagsViewStore = useTagsViewStore()
 
@@ -54,6 +55,29 @@ async function goLogin() {
   tagsViewStore.delAllViews()
   // resetRouter() // 重置静态路由表
   lockStore.resetLockInfo()
+  
+  console.log('[SSO退出-锁屏] 开始退出登录流程')
+  
+  // 判断是否启用SSO
+  const ssoEnabled = import.meta.env.VITE_APP_ENABLE_SSO === 'true'
+  console.log('[SSO退出-锁屏] SSO状态:', ssoEnabled ? '已启用' : '未启用')
+  
+  if (ssoEnabled) {
+    try {
+      console.log('[SSO退出-锁屏] 正在获取SSO登录地址...')
+      const res = await getSsoLoginUrl()
+      if (res) {
+        console.log('[SSO退出-锁屏] 获取SSO登录地址成功，准备跳转:', res)
+        window.location.href = res
+        return
+      }
+    } catch (error) {
+      console.error('[SSO退出-锁屏] 获取SSO登录地址失败:', error)
+    }
+  }
+  
+  // 未启用SSO或获取SSO地址失败时，跳转到本地登录页
+  console.log('[SSO退出-锁屏] 跳转到本地登录页')
   replace('/login')
 }
 

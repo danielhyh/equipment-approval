@@ -12,7 +12,7 @@ public class DuplicateApprovalRequest {
     @NotNull(message = "副本id不能为空")
     private Long id;
 
-    @Schema(description = "审核结果 1-通过，0-不通过")
+    @Schema(description = "审核结果 1-通过，0-不通过 2驳回整改")
     @NotNull(message = "审核结果不能为空")
     private Integer reviewResult;
 

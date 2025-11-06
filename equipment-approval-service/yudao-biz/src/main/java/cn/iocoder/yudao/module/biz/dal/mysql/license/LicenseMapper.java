@@ -10,6 +10,8 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
+import java.time.LocalDateTime;
+
 @Mapper
 public interface LicenseMapper {
 
@@ -23,7 +25,7 @@ public interface LicenseMapper {
 
     int insertDuplicateLicense(@Param("vo") AppDuplicateSubmitRequest vo, @Param("creator") Long id);
 
-    int insertOriginalLicense(@Param("vo") OriginalLicenseVO vo, @Param("creator") Long id, @Param("appId") Long appId);
+    int insertOriginalLicense(@Param("vo") OriginalLicenseVO vo, @Param("creator") Long id, @Param("appId") Long appId, @Param("validDate")LocalDateTime validDate);
 
     int updateOriginalLicense(@Param("vo") OriginalLicenseVO vo);
 

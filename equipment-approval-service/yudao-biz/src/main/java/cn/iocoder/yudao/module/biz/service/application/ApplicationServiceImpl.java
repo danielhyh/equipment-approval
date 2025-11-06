@@ -12,6 +12,7 @@ import cn.iocoder.yudao.module.biz.service.notification.NotificationService;
 import cn.iocoder.yudao.module.biz.service.operation.OperationLogService;
 import cn.iocoder.yudao.module.biz.service.utils.JdbcClientHelper;
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -204,7 +205,26 @@ public class ApplicationServiceImpl implements ApplicationService {
     @Override
     public ApplicationBasicInformationVO getApplicationBasicInformation(Long id) {
         ApplicationBasicInformationVO vo = applicationMapper.selectBasicInfo(id);
-        vo.setRegion("陕西省" + vo.getRegion());
+        if (vo == null) {
+            return new ApplicationBasicInformationVO();
+        }
+        String querySql = """
+                select c.extra from biz_application a
+                left join biz_license_original b on a.id = b.application_id
+                left join biz_license_duplicate c on b.id = c.original_id
+                where a.id = ?
+                """;
+        String status = jdbcClient.sql(querySql).param(id)
+                .query(String.class).optional()
+                .map(JSONObject::parseObject)
+                .map(obj -> obj.getInteger("reviewResult"))
+                .map(res -> switch (res) {
+                    case 1 -> "通过";
+                    case 2 -> "驳回整改";
+                    case 0 -> "不通过";
+                    default -> ""; // 保留原有状态
+                }).orElse(null);
+        vo.setStatus(status);
         return vo;
     }
 
@@ -303,6 +323,7 @@ public class ApplicationServiceImpl implements ApplicationService {
         Long id = reviewVO.getId();
         ApplicationBasicInformationVO vo = applicationMapper.selectBasicInfo(id);
         ApplicationDO aDo = applicationMapper.selectById(reviewVO.getId());
+        LocalDateTime validDate = LocalDateTime.now().plusYears(10);
         String sql = """
                 INSERT INTO biz_license_original (
                                 application_id,
@@ -318,13 +339,13 @@ public class ApplicationServiceImpl implements ApplicationService {
                                 license_device_name,
                                 detailed_address,
                                 valid_date
-                            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, DATE_ADD(NOW(), INTERVAL 10 YEAR))
+                            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """;
         //插入正本表
         jdbcClient.sql(sql).params(
                 id, reviewVO.getLicenseCode(), vo.getInstitutionName(), vo.getOwnershipNature(), "陕西省卫生健康委员会",
                 vo.getUnifiedSocialCreditCode(), aDo.getLadderConfigModel(), reviewVO.getLicenseGenerateDate(), vo.getLegalPerson(),
-                "陕西省"+ vo.getRegion(), aDo.getLicenseDeviceName(), vo.getDetailedAddress()
+                "陕西省"+ vo.getRegion(), aDo.getLicenseDeviceName(), vo.getDetailedAddress(), validDate
         ).update();
         //修改序列号表状态
         jdbcClient.sql("update biz_device_license set status = 'USED' where license_number = ?")
@@ -370,7 +391,21 @@ public class ApplicationServiceImpl implements ApplicationService {
     @Override
     public List<ApplicationPageRespVO> list() {
         Long loginUserId = SecurityFrameworkUtils.getLoginUserId();
-        return applicationMapper.list(loginUserId);
+        List<ApplicationPageRespVO> list = applicationMapper.list(loginUserId);
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+        for (ApplicationPageRespVO record : list) {
+            String appStatus = record.getAppStatus();
+            String deadline = record.getDeadline();
+            LocalDateTime dateTime = LocalDateTime.parse(deadline, formatter);
+            LocalDate localDate = dateTime.toLocalDate();
+            long between = ChronoUnit.DAYS.between(LocalDate.now(), localDate);
+            record.setRemainingDays(String.valueOf(between));
+            record.setRemainingDays(record.getRemainingDays() + "天");
+            if ("5".equals(appStatus)) {
+                record.setRemainingDays("-");
+            }
+        }
+        return list;
     }
 
     @Override

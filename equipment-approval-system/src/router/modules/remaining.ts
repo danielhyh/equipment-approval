@@ -254,6 +254,64 @@ const remainingRouter: AppRouteRecordRaw[] = [
       hidden: true,
       breadcrumb: false
     }
+  },
+  // 历史数据详情
+  {
+    path: '/history',
+    component: Layout,
+    name: 'HistoryDetailWrapper',
+    meta: {
+      hidden: true
+    },
+    children: [
+      {
+        path: 'detail',
+        component: () => import('@/views/history/detail.vue'),
+        name: 'HistoryDetail',
+        meta: {
+          title: '历史数据详情',
+          hidden: true,
+          noTagsView: false,
+          canTo: true,
+          activeMenu: '/history'
+        }
+      }
+    ]
+  },
+  // 许可证中心详情
+  {
+    path: '/license',
+    component: Layout,
+    name: 'LicenseDetailWrapper',
+    meta: {
+      hidden: true
+    },
+    children: [
+      {
+        path: 'detail',
+        component: () => import('@/views/licenseCenter/detail.vue'),
+        name: 'LicenseDetail',
+        meta: {
+          title: '许可证详情',
+          hidden: true,
+          noTagsView: false,
+          canTo: true,
+          activeMenu: '/licenseCenter'
+        }
+      },
+      {
+        path: 'inspection',
+        component: () => import('@/views/licenseCenter/copyInspection.vue'),
+        name: 'CopyInspection',
+        meta: {
+          title: '副本验收',
+          hidden: true,
+          noTagsView: false,
+          canTo: true,
+          activeMenu: '/licenseCenter'
+        }
+      }
+    ]
   }
 ]
 

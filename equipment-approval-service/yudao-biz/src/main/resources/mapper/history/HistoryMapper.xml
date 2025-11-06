@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.iocoder.yudao.module.biz.dal.mysql.history.HistoryMapper">
+
+    <select id="page" resultType="cn.iocoder.yudao.module.biz.service.history.dto.HistoryResult">
+        SELECT
+            a.id AS id,
+            xkzbh as license_number,
+            b.name as institutionName,
+            c.itemname as licenseDeviceName,
+            d.itemname as ladderConfigModel,
+            e.fullname as region,
+            fzrq as "originalIssueDate",
+            fzrq_f as copyIssueDate,
+            a.sbzt as deviceStatus,
+            a.status_zb AS originalEntryStatus,
+            a.status_fb AS copyEntryStatus
+        FROM
+            history_license a
+                LEFT JOIN history_dept b ON a.pzdwmc = b.duns
+                LEFT JOIN history_dict c
+                          ON a.xksbmc = c.dictid
+                              AND a.xksbmc IS NOT NULL
+                LEFT JOIN history_dict d
+                          ON a.jtpzjx = d.dictid
+                              AND a.jtpzjx IS NOT NULL
+                left join history_area e on a.sbpzdzCode = e.id
+        <where>
+            <if test="req.licenseDevice != null and req.licenseDevice != ''">
+                and c.itemname = #{req.licenseDevice}
+            </if>
+            <if test="req.ladderConfig != null and req.ladderConfig != ''">
+                and d.itemname = #{req.ladderConfig}
+            </if>
+            <if test="req.keyword != null and req.keyword != ''">
+                and (
+                    (xkzbh like concat('%', #{req.keyword}, '%')) or
+                    (b.name like concat('%', #{req.keyword}, '%'))
+                )
+            </if>
+            <if test="req.area != null and req.area != ''">
+                and e.fullname like concat('%', #{req.area}, '%')
+            </if>
+        </where>
+        GROUP BY a.id
+    </select>
+
+    <select id="getOriginal" resultType="cn.iocoder.yudao.module.biz.service.history.dto.HistoryOriginalLicense">
+        select b.name     as institutionName,
+               tydm as unifiedSocialCreditCode,
+               fddbr as legalPerson,
+               c.itemname as licenseDeviceName,
+               f.itemname as ownershipNature,
+               d.itemname as ladderConfigModel,
+               e.fullname as equipmentConfigAddress,
+               sbpzdz as detailedAddress,
+               fzjg as issuingAuthority,
+               fzrq as issueDate
+        from history_license a
+                 LEFT JOIN history_dept b ON a.pzdwmc = b.duns
+                 LEFT JOIN history_dict c
+                           ON a.xksbmc = c.dictid
+                               AND a.xksbmc IS NOT NULL
+                 LEFT JOIN history_dict d
+                           ON a.jtpzjx = d.dictid
+                               AND a.jtpzjx IS NOT NULL
+                 left join history_dict f
+                           on a.syzxz = f.dictid and a.syzxz is not null
+                 left join history_area e on a.sbpzdzCode = e.id
+        where a.id = #{id}
+        GROUP BY a.id
+    </select>
+
+    <select id="getDuplicate" resultType="cn.iocoder.yudao.module.biz.service.history.dto.HistoryDuplicateLicense">
+        select scqy as productionEnterprise,
+               jtxh as specificModel,
+               sn as productSerialNo,
+               zjrq as installationDate,
+               bsrq as infoSubmitDate,
+               fzjg_f as duplicateIssuingAuthority,
+               fzrq_f as duplicateIssueDate,
+               memo as remark
+        from history_license
+        where id = #{id}
+    </select>
+</mapper>

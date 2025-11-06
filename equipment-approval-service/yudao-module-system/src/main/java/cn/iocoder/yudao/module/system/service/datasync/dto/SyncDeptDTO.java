@@ -4,6 +4,8 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.Date;
 
 @Data
@@ -52,7 +54,7 @@ public class SyncDeptDTO {
      * 创建时间
      */
     @Schema(description = "创建时间")
-    private Date createDate;
+    private LocalDateTime createDate;
 
     /**
      * 组织机构代码
@@ -110,6 +112,13 @@ public class SyncDeptDTO {
 
     @Schema(description = "卫生机构类别代码")
     private String deptClass;
+
+    @Schema(description = "行政区划代码")
+    private String deptAddressCode;
+
+
+    @Schema(description = "执业许可证登记号")
+    private String deptZyxkzdjh;
 
     @Schema(description = "操作类型 create/update/delete")
     private String operation;

@@ -223,7 +223,7 @@
                      #{vo.equipmentConfigAddress},
                      #{vo.licenseDeviceName},
                      #{vo.detailedAddress},
-                     DATE_ADD(NOW(), INTERVAL 10 YEAR),
+                     #{validDate},
                      #{vo.status},
                      #{creator}
                  )

@@ -85,3 +85,41 @@ export function textToSpeech(text, callback) {
   //   voice 语音
   window.speechSynthesis.speak(speech);
 }
+
+/**
+ * 从URL中获取指定参数的值
+ * @param {string} key - 参数名
+ * @param {string} url - URL字符串，默认为当前页面URL
+ * @returns {string|null} 参数值
+ */
+export function getUrlValue(key, url = window.location.href) {
+  try {
+    console.log('原始URL:', url);
+    
+    // 处理Hash路由的情况 - 参数可能在 # 之后
+    let searchParams = new URLSearchParams();
+    
+    // 检查是否是Hash路由（包含 #）
+    if (url.includes('#')) {
+      // 获取 # 后面的部分
+      const hashPart = url.split('#')[1];
+      if (hashPart && hashPart.includes('?')) {
+        // 提取 ? 后面的查询参数
+        const queryString = hashPart.split('?')[1];
+        searchParams = new URLSearchParams(queryString);
+        console.log('从Hash中提取的查询字符串:', queryString);
+      }
+    } else {
+      // 普通路由，使用标准方法解析
+      const urlObj = new URL(url);
+      searchParams = urlObj.searchParams;
+    }
+    
+    const value = searchParams.get(key);
+    console.log(`参数 ${key} 的值:`, value);
+    return value;
+  } catch (error) {
+    console.error('解析URL失败:', error);
+    return null;
+  }
+}

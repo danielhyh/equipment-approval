@@ -180,7 +180,6 @@
             ba.app_type,
             ba.app_no,
             ba.institution_id,
-            GREATEST(DATEDIFF(ba.deadline, NOW()), 0) AS remaining_days,
             blo.id as original_id,
             blo.license_no,
             bld.id as duplicate_id
@@ -204,5 +203,6 @@
             biz_application a
                 LEFT JOIN biz_institution_ext b on a.institution_id = b.dept_id
         where a.app_status = 1 and a.deleted = 0
+        order by a.create_time
     </select>
 </mapper>

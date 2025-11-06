@@ -7,6 +7,7 @@ import cn.iocoder.yudao.module.biz.service.notification.NotificationService;
 import cn.iocoder.yudao.module.biz.service.operation.OperationLogService;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
+import jakarta.annotation.Resource;
 import lombok.AllArgsConstructor;
 import org.springframework.jdbc.core.simple.JdbcClient;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -19,18 +20,21 @@ import java.util.List;
 import java.util.Map;
 
 @Component
-@AllArgsConstructor
 public class ApplicationStatusScheduler {
+    @Resource
+    private JdbcClient client; // 或直接注入 Mapper
 
-    private final JdbcClient client; // 或直接注入 Mapper
+    @Resource
+    private ApplicationMapper applicationMapper;
 
-    private final ApplicationMapper applicationMapper;
+    @Resource
+    private OperationLogService operationLogService;
 
-    private final OperationLogService operationLogService;
+    @Resource
+    private NotificationService notificationService;
 
-    private final NotificationService notificationService;
-
-    private final TransactionTemplate transactionTemplate;
+    @Resource
+    private TransactionTemplate transactionTemplate;
 
     Map<Integer, String> appTypeMap = Map.of(1, "申请", 2, "补办", 3 , "变更", 4, "基本信息变更");
 
@@ -83,7 +87,7 @@ public class ApplicationStatusScheduler {
         String format = String.format("提交的%s配置许可证%s%s, 审核意见：%s。", licenseDeviceName, appTypeMap.get(applicationDO.getAppType()), "已过期，初步审核未通过", "未通过");
         createNotificationRequest.setContent(format);
         createNotificationRequest.setPublishNow(true);
-        createNotificationRequest.setCreator(String.valueOf((Long) 1L));
+        createNotificationRequest.setCreator("0");
         createNotificationRequest.setAppId(applicationDO.getId());
         String institutionName = client.sql("select institution_name from biz_institution_ext where dept_id = ?")
                 .param(applicationDO.getInstitutionId())

@@ -20,7 +20,7 @@ export default defineConfig(({ command, mode }) => {
   let modeEnv = loadEnv(mode, process.cwd());
   console.log(modeEnv, "环境");
   return {
-    base: "/",
+    base: modeEnv.VITE_BASE_URL,
     resolve: {
       alias: {
         // vue: "@vue/compat", // 别名配置，确保使用兼容性版本的 Vue
@@ -48,7 +48,7 @@ export default defineConfig(({ command, mode }) => {
     build: {
       target: "es2015",
       outDir: "dist",
-      assetsDir: "/assets",
+      assetsDir: "assets",
       minify: "terser",
       terserOptions: {
         compress: {

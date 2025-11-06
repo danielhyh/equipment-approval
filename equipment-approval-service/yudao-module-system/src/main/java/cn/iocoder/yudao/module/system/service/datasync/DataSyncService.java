@@ -1,5 +1,6 @@
 package cn.iocoder.yudao.module.system.service.datasync;
 
+import cn.iocoder.yudao.framework.common.enums.UserTypeEnum;
 import cn.iocoder.yudao.module.system.service.datasync.dto.*;
 
 public interface DataSyncService {
@@ -12,7 +13,7 @@ public interface DataSyncService {
     /**
      * 同步部门数据
      */
-    PushResultVO syncDept(SyncDeptDTO dept);
+    PushResultVO syncDept(SyncDeptDTO dept, UserTypeEnum userType);
 
 
     /*

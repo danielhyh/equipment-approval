@@ -66,3 +66,11 @@ export function markReadMsg(id) {
     method: "get",
   });
 }
+
+// 获取SSO单点登录URL
+export function getSsoLoginUrl() {
+  return request({
+    url: "/app-api/sso/login-url",
+    method: "get",
+  });
+}

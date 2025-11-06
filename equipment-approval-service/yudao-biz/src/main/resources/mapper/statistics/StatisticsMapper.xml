@@ -35,9 +35,10 @@
         SUM(CASE WHEN a.license_device_name = '1.5T及以上磁共振成像系统' THEN 1 ELSE 0 END) as mriSystem1_5tPlus,
         SUM(CASE WHEN a.license_device_name = '64排及以上X线计算机断层扫描仪' THEN 1 ELSE 0 END) as ctScanner64SlicePlus
         FROM biz_license_original a
+        left join biz_license_duplicate d on a.id = d.original_id
         left join biz_application b on a.application_id = b.id
         left join biz_institution_ext c on b.institution_id = c.dept_id
-        where a.deleted = 0
+        where a.deleted = 0 and d.acceptance_status = 1
         <if test="req.region != null and req.region != ''">
             and c.region = #{req.region}
         </if>

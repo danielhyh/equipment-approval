@@ -86,4 +86,7 @@ public class ApplicationBasicInformationVO {
 
     @Schema(description = "上级机构")
     private String superiorInstitution;
+
+    @Schema(description = "状态")
+    private String status;
 }

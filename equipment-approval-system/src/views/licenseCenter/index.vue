@@ -400,7 +400,7 @@ const searchFn = () => {
 let router = useRouter()
 const handleDetail = (row) => {
   router.push({
-    path: '/license-detail',
+    path: '/license/detail',
     query: {
       id: row.id,
       originalId: row.originalId,
@@ -412,7 +412,7 @@ const handleDetail = (row) => {
 }
 const copyInspectionFn = (row) => {
   router.push({
-    path: '/copy-inspection',
+    path: '/license/inspection',
     query: {
       id: row.id,
       originalId: row.originalId,

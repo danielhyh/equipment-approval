@@ -277,3 +277,6 @@ justauth:
 pf4j:
   #  pluginsDir: /tmp/
   pluginsDir: ../plugins
+sso:
+  admin-postfix: admin/index?token=
+  client-postfix: client/#/home/index-page?token=

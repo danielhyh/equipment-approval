@@ -26,7 +26,7 @@
               v-for="item in licenseDeviceOptions"
               :key="item.value"
               :label="item.label"
-              :value="item.value"
+              :value="item.label"
             />
           </el-select>
         </el-form-item>
@@ -41,7 +41,7 @@
               v-for="item in ladderConfigOptions"
               :key="item.value"
               :label="item.label"
-              :value="item.value"
+              :value="item.label"
             />
           </el-select>
         </el-form-item>
@@ -52,7 +52,7 @@
               v-for="item in areaOptions"
               :key="item.value"
               :label="item.label"
-              :value="item.value"
+              :value="item.label"
             />
           </el-select>
         </el-form-item>
@@ -60,7 +60,7 @@
         <el-form-item>
           <el-input
             v-model="paramsValue.keyword"
-            placeholder="搜索许可证编号、配置单位、设备名称"
+            placeholder="搜索许可证编号、配置单位"
             style="width: 230px"
           />
         </el-form-item>
@@ -93,18 +93,18 @@
         />
         <!-- 所属区域 -->
         <el-table-column label="所属区域" prop="areaName" align="center" />
+        <!-- 设备状态 -->
+        <el-table-column label="设备状态" prop="deviceStatus" align="center" />
+        <!-- 正本录入状态 -->
+        <el-table-column label="正本录入状态" prop="originalEntryStatus" align="center" />
+        <!-- 副本录入状态 -->
+        <el-table-column label="副本录入状态" prop="copyEntryStatus" align="center" />
         <!-- 正本发证日期	-->
         <el-table-column label="正本发证日期" prop="originalIssueDate" align="center" />
         <!-- 副本发证日期  -->
         <el-table-column label="副本发证日期" prop="copyIssueDate" align="center" />
-        <el-table-column label="操作" align="center" width="240">
+        <el-table-column label="操作" align="center" width="100">
           <template #default="scope">
-            <el-button type="primary" size="small" @click.stop="openLicense(scope.row, 'A')">
-              正本
-            </el-button>
-            <el-button type="primary" size="small" @click.stop="openLicense(scope.row, 'B')">
-              副本
-            </el-button>
             <el-button type="primary" size="small" @click="handleDetail(scope.row)">详情</el-button>
           </template>
         </el-table-column>
@@ -140,6 +140,7 @@ import License from '../Processing/components/license.vue'
 import { Search, RefreshRight, Printer, Download } from '@element-plus/icons-vue'
 import { getDictOptions } from '@/utils/dict'
 import type { DictDataType } from '@/utils/dict'
+import { HistoryApi } from '@/api/biz/history'
 // 设备类型
 const licenseDeviceOptions = computed<DictDataType[]>(() =>
   getDictOptions('biz_main_equipment_type')
@@ -149,7 +150,13 @@ const ladderConfigOptions = computed<DictDataType[]>(() =>
   getDictOptions('biz_ladder_config_model')
 )
 // 所属区域
-const areaOptions = computed<DictDataType[]>(() => getDictOptions('biz_area_list'))
+const areaOptions = computed<DictDataType[]>(() => {
+  const excludeLabels = ['中国（陕西）自由贸易试验区', '西咸新区', '陕西省(仅本地市)']
+  return getDictOptions('biz_area_list').filter(
+    (item) => !excludeLabels.includes(item.label)
+  )
+})
+
 // 状态
 // const statusOptions = reactive([
 //   { label: '正常', value: '1' },
@@ -179,24 +186,39 @@ const changeIndex = (index: number) => {
   return paramsValue.pageSize * (paramsValue.pageNum - 1) + index + 1
 }
 let tableData = ref<any[]>([])
-const getList = () => {
+const getList = async () => {
   loading.value = true
-  setTimeout(() => {
+  try {
+    const params = {
+      pageNum: paramsValue.pageNum,
+      pageSize: paramsValue.pageSize,
+      keyword: paramsValue.keyword,
+      licenseDevice: paramsValue.licenseDevice,
+      ladderConfig: paramsValue.ladderConfig,
+      area: paramsValue.area
+    }
+    const res = await HistoryApi.getHistoryPage(params)
+    if (res && res.list) {
+      tableData.value = res.list.map((item: any) => ({
+        id: item.id,
+        licenseNo: item.licenseNumber,
+        configUnit: item.institutionName,
+        deviceName: item.licenseDeviceName,
+        ladderConfigModel: item.ladderConfigModel,
+        areaName: item.region,
+        deviceStatus: item.deviceStatus,
+        originalEntryStatus: item.originalEntryStatus,
+        copyEntryStatus: item.copyEntryStatus,
+        originalIssueDate: item.originalIssueDate,
+        copyIssueDate: item.copyIssueDate
+      }))
+      paramsValue.total = res.total || 0
+    }
+  } catch (error) {
+    console.error('获取历史数据失败:', error)
+  } finally {
     loading.value = false
-    tableData.value = [
-      {
-        id: 1,
-        licenseNo: 'XK-YLQX-2023-0001',
-        configUnit: '北京协和医院',
-        deviceName: '64排螺旋CT',
-        ladderConfigModel: 'Revolution CT',
-        areaName: '北京市',
-        originalIssueDate: '2023-01-15',
-        copyIssueDate: '2023-01-16',
-        status: '1'
-      }
-    ]
-  }, 1000)
+  }
 }
 const resetSearch = () => {
   paramsValue = Object.assign(paramsValue, {
@@ -216,9 +238,11 @@ const searchFn = () => {
 let router = useRouter()
 const handleDetail = (row) => {
   router.push({
-    path: '/license-detail',
+    path: '/history/detail',
     query: {
-      id: row.id
+      id: row.id,
+      deviceStatus: row.deviceStatus,
+      licenseNumber: row.licenseNo
     }
   })
 }
