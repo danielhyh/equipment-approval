@@ -2,7 +2,7 @@ import { store } from '@/store'
 import { defineStore } from 'pinia'
 import { getAccessToken, removeToken } from '@/utils/auth'
 import { CACHE_KEY, useCache, deleteUserCache } from '@/hooks/web/useCache'
-import { getInfo, loginOut } from '@/api/login'
+import { getInfo, loginOut, ssoLoginOut } from '@/api/login'
 
 const { wsCache } = useCache()
 
@@ -88,6 +88,9 @@ export const useUserStore = defineStore('admin-user', {
     },
     async loginOut() {
       await loginOut()
+      const key = localStorage.getItem('key') || ''
+      const params = {cacheKey: key}
+      await ssoLoginOut(params)
       removeToken()
       deleteUserCache() // 删除用户缓存
       this.resetState()

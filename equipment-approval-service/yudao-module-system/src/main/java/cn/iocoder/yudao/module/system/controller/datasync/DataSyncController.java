@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.*;
 
 import static cn.iocoder.yudao.framework.common.pojo.CommonResult.success;
 
-@RequestMapping("/sync")
+@RequestMapping("/api/external/sync")
 @RestController
 @Tag(name = "数据同步")
 @PermitAll
@@ -28,6 +28,7 @@ public class DataSyncController {
 
     @PostMapping("/user")
     @Operation(summary = "同步用户")
+    @PermitAll
     @io.swagger.v3.oas.annotations.parameters.RequestBody
     public CommonResult<PushResultVO> receiveUser(
             @Validated @RequestBody SyncUserDTO dto,
@@ -42,6 +43,7 @@ public class DataSyncController {
 
     @PostMapping("/dept")
     @Operation(summary = "同步部门")
+    @PermitAll
     @io.swagger.v3.oas.annotations.parameters.RequestBody
     public CommonResult<PushResultVO> receiveDept(
             @Validated @RequestBody SyncDeptDTO dto,
@@ -56,6 +58,7 @@ public class DataSyncController {
 
     @PostMapping("/batch")
     @Operation(summary = "批量同步")
+    @PermitAll
     @io.swagger.v3.oas.annotations.parameters.RequestBody
     public CommonResult<BatchPushResultVO> receiveBatch(
             @Validated @RequestBody ExternalBatchPushDTO dto,

@@ -19,6 +19,8 @@ import cn.iocoder.yudao.module.system.dal.mysql.user.AdminUserMapper;
 import cn.iocoder.yudao.module.system.dal.mysql.user.ExternalUserMapper;
 import cn.iocoder.yudao.module.system.service.datasync.dto.*;
 import jakarta.annotation.Resource;
+import lombok.AllArgsConstructor;
+import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.jdbc.core.simple.JdbcClient;
 import org.springframework.stereotype.Service;
@@ -27,10 +29,13 @@ import org.springframework.transaction.support.TransactionTemplate;
 
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.concurrent.*;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Service
 @Slf4j
-public class DataSyncServiceImpl implements DataSyncService{
+public class DataSyncServiceImpl implements DataSyncService {
 
     @Resource
     private AdminUserMapper adminUserMapper;
@@ -119,7 +124,7 @@ public class DataSyncServiceImpl implements DataSyncService{
                 switch (dept.getOperation()) {
                     case "create":
                     case "update":
-                        saveOrUpdateDept(dept, userType);
+                        saveOrUpdateDept(dept, userType, true);
                         break;
                     case "delete":
                         deleteDept(dept.getOrgId());
@@ -160,17 +165,17 @@ public class DataSyncServiceImpl implements DataSyncService{
         }
     }
 
-    private void saveOrUpdateDept(SyncDeptDTO dept, UserTypeEnum userType) {
+    private void saveOrUpdateDept(SyncDeptDTO dept, UserTypeEnum userType, boolean notBatch) {
         DeptDO existDept = deptMapper.selectOne(DeptDO::getExternalId, dept.getOrgId());
         DeptDO deptDO = new DeptDO();
         Long parentId = null;
-        if (StrUtil.isNotBlank(dept.getParent())) {
+        if (StrUtil.isNotBlank(dept.getParent()) && notBatch) {
             DeptDO parentDept = deptMapper.selectOne(DeptDO::getExternalId, dept.getParent());
             parentId = Optional.ofNullable(parentDept)
                     .map(DeptDO::getId)
                     .orElse(null);
         }
-        deptDO.setParentId(parentId!= null ? parentId:0L);
+        deptDO.setParentId(parentId != null ? parentId : 0L);
         deptDO.setName(dept.getCaption());
         deptDO.setExternalPid(dept.getParent());
         deptDO.setExternalId(dept.getOrgId());
@@ -210,18 +215,19 @@ public class DataSyncServiceImpl implements DataSyncService{
 
 
     }
+
     private void insertInstitutionExt(Long deptId, SyncDeptDTO dept) {
         String insertSql = """
-            INSERT INTO biz_institution_ext (
-                dept_id, institution_name, unified_social_credit_code,
-                institution_level, region, license_no, legal_person, 
-                address, detailed_address, contact_person, contact_phone
-            ) VALUES (
-                :deptId, :institutionName, :unifiedSocialCreditCode,
-                :institutionLevel, :region, :licenseNo, :legalPerson,
-                :address, :detailedAddress, :contactPerson, :contactPhone
-            )
-            """;
+                INSERT INTO biz_institution_ext (
+                    dept_id, institution_name, unified_social_credit_code,
+                    institution_level, region, license_no, legal_person, 
+                    address, detailed_address, contact_person, contact_phone
+                ) VALUES (
+                    :deptId, :institutionName, :unifiedSocialCreditCode,
+                    :institutionLevel, :region, :licenseNo, :legalPerson,
+                    :address, :detailedAddress, :contactPerson, :contactPhone
+                )
+                """;
 
         jdbcClient.sql(insertSql)
                 .params(buildInstitutionParams(deptId, dept))
@@ -230,25 +236,28 @@ public class DataSyncServiceImpl implements DataSyncService{
 
     private void updateInstitutionExt(Long deptId, SyncDeptDTO dept) {
         String updateSql = """
-            UPDATE biz_institution_ext SET
-                institution_name = :institutionName,
-                unified_social_credit_code = :unifiedSocialCreditCode,
-                institution_level = :institutionLevel,
-                region = :region,
-                license_no = :licenseNo,
-                legal_person = :legalPerson,
-                address = :address,
-                detailed_address = :detailedAddress,
-                contact_person = :contactPerson,
-                contact_phone = :contactPhone
-            WHERE dept_id = :deptId
-            """;
+                UPDATE biz_institution_ext SET
+                    institution_name = :institutionName,
+                    unified_social_credit_code = :unifiedSocialCreditCode,
+                    institution_level = :institutionLevel,
+                    region = :region,
+                    license_no = :licenseNo,
+                    legal_person = :legalPerson,
+                    address = :address,
+                    detailed_address = :detailedAddress,
+                    contact_person = :contactPerson,
+                    contact_phone = :contactPhone
+                WHERE dept_id = :deptId
+                """;
 
         jdbcClient.sql(updateSql)
                 .params(buildInstitutionParams(deptId, dept))
                 .update();
     }
 
+    Map<String, String> levelMap = Map.of("1","一级","2","二级","3","三级");
+
+    Map<String, String> classMap = Map.of("1", "特等", "2", "甲等", "3","乙等","4" ,"丙等");
     // 构建参数 Map
     private Map<String, Object> buildInstitutionParams(Long deptId, SyncDeptDTO dept) {
         String region = Optional.ofNullable(dept.getDeptAddressCode())
@@ -257,9 +266,13 @@ public class DataSyncServiceImpl implements DataSyncService{
                 .orElse(null);
 
         String institutionLevel = (dept.getYydjJ() != null && dept.getYydjD() != null)
-                ? dept.getYydjJ() + dept.getYydjD()
+                ? levelMap.getOrDefault(dept.getYydjJ(), "未评") + classMap.getOrDefault(dept.getYydjD(), "")
                 : null;
-
+        String address = Optional.ofNullable(dept.getGbQhdm())
+                .map(Integer::parseInt)
+                .map(AreaUtils::getArea)
+                .map(Area::getName)
+                .orElse(null);
         Map<String, Object> params = new HashMap<>();
         params.put("deptId", deptId);
         params.put("institutionName", dept.getCaption());
@@ -268,7 +281,7 @@ public class DataSyncServiceImpl implements DataSyncService{
         params.put("region", region);
         params.put("licenseNo", dept.getDeptZyxkzdjh());
         params.put("legalPerson", dept.getFzr());
-        params.put("address", dept.getTxDz());
+        params.put("address", address);
         params.put("detailedAddress", dept.getTxDz());
         params.put("contactPerson", dept.getGovernor());
         params.put("contactPhone", dept.getTel());
@@ -276,155 +289,122 @@ public class DataSyncServiceImpl implements DataSyncService{
     }
 
 
-//    private void insertInstitutionExt(Long deptId, SyncDeptDTO dept) {
-//        String insertSql = """
-//                INSERT INTO biz_institution_ext (
-//                    dept_id, institution_name, unified_social_credit_code,
-//                    institution_level, region,license_no, legal_person, address, detailed_address, contact_person,
-//                    contact_phone
-//                ) VALUES
-//                (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-//                """;
-//        String area = Optional.ofNullable(dept.getDeptAddressCode())
-//                .map(code -> AreaUtils.getArea(Integer.valueOf(code)))
-//                .map(Area::getName)
-//                .orElse(null);
-//        String institutionLevel = null;
-//        if (dept.getYydjJ() != null && dept.getYydjD() != null) {
-//            institutionLevel = dept.getYydjJ() + dept.getYydjD();
-//        }
-//        jdbcClient.sql(insertSql).params(deptId, dept.getCaption(), dept.getDeptShxydm(), institutionLevel, area,
-//                dept.getDeptZyxkzdjh(), dept.getFzr(), dept.getTxDz(), dept.getTxDz(), dept.getGovernor(), dept.getTel()).update();
-//    }
-//
-//    private void updateInstitutionExt(Long deptId, SyncDeptDTO dept) {
-//        String updateSql = """
-//                UPDATE biz_institution_ext SET institution_name = ?, unified_social_credit_code = ?, institution_level = ?,
-//                  region = ?,  license_no = ?, legal_person = ?, address = ?,
-//                  detailed_address = ?, contact_person = ?, contact_phone = ? WHERE dept_id = ?
-//                """;
-//        String area = Optional.ofNullable(dept.getDeptAddressCode())
-//                .map(code -> AreaUtils.getArea(Integer.valueOf(code)))
-//                .map(Area::getName)
-//                .orElse(null);
-//        String institutionLevel = null;
-//        if (dept.getYydjJ() != null && dept.getYydjD() != null) {
-//            institutionLevel = dept.getYydjJ() + dept.getYydjD();
-//        }
-//        jdbcClient.sql(updateSql).params(dept.getCaption(), dept.getDeptShxydm(), institutionLevel, area,
-//                dept.getDeptZyxkzdjh(), dept.getFzr(), dept.getTxDz(), dept.getTxDz(), dept.getGovernor(), dept.getTel(), deptId).update();
-//    }
-
 
     @Override
     public BatchPushResultVO batchSync(ExternalBatchPushDTO dto) {
         BatchPushResultVO result = new BatchPushResultVO();
-        List<String> adminOrgId = dto.getUsers().stream().filter(user -> user.getUserId() != null && user.getUserId().contains("_"))
+        List<String> adminOrgId = dto.getUsers().stream().filter(user -> user.getUserId() != null && user.getUserId().length() == 10)
                 .map(SyncUserDTO::getOrgId)
                 .filter(Objects::nonNull)
                 .distinct()
                 .toList();
 
-        // ========== 方案：多轮迭代处理机构 ==========
-        if (CollUtil.isNotEmpty(dto.getDepts())) {
-            List<SyncDeptDTO> pendingDepts = new ArrayList<>(dto.getDepts());
-            List<SyncDeptDTO> failedDepts = new ArrayList<>();
-            int maxRounds = 10;  // 最多10轮，避免死循环
-            int round = 0;
+        // ========== 配置线程池 ==========
+        int threadPoolSize = 20;
+        ExecutorService executor = new ThreadPoolExecutor(
+                threadPoolSize,
+                threadPoolSize,
+                60L, TimeUnit.SECONDS,
+                new LinkedBlockingQueue<>(1000),
+                new ThreadPoolExecutor.CallerRunsPolicy()
+        );
 
-            while (!pendingDepts.isEmpty() && round < maxRounds) {
-                round++;
-                List<SyncDeptDTO> nextRoundDepts = new ArrayList<>();
+        try {
+            // ========== 多线程处理机构 ==========
+            if (CollUtil.isNotEmpty(dto.getDepts())) {
+                List<CompletableFuture<DeptResult>> deptFutures = dto.getDepts().stream()
+                        .map(dept -> CompletableFuture.supplyAsync(() -> {
+                            try {
+                                transactionTemplate.execute(status -> {
+                                    Integer userType = adminOrgId.contains(dept.getOrgId())
+                                            ? UserTypeEnum.ADMIN.getValue()
+                                            : UserTypeEnum.MEMBER.getValue();
+                                    saveOrUpdateDept(dept, UserTypeEnum.valueOf(userType), false);
+                                    return null;
+                                });
+                                return new DeptResult(true, dept.getOrgId(), null);
+                            } catch (Exception e) {
+                                log.error("机构同步失败: {}", dept.getOrgId(), e);
+                                return new DeptResult(false, dept.getOrgId(), "处理失败: " + e.getMessage());
+                            }
+                        }, executor))
+                        .toList();
 
-                log.info("批量同步机构 - 第{}轮，待处理{}条", round, pendingDepts.size());
+                // 等待所有机构处理完成
+                CompletableFuture.allOf(deptFutures.toArray(new CompletableFuture[0])).join();
 
-                for (SyncDeptDTO dept : pendingDepts) {
+                // 统计结果
+                deptFutures.forEach(future -> {
                     try {
-                        // 检查父级是否存在（如果需要父级的话）
-                        if (StrUtil.isNotBlank(dept.getParent())) {
-                            DeptDO parentDept = deptMapper.selectOne(DeptDO::getExternalId, dept.getParent());
-                            if (parentDept == null) {
-                                // 父级还不存在，放到下一轮处理
-                                nextRoundDepts.add(dept);
-                                log.debug("机构{}的父级{}不存在，延迟到下一轮", dept.getOrgId(), dept.getParent());
-                                continue;
-                            }
+                        DeptResult deptResult = future.get();
+                        if (deptResult.isSuccess()) {
+                            result.addDeptSuccess();
+                        } else {
+                            result.addDeptFail(deptResult.getOrgId(), deptResult.getErrorMsg());
                         }
-                        // 👇 加事务：确保单条记录的原子性
-                        transactionTemplate.execute(status -> {
-                            Integer userType;
-                            if (adminOrgId.contains(dept.getOrgId())) {
-                                userType = UserTypeEnum.ADMIN.getValue();
-                            } else {
-                                userType = UserTypeEnum.MEMBER.getValue();
-                            }
-                            saveOrUpdateDept(dept, UserTypeEnum.valueOf(userType));
-                            return null;
-                        });
-                        result.addDeptSuccess();
-
                     } catch (Exception e) {
-                        log.error("机构同步失败: {}", dept.getOrgId(), e);
-                        failedDepts.add(dept);
+                        log.error("获取机构处理结果失败", e);
                     }
-                }
-
-                pendingDepts = nextRoundDepts;
+                });
+                updateDeptParentId();
             }
+            // ========== 多线程处理用户（必须在机构处理完成后）==========
+            if (CollUtil.isNotEmpty(dto.getUsers())) {
+                List<CompletableFuture<UserResult>> userFutures = dto.getUsers().stream()
+                        .map(user -> CompletableFuture.supplyAsync(() -> {
+                            try {
+                                transactionTemplate.execute(status -> {
+                                    saveOrUpdateUser(user);
+                                    return null;
+                                });
+                                return new UserResult(true, user.getUserId(), null);
+                            } catch (Exception e) {
+                                log.error("用户同步失败: {}", user.getUserId(), e);
+                                return new UserResult(false, user.getUserId(), e.getMessage());
+                            }
+                        }, executor))
+                        .toList();
 
-            // 处理完所有轮次后仍未成功的
-            if (!pendingDepts.isEmpty()) {
-                log.warn("批量同步完成，仍有{}条机构无法处理（父级缺失）", pendingDepts.size());
-                for (SyncDeptDTO dept : pendingDepts) {
-                    result.addDeptFail(dept.getOrgId(),
-                            "父级机构不存在: " + dept.getParent());
-                }
-            }
+                // 等待所有用户处理完成
+                CompletableFuture.allOf(userFutures.toArray(new CompletableFuture[0])).join();
 
-            // 记录彻底失败的
-            for (SyncDeptDTO dept : failedDepts) {
-                result.addDeptFail(dept.getOrgId(), "处理失败");
-            }
-        }
-
-        // ========== 处理用户（同样需要检查机构是否存在）==========
-        if (CollUtil.isNotEmpty(dto.getUsers())) {
-            for (SyncUserDTO user : dto.getUsers()) {
-                try {
-                    // 检查用户所属机构是否存在
-                    if (StrUtil.isNotBlank(user.getOrgId())) {
-                        DeptDO dept = deptMapper.selectOne(DeptDO::getExternalId, user.getOrgId());
-
-                        if (dept == null) {
-                            result.addUserFail(user.getUserId(),
-                                    "所属机构不存在: " + user.getOrgId());
-                            continue;
+                // 统计结果
+                userFutures.forEach(future -> {
+                    try {
+                        UserResult userResult = future.get();
+                        if (userResult.isSuccess()) {
+                            result.addUserSuccess();
+                        } else {
+                            result.addUserFail(userResult.getUserId(), userResult.getErrorMsg());
                         }
+                    } catch (Exception e) {
+                        log.error("获取用户处理结果失败", e);
                     }
+                });
+            }
 
-                    // 👇 加事务
-                    transactionTemplate.execute(status -> {
-                        saveOrUpdateUser(user);
-                        return null;
-                    });
-                    result.addUserSuccess();
-
-                } catch (Exception e) {
-                    log.error("用户同步失败: {}", user.getUserId(), e);
-                    result.addUserFail(user.getUserId(), e.getMessage());
+        } finally {
+            // 关闭线程池
+            executor.shutdown();
+            try {
+                if (!executor.awaitTermination(60, TimeUnit.SECONDS)) {
+                    executor.shutdownNow();
                 }
+            } catch (InterruptedException e) {
+                executor.shutdownNow();
+                Thread.currentThread().interrupt();
             }
         }
-
-
-        // 记录批量日志
+//
+//
+//        // 记录批量日志
         PushRecordDO recordDO = new PushRecordDO();
         recordDO.setPushType("batch");
         recordDO.setOperation("batch_sync");
-        recordDO.setStatus(result.hasError() ?  1 : 0);
+        recordDO.setStatus(result.hasError() ? 1 : 0);
         recordDO.setRequestData(String.format("机构%d条（成功%d，失败%d），用户%d条（成功%d，失败%d）",
-                CollUtil.size(dto.getDepts()), result.getDeptSuccessCount(), result.getDeptFailCount(),
-                CollUtil.size(dto.getUsers()), result.getUserSuccessCount(), result.getUserFailCount()));
+                CollUtil.size(dto.getDepts()), result.getDeptSuccessCount().get(), result.getDeptFailCount().get(),
+                CollUtil.size(dto.getUsers()), result.getUserSuccessCount().get(), result.getUserFailCount().get()));
         recordDO.setPushTime(LocalDateTime.now());
         recordDO.setProcessTime(LocalDateTime.now());
         if (result.hasError()) {
@@ -433,6 +413,105 @@ public class DataSyncServiceImpl implements DataSyncService{
         syncRecordMapper.insert(recordDO);
 
         return result;
+    }
+
+
+    private void updateDeptParentId() {
+        // 1. 查询所有部门
+        List<DeptDO> deptList = deptMapper.selectList();
+        if (CollUtil.isEmpty(deptList)) {
+            return;
+        }
+
+        // 2. 建立 externalId 到 DeptDO 的映射
+        Map<String, DeptDO> externalIdMap = deptList.stream()
+                .filter(dept -> StrUtil.isNotBlank(dept.getExternalId()))
+                .collect(Collectors.toMap(DeptDO::getExternalId, Function.identity(), (v1, v2) -> v1));
+
+        // 3. 需要更新的部门列表
+        List<DeptDO> updateList = new ArrayList<>();
+
+        // 4. 找到所有根节点（externalPid 为空或为 "0"）
+        List<DeptDO> rootDepts = deptList.stream()
+                .filter(dept -> StrUtil.isBlank(dept.getExternalPid()) || "--".equals(dept.getExternalPid()))
+                .toList();
+
+        // 5. 从根节点开始递归处理
+        for (DeptDO rootDept : rootDepts) {
+            processChildDepts(rootDept, DeptDO.PARENT_ID_ROOT, externalIdMap, updateList);
+        }
+
+        // 6. 处理找不到父节点的孤立部门（防止遗漏）
+        for (DeptDO dept : deptList) {
+            if (!updateList.contains(dept) &&
+                    StrUtil.isNotBlank(dept.getExternalPid())) {
+                log.warn("部门[{}]的父部门externalPid[{}]找不到，设置为根节点",
+                        dept.getName(), dept.getExternalPid());
+                if (!DeptDO.PARENT_ID_ROOT.equals(dept.getParentId())) {
+                    dept.setParentId(DeptDO.PARENT_ID_ROOT);
+                    updateList.add(dept);
+                }
+            }
+        }
+
+        // 7. 批量更新数据库
+        if (!CollUtil.isEmpty(updateList)) {
+            log.info("需要更新部门parentId的数量: {}", updateList.size());
+//            updateList.forEach(dept -> deptMapper.updateById(dept));
+            // 或者批量更新：deptMapper.updateBatchById(updateList);
+            deptMapper.updateBatch(updateList, 1000);
+        }
+
+    }
+
+
+    /**
+     * 递归处理子部门
+     *
+     * @param currentDept 当前部门
+     * @param parentId 父部门ID
+     * @param externalIdMap externalId 到部门的映射
+     * @param updateList 需要更新的部门列表
+     */
+    private void processChildDepts(DeptDO currentDept, Long parentId,
+                                   Map<String, DeptDO> externalIdMap,
+                                   List<DeptDO> updateList) {
+        // 更新当前部门的 parentId
+        if (!parentId.equals(currentDept.getParentId())) {
+            currentDept.setParentId(parentId);
+            updateList.add(currentDept);
+        }
+
+        // 查找所有以当前部门的 externalId 作为 externalPid 的子部门
+        String currentExternalId = currentDept.getExternalId();
+        if (StrUtil.isBlank(currentExternalId)) {
+            return;
+        }
+
+        // 遍历所有部门，找到子部门
+        for (DeptDO dept : externalIdMap.values()) {
+            if (currentExternalId.equals(dept.getExternalPid()) &&
+                    !dept.getId().equals(currentDept.getId())) { // 避免自己是自己的父节点
+                // 递归处理子部门
+                processChildDepts(dept, currentDept.getId(), externalIdMap, updateList);
+            }
+        }
+    }
+
+    @Data
+    @AllArgsConstructor
+    private static class DeptResult {
+        private boolean success;
+        private String orgId;
+        private String errorMsg;
+    }
+
+    @Data
+    @AllArgsConstructor
+    private static class UserResult {
+        private boolean success;
+        private String userId;
+        private String errorMsg;
     }
 
 }

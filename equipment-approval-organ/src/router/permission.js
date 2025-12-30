@@ -15,10 +15,10 @@ let ssoRequesting = false;
 /**
  * 处理SSO回调，从URL参数中提取token并设置到本地缓存
  */
-const handleSsoCallback = async (userStore) => {
+const handleSsoCallback = async (userStore, to, next) => {
   const accessToken = getUrlValue('token') || getUrlValue('access_token');
   const refreshToken = getUrlValue('refresh_token');
-  
+
   if (accessToken) {
     try {
       // 构建token数据
@@ -29,39 +29,54 @@ const handleSsoCallback = async (userStore) => {
         userType: parseInt(getUrlValue('user_type')) || 0,
         clientId: getUrlValue('client_id') || '',
         expiresTime: parseInt(getUrlValue('expires_time')) || 0,
-        id: parseInt(getUrlValue('id')) || 0
+        id: parseInt(getUrlValue('id')) || 0,
+        key: getUrlValue('key') || '',
       };
-      
+
       userStore.setSsoToken(tokenData);
-      
+
       // 清除Hash路由URL中的敏感参数，避免在地址栏中显示
-      const currentUrl = window.location.href;
-      if (currentUrl.includes('#') && currentUrl.includes('?')) {
-        // 提取hash部分: 例如 #/home/index-page?token=xxx&user_id=1
-        const hashIndex = currentUrl.indexOf('#');
-        const baseUrl = currentUrl.substring(0, hashIndex); // http://domain.com/
-        const hashPart = currentUrl.substring(hashIndex + 1); // /home/index-page?token=xxx
-        
-        // 分离路径和查询参数
-        const queryIndex = hashPart.indexOf('?');
-        const hashPath = hashPart.substring(0, queryIndex); // /home/index-page
-        const queryString = hashPart.substring(queryIndex + 1); // token=xxx&user_id=1
-        
-        // 解析查询参数并移除敏感信息
-        const params = new URLSearchParams(queryString);
-        const sensitiveKeys = ['token', 'access_token', 'refresh_token', 'user_id', 'user_type', 'client_id', 'expires_time', 'id'];
-        sensitiveKeys.forEach(key => params.delete(key));
-        
-        // 重新构建URL
-        const cleanQueryString = params.toString();
-        const cleanHash = cleanQueryString ? `${hashPath}?${cleanQueryString}` : hashPath;
-        const cleanUrl = `${baseUrl}#${cleanHash}`;
-        
-        // 使用replaceState替换历史记录，不刷新页面
-        window.history.replaceState(null, '', cleanUrl);
-        console.log('已清除URL中的敏感参数');
+      if (to.query.key || to.query.token) {
+        // 构造新的路由，去掉 query 参数
+        const { key, token, state, ...cleanQuery } = to.query;
+
+        // 使用 replace 替换当前历史记录，不留下痕迹
+        next({
+          ...to,
+          query: cleanQuery,
+          replace: true, // 这会执行 router.replace
+        });
       }
-      
+      // const currentUrl = window.location.href;
+      // const url = new URL(currentUrl)
+      // url.search = ''
+
+      // if (currentUrl.includes('?')) {
+      //   // 提取hash部分: 例如 #/home/index-page?token=xxx&user_id=1
+      //   const hashIndex = currentUrl.indexOf('#');
+      //   const baseUrl = currentUrl.substring(0, hashIndex); // http://domain.com/
+      //   const hashPart = currentUrl.substring(hashIndex + 1); // /home/index-page?token=xxx
+
+      //   // 分离路径和查询参数
+      //   const queryIndex = hashPart.indexOf('?');
+      //   const hashPath = hashPart.substring(0, queryIndex); // /home/index-page
+      //   const queryString = hashPart.substring(queryIndex + 1); // token=xxx&user_id=1
+
+      //   // 解析查询参数并移除敏感信息
+      //   const params = new URLSearchParams(queryString);
+      //   const sensitiveKeys = ['token', 'access_token', 'refresh_token', 'user_id', 'user_type', 'client_id', 'expires_time', 'id', 'key'];
+      //   sensitiveKeys.forEach(key => params.delete(key));
+      //   // 重新构建URL
+      //   const cleanQueryString = params.toString();
+      //   const cleanHash = cleanQueryString ? `${hashPath}?${cleanQueryString}` : hashPath;
+      //   const cleanUrl = `${baseUrl}#${cleanHash}`;
+      //   // const cleanUrl = `/#${cleanHash}`;
+      //   console.log('clean url successfully', cleanUrl)
+      //   // 使用replaceState替换历史记录，不刷新页面
+      //   window.history.replaceState(null, '', cleanUrl);
+      //   console.log('已清除URL中的敏感参数');
+      // }
+
       return true;
     } catch (error) {
       console.error('SSO回调处理失败:', error);
@@ -77,19 +92,19 @@ export const beforeEach = async function (to, from, next) {
   // 设置页面标题
   nProgress.start();
   document.title = to.meta?.title ? to.meta?.title + "-" + config.systemName : config.systemName;
-  
+
   // 检查是否启用SSO
   const ENABLE_SSO = import.meta.env.VITE_ENABLE_SSO === 'true';
-  
+
   // 首先检查是否为SSO回调，处理URL中的token（后端直接重定向到首页带token）
   if (ENABLE_SSO && (to.query.token || to.query.access_token)) {
-    const ssoCallbackHandled = await handleSsoCallback(userStore);
+    const ssoCallbackHandled = await handleSsoCallback(userStore, to, next);
     if (ssoCallbackHandled) {
       // SSO回调处理成功，继续正常的路由流程
       // 由于token已经设置，后续的getToken检查会通过
     }
   }
-  
+
   // 获取token
   const token = userStore.getToken;
   // 如果有token，可以继续访问

@@ -36,6 +36,10 @@ export const loginOut = () => {
   return request.post({ url: '/system/auth/logout' })
 }
 
+export const ssoLoginOut = (data) => {
+  return request.post({ url: '/sso/logout', data })
+}
+
 // 获取用户权限信息
 export const getInfo = () => {
   return request.get({ url: '/system/auth/get-permission-info' })

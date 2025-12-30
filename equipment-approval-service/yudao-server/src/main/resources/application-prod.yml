@@ -280,3 +280,5 @@ pf4j:
 sso:
   admin-postfix: admin/index?token=
   client-postfix: client/#/home/index-page?token=
+  callback-url: https://sxwtzb.snhic.cn/sxwjwylqc/sso/callback
+  front-end-url: https://sxwtzb.snhic.cn/sxwjwylqc/

@@ -25,7 +25,8 @@ import BasisInfo from "./basis.vue";
 import MsgBox from "./msgBox.vue";
 import { ElMessageBox } from "element-plus";
 import { useUserStore } from "@/pinia/modules/user";
-import { loginOutSystem, getSsoLoginUrl } from "@/apis/login";
+import { loginOutSystem, getSsoLoginUrl, ssoLogout } from "@/apis/login";
+import { getStorage } from "@/utils/storage";
 const userStore = useUserStore();
 let router = useRouter();
 
@@ -39,7 +40,9 @@ const logoutFn = () => {
     type: "warning",
   })
     .then(async () => {
-      //await loginOutSystem();
+      const key = getStorage('key')
+      const params = {cacheKey: key}
+      await ssoLogout(params);
       // 确认退出登录，清除token
       userStore.loginOut();
       console.log(ENABLE_SSO)

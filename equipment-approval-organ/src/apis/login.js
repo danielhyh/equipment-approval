@@ -35,6 +35,14 @@ export function loginOutSystem() {
   });
 }
 
+export function ssoLogout(data) {
+  return request({
+    url: "/app-api/sso/logout",
+    method: "post",
+    data
+  });
+}
+
 // 获取用户信息
 export function getUserInfo() {
   return request({

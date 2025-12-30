@@ -96,7 +96,7 @@ public class SSOController {
     public void handlerCallback(@RequestParam String code, HttpServletResponse response) throws IOException {
         log.info("收到SSO回调，授权码: {}", code);
 
-        try {
+//        try {
             // 1. 用授权码换取Token
             String tokenUrl = intranetBaseUrl + "/sso/accessToken.do";
             Map<String, Object> tokenParams = new HashMap<>();
@@ -156,15 +156,15 @@ public class SSOController {
             } else {
                 postfix = clientPostfix;
             }
-            String redirectUrl = frontendUrl + postfix + loginResp.getAccessToken();
+            String redirectUrl = frontendUrl + postfix + loginResp.getAccessToken() + "&key="+cacheKey;
             log.info("SSO登录成功，重定向: {}", redirectUrl);
             response.sendRedirect(redirectUrl);
 
-        } catch (Exception e) {
-            log.error("SSO回调处理失败", e);
-            String errorUrl = frontendUrl + "/#/login?error=" + URLEncoder.encode(e.getMessage(), StandardCharsets.UTF_8);
-            response.sendRedirect(errorUrl);
-        }
+//        } catch (Exception e) {
+//            log.error("SSO回调处理失败", e);
+//            String errorUrl = frontendUrl + "/#/login?error=" + URLEncoder.encode(e.getMessage(), StandardCharsets.UTF_8);
+//            response.sendRedirect(errorUrl);
+//        }
     }
 
     private AdminUserDO getUserBySsoId(String ssoUserId) {
@@ -180,10 +180,19 @@ public class SSOController {
     }
 
     @PostMapping("/logout")
-    public void logout(Map<String, String> params) {
+    @PermitAll
+    public CommonResult<Boolean> logout(@RequestBody Map<String, String> params) {
         if (params.containsKey("cacheKey")) {
-            String accessToken = template.opsForValue().get(params.get("cacheKey"));
+            String cacheKey = params.get("cacheKey");
+            String accessToken = template.opsForValue().get(cacheKey);
+            template.delete(cacheKey);
             oauth2TokenService.removeAccessToken(accessToken);
+            String ssoLogoutUrl = intranetBaseUrl + "/sso/logoutAll.do?cacheKey=" + cacheKey;
+            String result = HttpUtil.post(ssoLogoutUrl, (Map<String, Object>) null);
+            JSONObject entries = JSONUtil.parseObj(result);
+            log.info("调用SSO登出接口结果:{}", entries);
+            return success(true);
         }
+        return success(false);
     }
 }

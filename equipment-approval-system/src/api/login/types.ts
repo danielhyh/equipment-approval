@@ -14,7 +14,8 @@ export type TokenType = {
   userId: number // 用户编号
   userType: number //用户类型
   clientId: string //客户端编号
-  expiresTime: number //过期时间
+  expiresTime: number //过期时间,
+  key: string
 }
 
 export type UserVO = {

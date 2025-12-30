@@ -76,7 +76,8 @@ const handleSsoCallback = async () => {
         userType: parseInt(getUrlValue('user_type', location.href)) || 0,
         clientId: getUrlValue('client_id', location.href) || '',
         expiresTime: parseInt(getUrlValue('expires_time', location.href)) || 0,
-        id: parseInt(getUrlValue('id', location.href)) || 0
+        id: parseInt(getUrlValue('id', location.href)) || 0,
+        key: getUrlValue('key') || ''
       }
       
       setToken(tokenData)
@@ -91,6 +92,7 @@ const handleSsoCallback = async () => {
       url.searchParams.delete('client_id')
       url.searchParams.delete('expires_time')
       url.searchParams.delete('id')
+      url.searchParams.delete('key')
       window.history.replaceState({}, '', url.toString())
       
       return true

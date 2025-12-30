@@ -74,6 +74,7 @@ export const useUserStore = defineStore("user", {
       if (tokenData && tokenData.accessToken) {
         this.token = tokenData.accessToken;
         setStorage("token", tokenData.accessToken);
+        setStorage("key", tokenData.key)
         // 如果有其他token信息也需要存储，可以在这里添加
         if (tokenData.refreshToken) {
           setStorage("refreshToken", tokenData.refreshToken);
@@ -85,6 +86,7 @@ export const useUserStore = defineStore("user", {
       this.token = null;
       removeStorage("userInfo");
       removeStorage("token");
+      removeStorage("key")
     },
     setVaildLogin() {
       this.vaildLogin = !this.vaildLogin;

@@ -71,7 +71,9 @@ const loginOut = async () => {
     // 未启用SSO或获取SSO地址失败时，跳转到本地登录页
     console.log('[SSO退出] 跳转到本地登录页')
     replace('/login?redirect=/index')
-  } catch {}
+  } catch (error){
+    console.log(error)
+  }
 }
 const toProfile = async () => {
   push('/user/profile')
