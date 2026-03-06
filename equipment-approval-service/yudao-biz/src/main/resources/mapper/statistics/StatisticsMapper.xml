@@ -276,4 +276,27 @@
             and YEAR(create_time) = #{year}
         </if>
     </select>
+
+    <select id="historySummary" resultType="java.util.Map">
+        SELECT
+        COUNT(DISTINCT CASE WHEN c.itemname = '1.5T及以上磁共振成像系统' THEN a.id END) AS mriSystem1_5tPlus,
+        COUNT(DISTINCT CASE WHEN c.itemname = '内窥镜手术器械控制系统' THEN a.id END) AS endoscopicSurgicalSystem,
+        COUNT(DISTINCT CASE WHEN c.itemname = 'X线正电子发射断层扫描仪' THEN a.id END) AS petCtScanner,
+        COUNT(DISTINCT CASE WHEN c.itemname = '64排及以上X线计算机断层扫描仪' THEN a.id END) AS ctScanner64SlicePlus,
+        COUNT(DISTINCT CASE WHEN c.itemname = '伽玛射线立体定向放射治疗系统' THEN a.id END) AS gammaRayStereotacticRtSystem,
+        COUNT(DISTINCT CASE WHEN c.itemname = '直线加速器' THEN a.id END) AS linearAccelerator,
+        COUNT(DISTINCT a.id) AS total
+        FROM "history_license" a
+        JOIN history_dict c ON a.xksbmc = c.dictid
+        left join history_area e on a.sbpzdzCode = e.id
+        <where>
+             c.itemname IS NOT NULL
+            <if test="req.year != null">
+                and a.CREATED_DATE like concat('%', #{req.year}, '%')
+            </if>
+            <if test="req.region != null">
+                and e.FULLNAME like concat('%', #{req.region},'%')
+            </if>
+        </where>
+    </select>
 </mapper>

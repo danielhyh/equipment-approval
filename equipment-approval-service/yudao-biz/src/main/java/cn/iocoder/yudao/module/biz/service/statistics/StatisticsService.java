@@ -27,6 +27,12 @@ public class StatisticsService {
     @Resource
     private JdbcClient jdbcClient;
 
+    public Map<String, Object> historySummary(QueryRequest request) {
+        Map<String, Object> map = statisticsMapper.historySummary(request);
+        Collection<Object> values = map.values();
+        return map;
+    }
+
 
     public Map<String, Object> applicationSummary(Integer status, QueryRequest request) {
         return statisticsMapper.applicationSummary(status, request);

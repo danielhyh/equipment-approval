@@ -58,16 +58,8 @@ public class StatisticsController {
 
     @GetMapping("/history-summary")
     @Operation(summary = "历史数据统计汇总")
-    public CommonResult<Map<String, Object>> historySummary(@RequestParam(required = false, name = "year") Integer year) {
-        Map<String, Object> map = new HashMap<>();
-        map.put("total", 0);
-        map.put("petCtScanner", 0);
-        map.put("gammaRayStereotacticRtSystem", 0);
-        map.put("linearAccelerator", 0);
-        map.put("endoscopicSurgicalSystem", 0);
-        map.put("mriSystem1_5tPlus", 0);
-        map.put("ctScanner64SlicePlus", 0);
-        return success(map);
+    public CommonResult<Map<String, Object>> historySummary(QueryRequest request) {
+        return success(statisticsService.historySummary(request));
     }
 
     @GetMapping("/license-summary")

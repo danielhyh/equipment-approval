@@ -14,9 +14,9 @@ public class ThreadPoolConfig {
     @Bean("bizExecutor")
     public Executor bizExecutor() {
         ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
-        executor.setCorePoolSize(2);
-        executor.setMaxPoolSize(5);
-        executor.setQueueCapacity(50);
+        executor.setCorePoolSize(6);
+        executor.setMaxPoolSize(12);
+        executor.setQueueCapacity(500);
         executor.setThreadNamePrefix("biz-");
         executor.initialize();
         return executor;

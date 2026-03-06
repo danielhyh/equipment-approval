@@ -57,4 +57,7 @@ public interface StatisticsMapper {
 
 
     List<Map<String, Object>> deviceModelDistribution(@Param("req") FilterRequest req);
+
+    //历史汇总
+    Map<String, Object> historySummary(@Param("req") QueryRequest request);
 }
