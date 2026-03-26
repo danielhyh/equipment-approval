@@ -5,6 +5,8 @@ import cn.iocoder.yudao.framework.common.exception.ServiceException;
 import cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils;
 import cn.iocoder.yudao.module.biz.controller.app.application.vo.AppApplicationSaveReqVO;
 import cn.iocoder.yudao.module.biz.controller.app.application.vo.ApplicationRecreateRequest;
+import cn.iocoder.yudao.module.biz.dal.dataobject.affairrecord.AffairRecordDO;
+import cn.iocoder.yudao.module.biz.dal.mysql.affairrecord.AffairRecordMapper;
 import cn.iocoder.yudao.module.biz.dal.mysql.institutionext.InstitutionExtMapper;
 import cn.iocoder.yudao.module.biz.service.devicelicense.DeviceLicenseService;
 import cn.iocoder.yudao.module.biz.service.notification.CreateNotificationRequest;
@@ -13,6 +15,8 @@ import cn.iocoder.yudao.module.biz.service.operation.OperationLogService;
 import cn.iocoder.yudao.module.biz.service.utils.JdbcClientHelper;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
+import com.alibaba.gov.api.client.AtgBusClient;
+import com.alibaba.gov.api.request.AtgBizAffairFinishRequest;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -76,6 +80,12 @@ public class ApplicationServiceImpl implements ApplicationService {
 
     @Resource
     private ObjectMapper objectMapper;
+
+    @Resource
+    private AtgBusClient client;
+
+    @Resource
+    private AffairRecordMapper affairRecordMapper;
 
     @Resource
     private NotificationService notificationService;
@@ -179,6 +189,8 @@ public class ApplicationServiceImpl implements ApplicationService {
 
     @Override
     public PageResult<ApplicationPageRespVO> getAppApplicationPage(ApplicationPageReqVO pageReqVO) {
+        Long loginUserId = SecurityFrameworkUtils.getLoginUserId();
+        pageReqVO.setUserId(loginUserId);
         IPage<ApplicationPageRespVO> page = new Page<>(pageReqVO.getPageNo(), pageReqVO.getPageSize());
         applicationMapper.page2(page, pageReqVO);
         return processField(page);
@@ -291,12 +303,37 @@ public class ApplicationServiceImpl implements ApplicationService {
             }
             String res = result ==1 ? "专家审核已通过。": "专家审核未通过。";
             publisherNotification(id, loginUserId, res, opinion);
+            callRemote(id);
             operationService.log(reviewVO.getId(), loginUserId, loginUserNickname, actionDescPrefix + res, null,"expertIdList", JSON.toJSONString(expertIdList));
         } else {
             throw new ServiceException(new ErrorCode(1199, "无效的审核类型: " + reviewType));
         }
 
         applicationMapper.updateById(update);
+    }
+
+    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+
+    private void callRemote(Long id) {
+        AffairRecordDO affairRecordDO = affairRecordMapper.selectOne("application_id", id);
+        if (affairRecordDO == null) {
+            return;
+        }
+        AtgBizAffairFinishRequest req = new AtgBizAffairFinishRequest();
+        req.setProjId(affairRecordDO.getProjId());
+        req.setAppId("286301");
+        req.setAreaCode("610100");
+        req.setDeptCode("100");
+        req.setDeptName("陕西省卫生健康委员会");
+        req.setGmtService(formatter.format(LocalDateTime.now()));
+        req.setOperatorUid("1");
+        req.setOperatorName("陕西省大型设备管理员");
+        req.setResult("10");
+        req.setResultCode("2");
+        req.setResultDesc("准予许可");
+        req.setMemo("你的申请已办结。");
+        req.setExtInfo(new  HashMap<>());
+        client.execute(req);
     }
 
     Map<Integer, String> appTypeMap = Map.of(1, "申请", 2, "补办", 3 , "变更", 4, "基本信息变更");

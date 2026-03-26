@@ -44,7 +44,7 @@ public class ApplicationDO extends BaseDO {
      */
     private Long institutionId;
     /**
-     * 申请类型：1-乙类许可证申请，2-乙类许可证补办，3-乙类许可证变更，4-基本信息变更，5-线下变更
+     * 申请类型：1-乙类许可证申请，2-乙类许可证补办，3-乙类许可证变更，4-基本信息变更，5-线下变更 6 乙类许可证注销
      */
     private Integer appType;
     /**

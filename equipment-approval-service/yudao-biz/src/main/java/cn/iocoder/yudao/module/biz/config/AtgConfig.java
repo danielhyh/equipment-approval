@@ -13,7 +13,7 @@ import java.util.List;
 public class AtgConfig {
 
     // 替换为实际环境地址
-    private static final String GATEWAY_URL = "http://59.218.152.131:8087/openapi";
+    private static final String GATEWAY_URL = "http://172.29.75.154:8087/openapi";
     private static final String APP_ID = "286301";
     private static final String KEY_ID = "h9nyv3q66ms1bu8feg0t1i6kvbmosnag";
     private static final String SECRET_KEY = "oGbmfpC4BZMtrKygrz2g0BQT";

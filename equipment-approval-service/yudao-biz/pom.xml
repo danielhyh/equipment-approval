@@ -20,8 +20,6 @@
             <groupId>alipay.atg.sdk</groupId>
             <artifactId>sdk.java</artifactId>
             <version>ALL20251212094729</version>
-            <scope>system</scope>
-            <systemPath>${project.basedir}/libs/atg-sdk-java-ALL20251212094729.jar</systemPath>
         </dependency>
 
         <dependency>

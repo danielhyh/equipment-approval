@@ -161,20 +161,20 @@
           </template>
         </el-table-column>
         <!-- 验收 -->
-        <el-table-column label="验收" align="center">
-          <template #default="{ row }">
-            <el-button
-              v-if="row.acceptanceStatus !== 1 && !!row.duplicateId && row.status === null"
-              type="warning"
-              size="small"
-              @click="row.isUpload ? copyInspectionFn(row) : null"
-              :disabled="!row.isUpload"
-            >
-              {{ row.isUpload ? '设备验收' : '设备未验收' }}
-            </el-button>
-            <span v-else>-</span>
-          </template>
-        </el-table-column>
+<!--        <el-table-column label="验收" align="center">-->
+<!--          <template #default="{ row }">-->
+<!--            <el-button-->
+<!--              v-if="row.acceptanceStatus !== 1 && !!row.duplicateId && row.status === null"-->
+<!--              type="warning"-->
+<!--              size="small"-->
+<!--              @click="row.isUpload ? copyInspectionFn(row) : null"-->
+<!--              :disabled="!row.isUpload"-->
+<!--            >-->
+<!--              {{ row.isUpload ? '设备验收' : '设备未验收' }}-->
+<!--            </el-button>-->
+<!--            <span v-else>-</span>-->
+<!--          </template>-->
+<!--        </el-table-column>-->
         <!-- 许可证 -->
         <el-table-column label="许可证" align="center" width="140">
           <template #default="scope">

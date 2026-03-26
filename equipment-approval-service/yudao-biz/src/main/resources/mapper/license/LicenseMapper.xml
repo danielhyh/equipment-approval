@@ -57,6 +57,9 @@
                  left join biz_institution_ext d on c.institution_id = d.dept_id
                  left join biz_acceptance_material e on c.id = e.application_id
         <where>
+            <if test="p.acceptanceStatus == '0' || p.acceptanceStatus == 0">
+                and a.application_id in (SELECT DISTINCT application_id FROM biz_acceptance_material where status = '待审核')
+            </if>
             <if test="p.licenseType != null and p.licenseType != ''">
                 and c.app_type = #{p.licenseType}
             </if>

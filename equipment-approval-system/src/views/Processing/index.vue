@@ -6,7 +6,7 @@
         <div class="subtitle"> 大型医用设备审批办件管理 </div>
       </div>
     </div> -->
-    <div class="container-body" v-loading="loading">
+    <div class="container-body" v-loading="activeType !== 'acceptance' && loading">
       <div class="type-tabs-list">
         <div
           class="type-tabs-item"
@@ -19,6 +19,10 @@
           <i v-if="item.size">{{ item.size }}</i>
         </div>
       </div>
+      <template v-if="activeType === 'acceptance'">
+        <Acceptance />
+      </template>
+      <template v-else>
       <div class="search-list-container">
         <el-form :model="queryParams" ref="queryFormRef" inline label-suffix=":" size="default">
           <el-form-item label="状态" prop="appStatus">
@@ -179,6 +183,7 @@
           @pagination="getList"
         />
       </div>
+      </template>
     </div>
 
     <!-- <Qrcode text="http://113.45.143.70:8899/institution/index.html" /> -->
@@ -202,6 +207,7 @@
 import { Dialog } from '@/components/Dialog/index'
 import { View, Search, Avatar, Download, Printer } from '@element-plus/icons-vue'
 import licence from './components/license.vue'
+import Acceptance from './components/acceptance.vue'
 import { getDictOptions } from '@/utils/dict'
 import type { DictDataType } from '@/utils/dict'
 import { ApplicationApi } from '@/api/biz/application'
@@ -244,21 +250,20 @@ let typeList = ref<TypeList[]>([
     key: 'cert_renew_count'
   },
   {
-    label: '证书变更',
-    size: 0,
-    value: 3,
-    type: 'change',
-    status: 'biz_app_status',
-    equipment: 'biz_main_equipment_type',
-    key: 'cert_change_count'
-  },
-  {
     label: '基本信息变更',
     size: 0,
     value: 4,
     type: 'basicInfoChange',
     status: 'biz_app_status',
     key: 'info_change_count'
+  },
+  {
+    label: '设备验收',
+    size: 0,
+    value: 5,
+    type: 'acceptance',
+    status: '',
+    key: 'acceptance_material_count'
   }
 ])
 let activeType = ref<string>('apply')
@@ -306,6 +311,8 @@ const changeTypeFn = (item: TypeList) => {
   activeStatus.value = item.status || ''
   activeEquipment.value = item.equipment || ''
   queryParams.appType = item.value
+  // 设备验收 tab 有自己的数据加载逻辑，不需要调用主列表
+  if (item.type === 'acceptance') return
   // 切换类型时，重置表单
   //resetForm()
   resetAllFn()
@@ -329,15 +336,6 @@ let tableConfig = computed<TableConfigType>(() => {
           { title: '申请日期', dataIndex: 'createTime', minWidth: '120' },
           { title: '状态', dataIndex: 'appStatus', minWidth: '120' },
           { title: '剩余时间', dataIndex: 'remainingDays', minWidth: '120' }
-        ]
-      }
-    case 'change':
-      return {
-        columns: [
-          { title: '申请单位', dataIndex: 'institutionName' },
-          { title: '设备名称', dataIndex: 'licenseDeviceName' },
-          { title: '申请日期', dataIndex: 'createTime' },
-          { title: '状态', dataIndex: 'appStatus' }
         ]
       }
     case 'reissue':

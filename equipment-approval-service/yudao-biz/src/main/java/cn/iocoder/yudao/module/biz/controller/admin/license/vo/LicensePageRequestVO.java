@@ -22,4 +22,9 @@ public class LicensePageRequestVO {
     private String region;
     @Schema(description = "许可证编号、配置单位、设备名称")
     private String keywords;
+
+    /*
+        设备验收状态
+     */
+    private String acceptanceStatus;
 }

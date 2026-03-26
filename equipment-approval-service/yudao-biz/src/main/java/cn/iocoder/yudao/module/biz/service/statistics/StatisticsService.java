@@ -35,7 +35,12 @@ public class StatisticsService {
 
 
     public Map<String, Object> applicationSummary(Integer status, QueryRequest request) {
-        return statisticsMapper.applicationSummary(status, request);
+        Integer cnt = jdbcClient.sql("SELECT count(DISTINCT application_id) as cnt FROM biz_acceptance_material where status = '待审核'")
+                .query(Integer.class)
+                .single();
+        Map<String, Object> stringObjectMap = statisticsMapper.applicationSummary(status, request);
+        stringObjectMap.put("acceptance_material_count", cnt);
+        return stringObjectMap;
     }
 
 

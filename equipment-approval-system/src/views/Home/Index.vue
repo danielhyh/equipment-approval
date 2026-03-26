@@ -318,13 +318,6 @@ const handleReview = (item: ReviewItem) => {
         type: 'reissue' // 证书补办类型
       }
     })
-  } else if (item.appType === '3') {
-    router.push({
-      path: '/processing',
-      query: {
-        type: 'change' // 证书变更类型
-      }
-    })
   } else if (item.appType === '4') {
     router.push({
       path: '/processing',
@@ -341,8 +334,6 @@ const getProcessType = (appType: string) => {
       return 'apply'
     case '2':
       return 'reissue'
-    case '3':
-      return 'change'
     case '4':
       return 'basicInfoChange'
     default:
@@ -357,8 +348,6 @@ const getReviewTypeText = (appType: string): string => {
       return '乙类许可证申请'
     case '2':
       return '乙类许可证补办'
-    case '3':
-      return '乙类许可证变更'
     case '4':
       return '基本信息变更'
     default:
@@ -373,8 +362,6 @@ const getReviewTagType = (appType: string): string => {
       return 'primary'
     case '2':
       return 'success'
-    case '3':
-      return 'warning'
     case '4':
       return 'danger'
     default:
