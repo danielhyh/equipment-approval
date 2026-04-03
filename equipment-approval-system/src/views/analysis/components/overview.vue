@@ -21,8 +21,8 @@
 
     <!-- 图表区域 -->
     <div class="charts-grid">
-      <!-- 第一行：3个图表 -->
-      <div class="chart-row row-3">
+      <!-- 第一行：2个图表 -->
+      <div class="chart-row row-2">
         <!-- 办件统计 -->
         <div class="chart-card">
           <div class="chart-header">
@@ -44,22 +44,23 @@
           </div>
           <div ref="licenseChartRef" class="chart-container"></div>
         </div>
-
-        <!-- 专家统计 -->
-        <div class="chart-card">
-          <div class="chart-header">
-            <div class="chart-title">
-              <span class="title-icon"></span>
-              专家领域分布
-            </div>
-          </div>
-          <div ref="expertChartRef" class="chart-container"></div>
-        </div>
       </div>
 
-      <!-- 第二行：2个图表 -->
-      <div class="chart-row row-2">
-        <!-- 历史数据统计 -->
+      <!-- 已注释：专家领域分布 -->
+      <!--
+      <div class="chart-card">
+        <div class="chart-header">
+          <div class="chart-title">
+            <span class="title-icon"></span>
+            专家领域分布
+          </div>
+        </div>
+        <div ref="expertChartRef" class="chart-container"></div>
+      </div>
+      -->
+
+      <!-- 第二行：历史数据统计（全宽） -->
+      <div class="chart-row row-1">
         <div class="chart-card">
           <div class="chart-header">
             <div class="chart-title">
@@ -69,21 +70,23 @@
           </div>
           <div ref="historyChartRef" class="chart-container"></div>
         </div>
-
-        <!-- 公告统计 -->
-        <div class="chart-card">
-          <div class="chart-header">
-            <div class="chart-title">
-              <span class="title-icon"></span>
-              公告统计概览
-            </div>
-          </div>
-          <div ref="noticeChartRef" class="chart-container"></div>
-        </div>
       </div>
 
-      <!-- 第三行：2个图表 -->
-      <div class="chart-row row-2">
+      <!-- 已注释：公告统计概览 -->
+      <!--
+      <div class="chart-card">
+        <div class="chart-header">
+          <div class="chart-title">
+            <span class="title-icon"></span>
+            公告统计概览
+          </div>
+        </div>
+        <div ref="noticeChartRef" class="chart-container"></div>
+      </div>
+      -->
+
+      <!-- 第三行：设备生产企业统计（全宽） -->
+      <div class="chart-row row-1">
         <!-- 设备生产企业统计 -->
         <div class="chart-card">
           <div class="chart-header">
@@ -95,7 +98,8 @@
           <div ref="deviceChartRef" class="chart-container"></div>
         </div>
 
-        <!-- 医疗机构统计 -->
+        <!-- 已注释：医疗机构设备配置统计（与许可证设备分类统计重复） -->
+        <!--
         <div class="chart-card">
           <div class="chart-header">
             <div class="chart-title">
@@ -105,6 +109,7 @@
           </div>
           <div ref="hospitalChartRef" class="chart-container"></div>
         </div>
+        -->
       </div>
     </div>
 
@@ -136,6 +141,24 @@
             />
           </el-select>
         </el-form-item>
+        <el-form-item label="设备品目" prop="deviceNames">
+          <el-select
+            v-model="filterParams.deviceNames"
+            placeholder="请选择设备品目"
+            style="width: 100%"
+            clearable
+            multiple
+            collapse-tags
+            collapse-tags-tooltip
+          >
+            <el-option
+              v-for="item in deviceNameOptions"
+              :key="item.value"
+              :label="item.label"
+              :value="item.label"
+            />
+          </el-select>
+        </el-form-item>
       </el-form>
       <template #footer>
         <div style="display: flex; justify-content: center; align-items: center">
@@ -163,6 +186,11 @@ let regionOptions = computed<DictDataTypeT[]>(() => {
   return getDictOptions('biz_area_list')
 })
 
+// 设备品目选项（使用字典）
+let deviceNameOptions = computed<DictDataTypeT[]>(() => {
+  return getDictOptions('biz_main_equipment_type')
+})
+
 // 核心指标数据
 const coreMetrics = reactive([
   {
@@ -185,42 +213,43 @@ const coreMetrics = reactive([
     key: 'history_total',
     icon: 'mdi:database',
     color: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)'
-  },
-  {
-    label: '专家总数',
-    value: 0,
-    key: 'expert_total',
-    icon: 'mdi:account-group',
-    color: 'linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)'
   }
+  // 已注释：专家总数
+  // {
+  //   label: '专家总数',
+  //   value: 0,
+  //   key: 'expert_total',
+  //   icon: 'mdi:account-group',
+  //   color: 'linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)'
+  // }
 ])
 
 // ECharts 实例引用
 const handingChartRef = ref<HTMLElement>()
 const licenseChartRef = ref<HTMLElement>()
 const historyChartRef = ref<HTMLElement>()
-const expertChartRef = ref<HTMLElement>()
-const noticeChartRef = ref<HTMLElement>()
+// const expertChartRef = ref<HTMLElement>()  // 已注释：专家领域分布
+// const noticeChartRef = ref<HTMLElement>()  // 已注释：公告统计概览
 const deviceChartRef = ref<HTMLElement>()
-const hospitalChartRef = ref<HTMLElement>()
+// const hospitalChartRef = ref<HTMLElement>()  // 已注释：医疗机构设备配置统计
 
 let handingChart: echarts.ECharts | null = null
 let licenseChart: echarts.ECharts | null = null
 let historyChart: echarts.ECharts | null = null
-let expertChart: echarts.ECharts | null = null
-let noticeChart: echarts.ECharts | null = null
+// let expertChart: echarts.ECharts | null = null  // 已注释：专家领域分布
+// let noticeChart: echarts.ECharts | null = null  // 已注释：公告统计概览
 let deviceChart: echarts.ECharts | null = null
-let hospitalChart: echarts.ECharts | null = null
+// let hospitalChart: echarts.ECharts | null = null  // 已注释：医疗机构设备配置统计
 
 // 数据存储
 const chartData = reactive({
   handing: [] as any[],
   license: [] as any[],
   history: [] as any[],
-  expert: [] as any[],
-  notice: [] as any[],
-  device: [] as any[],
-  hospital: [] as any[]
+  // expert: [] as any[],  // 已注释：专家领域分布
+  // notice: [] as any[],  // 已注释：公告统计概览
+  device: [] as any[]
+  // hospital: [] as any[]  // 已注释：医疗机构设备配置统计
 })
 
 let loading = ref(false)
@@ -231,10 +260,10 @@ const initCharts = () => {
     initHandingChart()
     initLicenseChart()
     initHistoryChart()
-    initExpertChart()
-    initNoticeChart()
+    // initExpertChart()  // 已注释：专家领域分布
+    // initNoticeChart()  // 已注释：公告统计概览
     initDeviceChart()
-    initHospitalChart()
+    // initHospitalChart()  // 已注释：医疗机构设备配置统计
   })
 }
 
@@ -256,7 +285,7 @@ const initHandingChart = () => {
       itemHeight: 12,
       textStyle: { fontSize: 11 }
     },
-    color: ['#5470c6', '#91cc75', '#fac858', '#ee6666', '#73c0de'],
+    color: ['#5470c6', '#91cc75', '#fac858', '#ee6666', '#73c0de', '#d1c8a4'],
     series: [
       {
         name: '办件统计',
@@ -291,199 +320,327 @@ const initHandingChart = () => {
   handingChart.setOption(option)
 }
 
-// 许可证统计图表 - 柱状图
+// 许可证统计图表 - 柱状图 / 折线图（按设备筛选时切换）
 const initLicenseChart = () => {
   if (!licenseChartRef.value) return
   licenseChart = echarts.init(licenseChartRef.value)
 
-  const categories = chartData.license.map((item) => item.name)
-  const values = chartData.license.map((item) => item.value)
+  const hasDeviceFilter = filterParams.deviceNames.length > 0
 
-  const option = {
-    tooltip: {
-      trigger: 'axis',
-      axisPointer: { type: 'shadow' },
-      textStyle: { fontSize: 12 }
-    },
-    grid: {
-      left: '8%',
-      right: '4%',
-      bottom: '12%',
-      top: '8%',
-      containLabel: true
-    },
-    xAxis: {
-      type: 'category',
-      data: categories,
-      axisLabel: {
-        interval: 0,
-        rotate: 25,
-        fontSize: 10
-      }
-    },
-    yAxis: {
-      type: 'value',
-      axisLabel: { fontSize: 11 }
-    },
-    series: [
-      {
-        name: '数量',
-        type: 'bar',
-        data: values,
-        itemStyle: {
-          color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-            { offset: 0, color: '#83bff6' },
-            { offset: 0.5, color: '#188df0' },
-            { offset: 1, color: '#188df0' }
-          ])
-        },
-        barWidth: '35%'
-      }
-    ]
+  let option: any
+
+  if (hasDeviceFilter) {
+    // 按年份趋势展示，每个设备一条折线
+    const rawData = chartData.license as any[]
+    // 提取所有年份并排序
+    const yearSet = new Set<number>()
+    const deviceSet = new Set<string>()
+    rawData.forEach((item) => {
+      yearSet.add(Number(item.year))
+      deviceSet.add(item.deviceName)
+    })
+    const years = Array.from(yearSet).sort()
+    const devices = Array.from(deviceSet)
+
+    // 构建每个设备的年份数据
+    const dataMap: Record<string, Record<number, number>> = {}
+    rawData.forEach((item) => {
+      if (!dataMap[item.deviceName]) dataMap[item.deviceName] = {}
+      dataMap[item.deviceName][Number(item.year)] = Number(item.count)
+    })
+
+    const series = devices.map((device) => ({
+      name: device,
+      type: 'line',
+      smooth: true,
+      data: years.map((y) => dataMap[device]?.[y] || 0),
+      symbolSize: 6
+    }))
+
+    option = {
+      tooltip: {
+        trigger: 'axis',
+        textStyle: { fontSize: 12 }
+      },
+      legend: {
+        bottom: '3%',
+        left: 'center',
+        itemWidth: 12,
+        itemHeight: 12,
+        textStyle: { fontSize: 10 }
+      },
+      grid: {
+        left: '8%',
+        right: '4%',
+        bottom: '18%',
+        top: '8%',
+        containLabel: true
+      },
+      xAxis: {
+        type: 'category',
+        data: years.map(String),
+        axisLabel: { fontSize: 11 }
+      },
+      yAxis: {
+        type: 'value',
+        axisLabel: { fontSize: 11 }
+      },
+      series
+    }
+  } else {
+    // 原有的品目对比柱状图
+    const categories = chartData.license.map((item) => item.name)
+    const values = chartData.license.map((item) => item.value)
+
+    option = {
+      tooltip: {
+        trigger: 'axis',
+        axisPointer: { type: 'shadow' },
+        textStyle: { fontSize: 12 }
+      },
+      grid: {
+        left: '8%',
+        right: '4%',
+        bottom: '12%',
+        top: '8%',
+        containLabel: true
+      },
+      xAxis: {
+        type: 'category',
+        data: categories,
+        axisLabel: {
+          interval: 0,
+          rotate: 25,
+          fontSize: 10
+        }
+      },
+      yAxis: {
+        type: 'value',
+        axisLabel: { fontSize: 11 }
+      },
+      series: [
+        {
+          name: '数量',
+          type: 'bar',
+          data: values,
+          itemStyle: {
+            color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+              { offset: 0, color: '#83bff6' },
+              { offset: 0.5, color: '#188df0' },
+              { offset: 1, color: '#188df0' }
+            ])
+          },
+          barWidth: '35%'
+        }
+      ]
+    }
   }
 
   licenseChart.setOption(option)
 }
 
-// 历史数据统计图表 - 横向柱状图
+// 历史数据统计图表 - 横向柱状图 / 折线图（按设备筛选时切换）
 const initHistoryChart = () => {
   if (!historyChartRef.value) return
   historyChart = echarts.init(historyChartRef.value)
 
-  const categories = chartData.history.map((item) => item.name)
-  const values = chartData.history.map((item) => item.value)
+  const hasDeviceFilter = filterParams.deviceNames.length > 0
 
-  const option = {
-    tooltip: {
-      trigger: 'axis',
-      axisPointer: { type: 'shadow' },
-      textStyle: { fontSize: 12 }
-    },
-    grid: {
-      left: '5%',
-      right: '8%',
-      bottom: '3%',
-      top: '3%',
-      containLabel: true
-    },
-    xAxis: {
-      type: 'value',
-      axisLabel: { fontSize: 11 }
-    },
-    yAxis: {
-      type: 'category',
-      data: categories,
-      axisLabel: { fontSize: 11 }
-    },
-    series: [
-      {
-        name: '数量',
-        type: 'bar',
-        data: values,
-        itemStyle: {
-          color: new echarts.graphic.LinearGradient(1, 0, 0, 0, [
-            { offset: 0, color: '#a18cd1' },
-            { offset: 1, color: '#fbc2eb' }
-          ])
-        },
-        barWidth: '45%',
-        label: {
-          show: true,
-          position: 'right',
-          formatter: '{c}',
-          fontSize: 11
+  let option: any
+
+  if (hasDeviceFilter) {
+    // 按年份趋势展示，每个设备一条折线
+    const rawData = chartData.history as any[]
+    const yearSet = new Set<number>()
+    const deviceSet = new Set<string>()
+    rawData.forEach((item) => {
+      yearSet.add(Number(item.year))
+      deviceSet.add(item.deviceName)
+    })
+    const years = Array.from(yearSet).sort()
+    const devices = Array.from(deviceSet)
+
+    const dataMap: Record<string, Record<number, number>> = {}
+    rawData.forEach((item) => {
+      if (!dataMap[item.deviceName]) dataMap[item.deviceName] = {}
+      dataMap[item.deviceName][Number(item.year)] = Number(item.count)
+    })
+
+    const series = devices.map((device) => ({
+      name: device,
+      type: 'line',
+      smooth: true,
+      data: years.map((y) => dataMap[device]?.[y] || 0),
+      symbolSize: 6
+    }))
+
+    option = {
+      tooltip: {
+        trigger: 'axis',
+        textStyle: { fontSize: 12 }
+      },
+      legend: {
+        bottom: '3%',
+        left: 'center',
+        itemWidth: 12,
+        itemHeight: 12,
+        textStyle: { fontSize: 10 }
+      },
+      grid: {
+        left: '5%',
+        right: '8%',
+        bottom: '18%',
+        top: '8%',
+        containLabel: true
+      },
+      xAxis: {
+        type: 'category',
+        data: years.map(String),
+        axisLabel: { fontSize: 11 }
+      },
+      yAxis: {
+        type: 'value',
+        axisLabel: { fontSize: 11 }
+      },
+      series
+    }
+  } else {
+    // 原有的横向柱状图
+    const categories = chartData.history.map((item) => item.name)
+    const values = chartData.history.map((item) => item.value)
+
+    option = {
+      tooltip: {
+        trigger: 'axis',
+        axisPointer: { type: 'shadow' },
+        textStyle: { fontSize: 12 }
+      },
+      grid: {
+        left: '5%',
+        right: '8%',
+        bottom: '3%',
+        top: '3%',
+        containLabel: true
+      },
+      xAxis: {
+        type: 'value',
+        axisLabel: { fontSize: 11 }
+      },
+      yAxis: {
+        type: 'category',
+        data: categories,
+        axisLabel: { fontSize: 11 }
+      },
+      series: [
+        {
+          name: '数量',
+          type: 'bar',
+          data: values,
+          itemStyle: {
+            color: new echarts.graphic.LinearGradient(1, 0, 0, 0, [
+              { offset: 0, color: '#a18cd1' },
+              { offset: 1, color: '#fbc2eb' }
+            ])
+          },
+          barWidth: '45%',
+          label: {
+            show: true,
+            position: 'right',
+            formatter: '{c}',
+            fontSize: 11
+          }
         }
-      }
-    ]
+      ]
+    }
   }
 
   historyChart.setOption(option)
 }
 
-// 专家统计图表 - 玫瑰图
-const initExpertChart = () => {
-  if (!expertChartRef.value) return
-  expertChart = echarts.init(expertChartRef.value)
+// 已注释：专家统计图表 - 玫瑰图
+// const initExpertChart = () => {
+//   if (!expertChartRef.value) return
+//   expertChart = echarts.init(expertChartRef.value)
+//
+//   const option = {
+//     tooltip: {
+//       trigger: 'item',
+//       formatter: '{a} <br/>{b}: {c} ({d}%)',
+//       textStyle: { fontSize: 12 }
+//     },
+//     legend: {
+//       bottom: '3%',
+//       left: 'center',
+//       itemWidth: 12,
+//       itemHeight: 12,
+//       textStyle: { fontSize: 11 }
+//     },
+//     color: ['#ff6b6b', '#4ecdc4', '#45b7d1', '#f9ca24', '#6c5ce7', '#a29bfe'],
+//     series: [
+//       {
+//         name: '专家分布',
+//         type: 'pie',
+//         radius: [15, 85],
+//         center: ['50%', '45%'],
+//         roseType: 'area',
+//         itemStyle: {
+//           borderRadius: 6
+//         },
+//         label: {
+//           fontSize: 11
+//         },
+//         data: chartData.expert
+//       }
+//     ]
+//   }
+//
+//   expertChart.setOption(option)
+// }
 
-  const option = {
-    tooltip: {
-      trigger: 'item',
-      formatter: '{a} <br/>{b}: {c} ({d}%)',
-      textStyle: { fontSize: 12 }
-    },
-    legend: {
-      bottom: '3%',
-      left: 'center',
-      itemWidth: 12,
-      itemHeight: 12,
-      textStyle: { fontSize: 11 }
-    },
-    color: ['#ff6b6b', '#4ecdc4', '#45b7d1', '#f9ca24', '#6c5ce7', '#a29bfe'],
-    series: [
-      {
-        name: '专家分布',
-        type: 'pie',
-        radius: [15, 85],
-        center: ['50%', '45%'],
-        roseType: 'area',
-        itemStyle: {
-          borderRadius: 6
-        },
-        label: {
-          fontSize: 11
-        },
-        data: chartData.expert
-      }
-    ]
-  }
-
-  expertChart.setOption(option)
-}
-
-// 公告统计图表 - 环形图
-const initNoticeChart = () => {
-  if (!noticeChartRef.value) return
-  noticeChart = echarts.init(noticeChartRef.value)
-
-  const option = {
-    tooltip: {
-      trigger: 'item',
-      textStyle: { fontSize: 12 }
-    },
-    legend: {
-      bottom: '3%',
-      left: 'center',
-      itemWidth: 12,
-      itemHeight: 12,
-      textStyle: { fontSize: 11 }
-    },
-    color: ['#36a3f7', '#34bfa3', '#f4516c', '#ffb822'],
-    series: [
-      {
-        name: '公告统计',
-        type: 'pie',
-        radius: ['40%', '65%'],
-        center: ['50%', '45%'],
-        avoidLabelOverlap: false,
-        label: {
-          show: true,
-          formatter: '{b}\n{c}',
-          fontSize: 11
-        },
-        emphasis: {
-          label: {
-            show: true,
-            fontSize: 14,
-            fontWeight: 'bold'
-          }
-        },
-        data: chartData.notice
-      }
-    ]
-  }
-
-  noticeChart.setOption(option)
-}
+// 已注释：公告统计图表 - 环形图
+// const initNoticeChart = () => {
+//   if (!noticeChartRef.value) return
+//   noticeChart = echarts.init(noticeChartRef.value)
+//
+//   const option = {
+//     tooltip: {
+//       trigger: 'item',
+//       textStyle: { fontSize: 12 }
+//     },
+//     legend: {
+//       bottom: '3%',
+//       left: 'center',
+//       itemWidth: 12,
+//       itemHeight: 12,
+//       textStyle: { fontSize: 11 }
+//     },
+//     color: ['#36a3f7', '#34bfa3', '#f4516c', '#ffb822'],
+//     series: [
+//       {
+//         name: '公告统计',
+//         type: 'pie',
+//         radius: ['40%', '65%'],
+//         center: ['50%', '45%'],
+//         avoidLabelOverlap: false,
+//         label: {
+//           show: true,
+//           formatter: '{b}\n{c}',
+//           fontSize: 11
+//         },
+//         emphasis: {
+//           label: {
+//             show: true,
+//             fontSize: 14,
+//             fontWeight: 'bold'
+//           }
+//         },
+//         data: chartData.notice
+//       }
+//     ]
+//   }
+//
+//   noticeChart.setOption(option)
+// }
 
 // 设备生产企业统计图表 - 柱状图
 const initDeviceChart = () => {
@@ -543,71 +700,67 @@ const initDeviceChart = () => {
   deviceChart.setOption(option)
 }
 
-// 医疗机构统计图表 - 柱状图
-const initHospitalChart = () => {
-  if (!hospitalChartRef.value) return
-  hospitalChart = echarts.init(hospitalChartRef.value)
-
-  const categories = chartData.hospital.map((item) => item.name)
-  const values = chartData.hospital.map((item) => item.value)
-
-  const option = {
-    tooltip: {
-      trigger: 'axis',
-      axisPointer: { type: 'shadow' },
-      textStyle: { fontSize: 12 }
-    },
-    grid: {
-      left: '8%',
-      right: '4%',
-      bottom: '12%',
-      top: '8%',
-      containLabel: true
-    },
-    xAxis: {
-      type: 'category',
-      data: categories,
-      axisLabel: {
-        interval: 0,
-        rotate: 25,
-        fontSize: 10
-      }
-    },
-    yAxis: {
-      type: 'value',
-      axisLabel: { fontSize: 11 }
-    },
-    series: [
-      {
-        name: '机构数量',
-        type: 'bar',
-        data: values,
-        itemStyle: {
-          color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-            { offset: 0, color: '#30cfd0' },
-            { offset: 1, color: '#330867' }
-          ])
-        },
-        barWidth: '40%',
-        label: {
-          show: true,
-          position: 'top',
-          fontSize: 11
-        }
-      }
-    ]
-  }
-
-  hospitalChart.setOption(option)
-}
+// 已注释：医疗机构统计图表 - 柱状图（与许可证设备分类统计重复）
+// const initHospitalChart = () => {
+//   if (!hospitalChartRef.value) return
+//   hospitalChart = echarts.init(hospitalChartRef.value)
+//
+//   const categories = chartData.hospital.map((item) => item.name)
+//   const values = chartData.hospital.map((item) => item.value)
+//
+//   const option = {
+//     tooltip: {
+//       trigger: 'axis',
+//       axisPointer: { type: 'shadow' },
+//       textStyle: { fontSize: 12 }
+//     },
+//     grid: {
+//       left: '8%',
+//       right: '4%',
+//       bottom: '12%',
+//       top: '8%',
+//       containLabel: true
+//     },
+//     xAxis: {
+//       type: 'category',
+//       data: categories,
+//       axisLabel: {
+//         interval: 0,
+//         rotate: 25,
+//         fontSize: 10
+//       }
+//     },
+//     yAxis: {
+//       type: 'value',
+//       axisLabel: { fontSize: 11 }
+//     },
+//     series: [
+//       {
+//         name: '机构数量',
+//         type: 'bar',
+//         data: values,
+//         itemStyle: {
+//           color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+//             { offset: 0, color: '#30cfd0' },
+//             { offset: 1, color: '#330867' }
+//           ])
+//         },
+//         barWidth: '40%',
+//         label: {
+//           show: true,
+//           position: 'top',
+//           fontSize: 11
+//         }
+//       }
+//     ]
+//   }
+//
+//   hospitalChart.setOption(option)
+// }
 
 // 更新图表数据
 const updateChartsData = (data: any) => {
-  // 更新核心指标
-  coreMetrics[0].value = data.application?.total_count || 0
-  coreMetrics[1].value = data.license?.total_count || 0
-  coreMetrics[2].value = data.history?.total || 0
-  coreMetrics[3].value = data.expert?.totalCount || 0
+  // 核心指标已独立调用，不在此处更新
 
   // 办件统计数据
   chartData.handing = [
@@ -615,54 +768,67 @@ const updateChartsData = (data: any) => {
     { name: '证书补办', value: data.application?.cert_renew_count || 0 },
     { name: '证书变更', value: data.application?.cert_change_count || 0 },
     { name: '基本信息变更', value: data.application?.info_change_count || 0 },
-    { name: '线下办理', value: data.application?.offline_count || 0 }
+    { name: '线下办理', value: data.application?.offline_count || 0 },
+    { name: '证书注销', value: data.application?.cancel_count || 0 }
   ]
 
   // 许可证统计数据
-  chartData.license = [
-   {
-      name: '1.5T及以上磁共振成像系统放射治疗类设备',
-      value: data.device?.mriSystem1_5tPlus || 0
-    },
-    { name: 'X线正电子发射断层扫描仪', value: data.device?.petCtScanner || 0 },
-    { name: '内窥镜手术器械控制系统', value: data.device?.endoscopicSurgicalSystem || 0 },
-    {
-      name: '64排及以上X线计算机断层扫描仪',
-      value: data.device?.ctScanner64SlicePlus || 0
-    },
-    { name: '直线加速器', value: data.device?.linearAccelerator || 0 },
-    { name: '伽玛射线立体定向放射治疗系统', value: data.device?.gammaRayStereotacticRtSystem || 0 }
-  ]
+  const hasDeviceFilter = filterParams.deviceNames.length > 0
+  if (hasDeviceFilter) {
+    // 选了设备筛选 → 数据是按年份分组的 List<{year, deviceName, count}>
+    chartData.license = data.license as any[]
+  } else {
+    // 未选设备 → 原有的品目对比模式
+    chartData.license = [
+      {
+        name: '1.5T及以上磁共振成像系统',
+        value: data.license?.mriSystem1_5tPlus || 0
+      },
+      { name: 'X线正电子发射断层扫描仪', value: data.license?.petCtScanner || 0 },
+      { name: '内窥镜手术器械控制系统', value: data.license?.endoscopicSurgicalSystem || 0 },
+      {
+        name: '64排及以上X线计算机断层扫描仪',
+        value: data.license?.ctScanner64SlicePlus || 0
+      },
+      { name: '直线加速器', value: data.license?.linearAccelerator || 0 },
+      { name: '伽玛射线立体定向放射治疗系统', value: data.license?.gammaRayStereotacticRtSystem || 0 }
+    ]
+  }
 
   // 历史数据统计
-  chartData.history = [
-    { name: 'x线正电子发射断层扫描仪', value: data.history?.petCtScanner || 0 },
-    { name: '内窥镜手术器械控制系统', value: data.history?.endoscopicSurgicalSystem || 0 },
-    { name: '64排以上X线计算机断层扫描仪', value: data.history?.ctScanner64SlicePlus || 0 },
-    { name: '1.5T及以上磁共振成像系统', value: data.history?.mriSystem1_5tPlus || 0 },
-    { name: '直线加速器', value: data.history?.linearAccelerator || 0 },
-    {
-      name: '伽马射线立体定向放射治疗系统',
-      value: data.history?.gammaRayStereotacticRtSystem || 0
-    }
-  ]
+  if (hasDeviceFilter) {
+    // 选了设备筛选 → 数据是按年份分组的 List<{year, deviceName, count}>
+    chartData.history = data.history as any[]
+  } else {
+    chartData.history = [
+      { name: 'x线正电子发射断层扫描仪', value: data.history?.petCtScanner || 0 },
+      { name: '内窥镜手术器械控制系统', value: data.history?.endoscopicSurgicalSystem || 0 },
+      { name: '64排以上X线计算机断层扫描仪', value: data.history?.ctScanner64SlicePlus || 0 },
+      { name: '1.5T及以上磁共振成像系统', value: data.history?.mriSystem1_5tPlus || 0 },
+      { name: '直线加速器', value: data.history?.linearAccelerator || 0 },
+      {
+        name: '伽马射线立体定向放射治疗系统',
+        value: data.history?.gammaRayStereotacticRtSystem || 0
+      }
+    ]
+  }
 
-  // 专家统计数据
-  chartData.expert = [
-    { name: '放射影像', value: data.expert?.radiologyImaging || 0 },
-    { name: '放射治疗', value: data.expert?.radiationTherapy || 0 },
-    { name: '核医学', value: data.expert?.nuclearMedicine || 0 },
-    { name: '卫生管理', value: data.expert?.healthManagement || 0 },
-    { name: '医学设备与安全防护', value: data.expert?.medicalEquipmentSafety || 0 },
-    { name: '医学智能工程', value: data.expert?.medicalIntelligentEngineering || 0 }
-  ]
+  // 已注释：专家统计数据
+  // chartData.expert = [
+  //   { name: '放射影像', value: data.expert?.radiologyImaging || 0 },
+  //   { name: '放射治疗', value: data.expert?.radiationTherapy || 0 },
+  //   { name: '核医学', value: data.expert?.nuclearMedicine || 0 },
+  //   { name: '卫生管理', value: data.expert?.healthManagement || 0 },
+  //   { name: '医学设备与安全防护', value: data.expert?.medicalEquipmentSafety || 0 },
+  //   { name: '医学智能工程', value: data.expert?.medicalIntelligentEngineering || 0 }
+  // ]
 
-  // 公告统计数据
-  chartData.notice = [
-    { name: '已发布', value: data.notice?.publishedCount || 0 },
-    { name: '未发布', value: data.notice?.draftCount || 0 },
-    { name: '总浏览量', value: data.notice?.totalViews || 0 }
-  ]
+  // 已注释：公告统计数据
+  // chartData.notice = [
+  //   { name: '已发布', value: data.notice?.publishedCount || 0 },
+  //   { name: '未发布', value: data.notice?.draftCount || 0 },
+  //   { name: '总浏览量', value: data.notice?.totalViews || 0 }
+  // ]
 
   // 设备生产企业数据
   chartData.device = [
@@ -680,42 +846,40 @@ const updateChartsData = (data: any) => {
     { name: '伽玛射线立体定向放射治疗系统', value: data.device?.gammaRayStereotacticRtSystem || 0 }
   ]
 
-  // 医疗机构数据
-  chartData.hospital = [
-    {
-      name: '1.5T及以上磁共振成像系统放射治疗类设备',
-      value: data.device?.mriSystem1_5tPlus || 0
-    },
-    { name: 'X线正电子发射断层扫描仪', value: data.device?.petCtScanner || 0 },
-    { name: '内窥镜手术器械控制系统', value: data.device?.endoscopicSurgicalSystem || 0 },
-    {
-      name: '64排及以上X线计算机断层扫描仪',
-      value: data.device?.ctScanner64SlicePlus || 0
-    },
-    { name: '直线加速器', value: data.device?.linearAccelerator || 0 },
-    { name: '伽玛射线立体定向放射治疗系统', value: data.device?.gammaRayStereotacticRtSystem || 0 }
-  ]
+  // 已注释：医疗机构数据（与许可证设备分类统计重复）
+  // chartData.hospital = [
+  //   {
+  //     name: '1.5T及以上磁共振成像系统放射治疗类设备',
+  //     value: data.device?.mriSystem1_5tPlus || 0
+  //   },
+  //   { name: 'X线正电子发射断层扫描仪', value: data.device?.petCtScanner || 0 },
+  //   { name: '内窥镜手术器械控制系统', value: data.device?.endoscopicSurgicalSystem || 0 },
+  //   {
+  //     name: '64排及以上X线计算机断层扫描仪',
+  //     value: data.device?.ctScanner64SlicePlus || 0
+  //   },
+  //   { name: '直线加速器', value: data.device?.linearAccelerator || 0 },
+  //   { name: '伽玛射线立体定向放射治疗系统', value: data.device?.gammaRayStereotacticRtSystem || 0 }
+  // ]
 
   // 重新渲染所有图表
   handingChart?.setOption({ series: [{ data: chartData.handing }] })
-  licenseChart?.setOption({
-    xAxis: { data: chartData.license.map((item) => item.name) },
-    series: [{ data: chartData.license.map((item) => item.value) }]
-  })
-  historyChart?.setOption({
-    yAxis: { data: chartData.history.map((item) => item.name) },
-    series: [{ data: chartData.history.map((item) => item.value) }]
-  })
-  expertChart?.setOption({ series: [{ data: chartData.expert }] })
-  noticeChart?.setOption({ series: [{ data: chartData.notice }] })
+  licenseChart?.dispose()
+  licenseChart = null
+  initLicenseChart()
+  historyChart?.dispose()
+  historyChart = null
+  initHistoryChart()
+  // expertChart?.setOption({ series: [{ data: chartData.expert }] })  // 已注释：专家领域分布
+  // noticeChart?.setOption({ series: [{ data: chartData.notice }] })  // 已注释：公告统计概览
   deviceChart?.setOption({
     xAxis: { data: chartData.device.map((item) => item.name) },
     series: [{ data: chartData.device.map((item) => item.value) }]
   })
-  hospitalChart?.setOption({
-    xAxis: { data: chartData.hospital.map((item) => item.name) },
-    series: [{ data: chartData.hospital.map((item) => item.value) }]
-  })
+  // hospitalChart?.setOption({  // 已注释：医疗机构设备配置统计
+  //   xAxis: { data: chartData.hospital.map((item) => item.name) },
+  //   series: [{ data: chartData.hospital.map((item) => item.value) }]
+  // })
 }
 
 // 获取概览数据
@@ -727,31 +891,33 @@ const getOverviewData = async () => {
         year: filterParams.fullYears
       }),
       AnalysisApi.getLicenseSummary({
-        year: filterParams.fullYears
+        year: filterParams.fullYears,
+        deviceNames: filterParams.deviceNames.length > 0 ? filterParams.deviceNames : undefined
       }),
       AnalysisApi.getHistorySummary({
-        year: filterParams.fullYears
+        year: filterParams.fullYears,
+        deviceNames: filterParams.deviceNames.length > 0 ? filterParams.deviceNames : undefined
       }),
-      AnalysisApi.getExpertSummary(),
-      AnalysisApi.getNoticeSummary({
-        year: filterParams.fullYears
-      }),
+      // AnalysisApi.getExpertSummary(),  // 已注释：专家领域分布
+      // AnalysisApi.getNoticeSummary({   // 已注释：公告统计概览
+      //   year: filterParams.fullYears
+      // }),
       AnalysisApi.getEquipmentCompanySummary({
         year: filterParams.fullYears
-      }),
-      AnalysisApi.getHealthcareSummary({
-        year: filterParams.fullYears
       })
+      // AnalysisApi.getHealthcareSummary({  // 已注释：医疗机构设备配置统计
+      //   year: filterParams.fullYears
+      // })
     ])
 
     const data = {
       application: response[0],
       license: response[1],
       history: response[2],
-      expert: response[3],
-      notice: response[4],
-      device: response[5],
-      hospital: response[6]
+      // expert: response[3],   // 已注释：专家领域分布
+      // notice: response[4],   // 已注释：公告统计概览
+      device: response[3]
+      // hospital: response[4]  // 已注释：医疗机构设备配置统计
     }
 
     updateChartsData(data)
@@ -765,7 +931,8 @@ const getOverviewData = async () => {
 // 筛选弹窗
 let filterParams = reactive({
   fullYears: '',
-  region: ''
+  region: '',
+  deviceNames: [] as string[]
 })
 let filterVisible = ref(false)
 let filterDialogProp = reactive({
@@ -787,14 +954,27 @@ const handleResize = () => {
   handingChart?.resize()
   licenseChart?.resize()
   historyChart?.resize()
-  expertChart?.resize()
-  noticeChart?.resize()
+  // expertChart?.resize()  // 已注释：专家领域分布
+  // noticeChart?.resize()  // 已注释：公告统计概览
   deviceChart?.resize()
-  hospitalChart?.resize()
+  // hospitalChart?.resize()  // 已注释：医疗机构设备配置统计
+}
+
+// 加载核心指标（独立调用，不受筛选影响）
+const loadOverviewMetrics = async () => {
+  try {
+    const metrics = await AnalysisApi.getOverviewMetrics()
+    coreMetrics[0].value = metrics?.totalApplications || 0
+    coreMetrics[1].value = metrics?.totalLicenses || 0
+    coreMetrics[2].value = metrics?.totalHistory || 0
+  } catch (err) {
+    console.log(err)
+  }
 }
 
 onMounted(() => {
   initCharts()
+  loadOverviewMetrics()
   getOverviewData()
   window.addEventListener('resize', handleResize)
 })
@@ -804,10 +984,10 @@ onUnmounted(() => {
   handingChart?.dispose()
   licenseChart?.dispose()
   historyChart?.dispose()
-  expertChart?.dispose()
-  noticeChart?.dispose()
+  // expertChart?.dispose()  // 已注释：专家领域分布
+  // noticeChart?.dispose()  // 已注释：公告统计概览
   deviceChart?.dispose()
-  hospitalChart?.dispose()
+  // hospitalChart?.dispose()  // 已注释：医疗机构设备配置统计
 })
 </script>
 
@@ -815,32 +995,16 @@ onUnmounted(() => {
 // 响应式布局
 @media (width <= 1600px) {
   .core-metrics {
-    grid-template-columns: repeat(2, 1fr);
-  }
-
-  .charts-grid {
-    .chart-row {
-      &.row-3 {
-        grid-template-columns: repeat(2, 1fr);
-
-        .chart-card:last-child {
-          grid-column: span 2;
-        }
-      }
-    }
+    grid-template-columns: repeat(3, 1fr);
   }
 }
 
 @media (width <= 1200px) {
   .charts-grid {
     .chart-row {
-      &.row-3,
-      &.row-2 {
+      &.row-2,
+      &.row-1 {
         grid-template-columns: 1fr;
-      }
-
-      .chart-card:last-child {
-        grid-column: span 1;
       }
     }
   }
@@ -944,7 +1108,7 @@ onUnmounted(() => {
 
 .core-metrics {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(3, 1fr);
   gap: 12px;
   margin-bottom: 12px;
 
@@ -1012,6 +1176,10 @@ onUnmounted(() => {
 
     &.row-2 {
       grid-template-columns: repeat(2, 1fr);
+    }
+
+    &.row-1 {
+      grid-template-columns: 1fr;
     }
   }
 

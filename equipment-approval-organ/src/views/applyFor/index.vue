@@ -151,6 +151,8 @@ let typeKey = computed(() => {
       return 3;
     case "info":
       return 4;
+    case "cancel":
+      return 6;
   }
 });
 provide("applyType", typeKey.value); //申请类型

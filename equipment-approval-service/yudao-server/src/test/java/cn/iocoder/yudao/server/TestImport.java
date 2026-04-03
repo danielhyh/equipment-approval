@@ -8,6 +8,7 @@ import jakarta.annotation.Resource;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @SpringBootTest
@@ -40,23 +41,16 @@ public class TestImport {
 
     @Test
     void test1() {
-        String orgFilePath = "C:\\Users\\WangLe\\Desktop\\机构&用户\\机构.CSV";
-        String userFilePath = "C:\\Users\\WangLe\\Desktop\\机构&用户\\大型设备用户.CSV";
+        String orgFilePath = "C:\\Users\\13496\\Desktop\\设备机构.xlsx";
 
-        List<ExcelDeptDTO> orgList = EasyExcel.read(orgFilePath, ExcelDeptDTO.class, null)
-                .headRowNumber(1)
-                .sheet(0)
-                .doReadSync();
-        List<ExcelUserDTO> userList = EasyExcel.read(userFilePath, ExcelUserDTO.class, null)
-                .headRowNumber(1)
+        List<ExcelDeptDTO> orgList = EasyExcel.read(orgFilePath, ExcelDeptDTO2.class, null)
+                .headRowNumber(2)
                 .sheet(0)
                 .doReadSync();
         System.out.println(orgList.size());
-        System.out.println(userList.size());
         List<SyncDeptDTO> bean = BeanUtils.toBean(orgList, SyncDeptDTO.class);
-        List<SyncUserDTO> bean1 = BeanUtils.toBean(userList, SyncUserDTO.class);
+        System.out.println(bean.size());
         //3 甲
-        dataSyncService.batchSync(new ExternalBatchPushDTO(bean, bean1));
-//        dataSyncService.syncDept()
+       dataSyncService.batchSync(new ExternalBatchPushDTO(bean, new ArrayList<>()));
     }
 }

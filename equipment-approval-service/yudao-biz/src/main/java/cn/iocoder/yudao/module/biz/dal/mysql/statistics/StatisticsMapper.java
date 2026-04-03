@@ -24,6 +24,9 @@ public interface StatisticsMapper {
     List<Map<String, Object>> equipmentSummary(@Param("year") Integer year);
     //许可证统计汇总
     Map<String, Object> licenseSummary(@Param("req") QueryRequest request);
+
+    //许可证统计汇总-按年份分组（选了设备筛选时使用）
+    List<Map<String, Object>> licenseSummaryByYear(@Param("req") QueryRequest request);
     // totalCount: 专家总数
     // radiologyCount: 放射影像专业专家数量
     // radiotherapyCount: 放射治疗专业专家数量
@@ -60,4 +63,7 @@ public interface StatisticsMapper {
 
     //历史汇总
     Map<String, Object> historySummary(@Param("req") QueryRequest request);
+
+    //历史汇总-按年份分组（选了设备筛选时使用）
+    List<Map<String, Object>> historySummaryByYear(@Param("req") QueryRequest request);
 }

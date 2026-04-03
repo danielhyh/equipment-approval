@@ -19,7 +19,8 @@ public interface ClassAEquipmentMapper extends BaseMapperX<ClassAEquipmentDO> {
 
     default PageResult<ClassAEquipmentDO> selectPage(ClassAEquipmentPageReqVO reqVO) {
         return selectPage(reqVO, new LambdaQueryWrapperX<ClassAEquipmentDO>()
-                .or(i ->
+                .eq(ClassAEquipmentDO::getType, 1)
+                .and(i ->
                         i.like(ClassAEquipmentDO::getConfigUnitName, reqVO.getKeyword())
                                 .or()
                                 .like(ClassAEquipmentDO::getUnifiedSocialCreditCode, reqVO.getKeyword()))

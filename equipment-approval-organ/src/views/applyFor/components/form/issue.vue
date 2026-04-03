@@ -25,24 +25,49 @@
     <el-form-item label="所有制性质*" prop="ownershipNature">
       <el-input v-model="formData.ownershipNature" placeholder="请输入所有制性质" disabled />
     </el-form-item>
-    <!-- 许可设备名称* -->
-    <el-form-item label="许可设备名称*" prop="licenseDeviceName" class="grid-item-l-2">
-      <el-select v-model="formData.licenseDeviceName" placeholder="请选择许可设备名称" clearable :disabled="submitSuccess">
-        <el-option
-          v-for="item in deviceOptions"
-          :key="item.value"
-          :label="item.label"
-          :value="item.value"
-          :disabled="item.disabled"
-        />
-      </el-select>
-    </el-form-item>
-    <!-- 阶梯配置机型* -->
-    <el-form-item label="阶梯配置机型*" prop="ladderConfigModel" class="grid-item-r-2">
-      <el-select v-model="formData.ladderConfigModel" placeholder="请输入阶梯配置机型" clearable :disabled="submitSuccess">
-        <el-option v-for="item in modelOptions" :key="item.value" :label="item.label" :value="item.value" />
-      </el-select>
-    </el-form-item>
+
+    <!-- 注销类型：选择已有许可证 -->
+    <template v-if="appType === 6">
+      <el-form-item label="选择要注销的许可证*" prop="selectedLicenseId" class="grid-item-row">
+        <el-select
+          v-model="formData.selectedLicenseId"
+          placeholder="请选择要注销的许可证"
+          clearable
+          :disabled="submitSuccess"
+          @change="onLicenseChange"
+        >
+          <el-option
+            v-for="item in licenseOptions"
+            :key="item.originalId"
+            :label="`${item.licenseNo} - ${item.licenseDeviceName}（${item.ladderConfigModel || ''}）`"
+            :value="item.originalId"
+          />
+        </el-select>
+      </el-form-item>
+    </template>
+
+    <!-- 非注销类型：原有的设备名称和机型选择 -->
+    <template v-else>
+      <!-- 许可设备名称* -->
+      <el-form-item label="许可设备名称*" prop="licenseDeviceName" class="grid-item-l-2">
+        <el-select v-model="formData.licenseDeviceName" placeholder="请选择许可设备名称" clearable :disabled="submitSuccess">
+          <el-option
+            v-for="item in deviceOptions"
+            :key="item.value"
+            :label="item.label"
+            :value="item.value"
+            :disabled="item.disabled"
+          />
+        </el-select>
+      </el-form-item>
+      <!-- 阶梯配置机型* -->
+      <el-form-item label="阶梯配置机型*" prop="ladderConfigModel" class="grid-item-r-2">
+        <el-select v-model="formData.ladderConfigModel" placeholder="请输入阶梯配置机型" clearable :disabled="submitSuccess">
+          <el-option v-for="item in modelOptions" :key="item.value" :label="item.label" :value="item.value" />
+        </el-select>
+      </el-form-item>
+    </template>
+
     <!-- 设备配置地址* -->
     <el-form-item label="设备配置地址*" prop="detailedAddress" class="grid-item-row">
       <template #label="{ label }">
@@ -66,6 +91,7 @@ import { isEmptyObject } from "@/utils/tools";
 import { useUserStore } from "@/pinia/modules/user";
 import { useDictStore } from "@/pinia/modules/dict";
 import { createApply, updateApply, getApplyReviewedList } from "@/apis/applyFor";
+import { getLicenseList } from "@/apis/home";
 let userStore = useUserStore();
 let dictStore = useDictStore();
 const appType = inject("applyType"); // 申请类型
@@ -82,18 +108,27 @@ let formData = reactive({
   detailedAddress: "", // 设备配置地址
   contactPerson: "", // 联系人
   contactPhone: "", // 联系人电话
+  selectedLicenseId: null, // 注销时选择的许可证正本ID
 });
-let rules = reactive({
-  licenseDeviceName: [{ required: true, message: "请选择许可设备名称", trigger: "blur" }],
-  ladderConfigModel: [{ required: true, message: "请输入阶梯配置机型", trigger: "blur" }],
-});
+let rules = reactive(
+  appType === 6
+    ? {
+        selectedLicenseId: [{ required: true, message: "请选择要注销的许可证", trigger: "change" }],
+      }
+    : {
+        licenseDeviceName: [{ required: true, message: "请选择许可设备名称", trigger: "blur" }],
+        ladderConfigModel: [{ required: true, message: "请输入阶梯配置机型", trigger: "blur" }],
+      }
+);
 let userInfo = computed(() => userStore.getUser);
 // 数据初始化
 watch(
   () => userInfo.value,
   (user) => {
     Object.keys(formData).forEach((key) => {
-      formData[key] = user[key] || formData[key];
+      if (key !== "selectedLicenseId") {
+        formData[key] = user[key] || formData[key];
+      }
     });
   },
   { immediate: true }
@@ -113,6 +148,35 @@ const getChangeReviewedList = async () => {
   let { data } = await getApplyReviewedList();
   applyListData.value = data;
 };
+
+// 注销：许可证列表
+let licenseOptions = ref([]);
+let selectedLicenseInfo = ref(null); // 选中的许可证完整信息
+const fetchLicenseList = async () => {
+  try {
+    let { data } = await getLicenseList({ pageSize: 999, pageNum: 1 });
+    licenseOptions.value = (data?.list || []).filter((item) => item.originalId);
+  } catch (err) {
+    console.error("获取许可证列表失败", err);
+  }
+};
+// 选择许可证时回填信息，将设备名称转为字典编号
+const onLicenseChange = (originalId) => {
+  let license = licenseOptions.value.find((item) => item.originalId === originalId);
+  selectedLicenseInfo.value = license || null;
+  if (license) {
+    // 将许可证的设备名称文本反查为字典编号，供后续步骤使用
+    let deviceDict = dictStore.getDictTypeList("biz_main_equipment_type").find((d) => d.label === license.licenseDeviceName);
+    let modelDict = dictStore.getDictTypeList("biz_ladder_config_model").find((d) => d.label === license.ladderConfigModel);
+    formData.licenseDeviceName = deviceDict?.value || license.licenseDeviceName;
+    formData.ladderConfigModel = modelDict?.value || license.ladderConfigModel;
+  } else {
+    formData.licenseDeviceName = "";
+    formData.ladderConfigModel = "";
+    selectedLicenseInfo.value = null;
+  }
+};
+
 // 许可设备
 let deviceOptions = computed(() => {
   if (appType === 1) {
@@ -152,12 +216,26 @@ const submit = () => {
       }
       let params = {
         institutionId: userInfo.value.institutionId,
-        // licenseDeviceName:formData.licenseDeviceName, // 这个下一步会用到
-        licenseDeviceName: deviceOptions.value.find((item) => item.value === formData.licenseDeviceName)?.label,
-        ladderConfigModel: modelOptions.value.find((item) => item.value === formData.ladderConfigModel)?.label,
         appType: appType,
         appStatus: 1,
       };
+
+      if (appType === 6) {
+        // 注销：使用选中许可证的信息
+        let license = selectedLicenseInfo.value;
+        params.licenseDeviceName = license?.licenseDeviceName || "";
+        params.ladderConfigModel = license?.ladderConfigModel || "";
+        // 将正本、副本、设备ID存入extra
+        params.extra = {
+          originalId: license?.originalId || null,
+          duplicateId: license?.duplicateId || null,
+          equipmentId: license?.equipmentId || null,
+        };
+      } else {
+        params.licenseDeviceName = deviceOptions.value.find((item) => item.value === formData.licenseDeviceName)?.label;
+        params.ladderConfigModel = modelOptions.value.find((item) => item.value === formData.ladderConfigModel)?.label;
+      }
+
       if (formData.id) {
         params.id = formData.id;
       }
@@ -181,7 +259,10 @@ const submit = () => {
   });
 };
 onMounted(() => {
-  if (appType !== 1) {
+  if (appType === 6) {
+    // 注销：加载许可证列表
+    fetchLicenseList();
+  } else if (appType !== 1) {
     getChangeReviewedList();
   }
 });

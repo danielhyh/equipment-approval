@@ -92,7 +92,7 @@ public class ApplicationServiceImpl implements ApplicationService {
 
     private final DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("yyyyMMddHHmmss");
 
-    private final Map<Integer, String> actionDescMap = Map.of(1, "许可证申请", 2, "许可证补办", 3, "许可证变更", 4, "基本信息变更");
+    private final Map<Integer, String> actionDescMap = Map.of(1, "许可证申请", 2, "许可证补办", 3, "许可证变更", 4, "基本信息变更", 6, "许可证注销");
 
     @Override
     public Long createApplication(AppApplicationSaveReqVO createReqVO) {
@@ -101,6 +101,12 @@ public class ApplicationServiceImpl implements ApplicationService {
         application.setAppNo("SQ-"+timeFormatter.format(LocalDateTime.now()));
         application.setAppStatus(1);//待初审
         application.setDeadline(LocalDate.now().plusDays(45));
+        // 注销类型：将前端选择的许可证信息存入extra
+        if (Integer.valueOf(6).equals(createReqVO.getAppType()) && createReqVO.getExtra() != null) {
+            ObjectNode extraNode = objectMapper.createObjectNode();
+            extraNode.set("withdrawInfo", createReqVO.getExtra());
+            application.setExtra(extraNode);
+        }
         applicationMapper.insert(application);
         //记录操作日志
         Long loginUserId = SecurityFrameworkUtils.getLoginUserId();
@@ -291,15 +297,23 @@ public class ApplicationServiceImpl implements ApplicationService {
             }
             update.setAppStatus(result == 1 ? 5 : 4);
             if (result == 1) {
-                update.setLicenseNo(reviewVO.getLicenseCode());
-                update.setLicenseGenerateDate(reviewVO.getLicenseGenerateDate());
-                //专家审核通过后异步执行创建正本，同事修改许可证序列号表状态为已使用
-                CompletableFuture.runAsync(() -> generateOriginal(reviewVO), bizExecutor)
-                        .exceptionally(throwable -> {
-                            log.error("生成正本失败,reviewVO:{}", JSON.toJSONString(reviewVO), throwable);
-                            return null;
-                        });
-
+                // 注销类型：专家审核通过后执行注销流程
+                if (6 == applicationDO.getAppType()) {
+                    CompletableFuture.runAsync(() -> handleCancelLicense(applicationDO), bizExecutor)
+                            .exceptionally(throwable -> {
+                                log.error("注销许可证失败,applicationId:{}", applicationDO.getId(), throwable);
+                                return null;
+                            });
+                } else {
+                    update.setLicenseNo(reviewVO.getLicenseCode());
+                    update.setLicenseGenerateDate(reviewVO.getLicenseGenerateDate());
+                    //专家审核通过后异步执行创建正本，同时修改许可证序列号表状态为已使用
+                    CompletableFuture.runAsync(() -> generateOriginal(reviewVO), bizExecutor)
+                            .exceptionally(throwable -> {
+                                log.error("生成正本失败,reviewVO:{}", JSON.toJSONString(reviewVO), throwable);
+                                return null;
+                            });
+                }
             }
             String res = result ==1 ? "专家审核已通过。": "专家审核未通过。";
             publisherNotification(id, loginUserId, res, opinion);
@@ -336,7 +350,7 @@ public class ApplicationServiceImpl implements ApplicationService {
         client.execute(req);
     }
 
-    Map<Integer, String> appTypeMap = Map.of(1, "申请", 2, "补办", 3 , "变更", 4, "基本信息变更");
+    Map<Integer, String> appTypeMap = Map.of(1, "申请", 2, "补办", 3 , "变更", 4, "基本信息变更", 6, "注销");
 
     private void publisherNotification(Long appId, Long userId, String reviewRes, String opinion) {
         ApplicationDO applicationDO = applicationMapper.selectById(appId);
@@ -387,6 +401,66 @@ public class ApplicationServiceImpl implements ApplicationService {
         //修改序列号表状态
         jdbcClient.sql("update biz_device_license set status = 'USED' where license_number = ?")
                 .param(reviewVO.getLicenseCode()).update();
+    }
+
+    /**
+     * 处理许可证注销：删除正本、副本，释放证书编号，删除乙类设备数据
+     */
+
+    public void handleCancelLicense(ApplicationDO applicationDO) {
+        Long institutionId = applicationDO.getInstitutionId();
+        String licenseDeviceName = applicationDO.getLicenseDeviceName();
+
+        // 从extra中获取注销信息
+        ObjectNode extra = applicationDO.getExtra();
+        if (extra == null || !extra.has("withdrawInfo")) {
+            log.warn("注销许可证时未找到withdrawInfo, applicationId:{}", applicationDO.getId());
+            return;
+        }
+
+        com.fasterxml.jackson.databind.JsonNode withdrawInfo = extra.get("withdrawInfo");
+        Long originalId = withdrawInfo.has("originalId") && !withdrawInfo.get("originalId").isNull()
+                ? withdrawInfo.get("originalId").asLong() : null;
+        Long duplicateId = withdrawInfo.has("duplicateId") && !withdrawInfo.get("duplicateId").isNull()
+                ? withdrawInfo.get("duplicateId").asLong() : null;
+        Long equipmentId = withdrawInfo.has("equipmentId") && !withdrawInfo.get("equipmentId").isNull()
+                ? withdrawInfo.get("equipmentId").asLong() : null;
+
+        if (originalId == null) {
+            log.warn("注销许可证时未找到正本ID, applicationId:{}", applicationDO.getId());
+            return;
+        }
+
+        // 查询正本的许可证编号，用于释放
+        String licenseNo = jdbcClient.sql("SELECT license_no FROM biz_license_original WHERE id = ? AND deleted = 0")
+                .param(originalId)
+                .query(String.class)
+                .optional().orElse(null);
+
+        // 删除副本（逻辑删除）
+        if (duplicateId != null) {
+            jdbcClient.sql("UPDATE biz_license_duplicate SET deleted = 1 WHERE id = ? AND deleted = 0")
+                    .param(duplicateId).update();
+        }
+
+        // 删除关联的乙类设备数据（type=2）
+        if (equipmentId != null) {
+            jdbcClient.sql("UPDATE biz_class_a_equipment SET deleted = 1 WHERE id = ? AND type = 2")
+                    .param(equipmentId).update();
+        }
+
+        // 删除正本（逻辑删除）
+        jdbcClient.sql("UPDATE biz_license_original SET deleted = 1 WHERE id = ? AND deleted = 0")
+                .param(originalId).update();
+
+        // 释放证书编号
+        if (StringUtils.isNotBlank(licenseNo)) {
+            jdbcClient.sql("UPDATE biz_device_license SET status = 'GENERATED' WHERE license_number = ?")
+                    .param(licenseNo).update();
+        }
+
+        log.info("许可证注销完成, originalId:{}, duplicateId:{}, equipmentId:{}, licenseNo:{}, institutionId:{}, licenseDeviceName:{}",
+                originalId, duplicateId, equipmentId, licenseNo, institutionId, licenseDeviceName);
     }
 
     @Override

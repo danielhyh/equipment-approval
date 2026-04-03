@@ -28,7 +28,7 @@
             :autosize="{ minRows: 4, maxRows: 6 }"
           />
         </el-form-item>
-        <div class="row-col">
+        <div class="row-col" v-if="!isCancelType">
           <el-form-item label="许可证编号" prop="licenseCode">
             <el-input v-model="formValue.licenseCode" disabled show-word-limit maxlength="11" />
           </el-form-item>
@@ -145,8 +145,12 @@ const useAppData = useApplicationDataStore()
 const getReviewDetails = computed(() => {
   return useAppData.getReviewDetails
 })
+// 是否为注销类型（appType=6）
+const isCancelType = computed(() => {
+  return String(appType) === '6'
+})
 const route = useRoute()
-const { id } = route.query
+const { id, appType } = route.query
 
 let props = defineProps({
   disabled: {
@@ -197,11 +201,11 @@ const updateFormValue = () => {
 }
 
 let formRef = ref<FormInstance | null>(null)
-let rules = reactive({
+let rules = computed(() => ({
   reviewResult: [{ required: true, message: '请选择审核结果', trigger: 'blur' }],
   reviewOpinion: [{ required: false, message: '请输入审核备注', trigger: 'blur' }],
-  createDate: [{ required: true, message: '请选择日期', trigger: 'blur' }]
-})
+  createDate: [{ required: !isCancelType.value, message: '请选择日期', trigger: 'blur' }]
+}))
 
 interface listDataType {
   id: number
@@ -293,6 +297,8 @@ const searchExpertForm = ref({
   specialty: undefined
 })
 const generateLicenseNum = async () => {
+  // 注销类型不需要生成许可证编号
+  if (isCancelType.value) return
   formValue.value.licenseCode = await ApplicationApi.generateLicense(Number(id))
 }
 onMounted(async () => {

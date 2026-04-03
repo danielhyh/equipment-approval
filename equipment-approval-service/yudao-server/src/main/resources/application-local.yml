@@ -31,8 +31,8 @@ spring:
             multi-statement-allow: true
     dynamic: # 多数据源配置
       druid: # Druid 【连接池】相关的全局配置
-        initial-size: 2 # 初始连接数
-        min-idle: 2 # 最小连接池数量
+        initial-size: 10 # 初始连接数
+        min-idle: 10 # 最小连接池数量
         max-active: 20 # 最大连接池数量
         max-wait: 60000 # 配置获取连接等待超时的时间，单位：毫秒（1 分钟）
         time-between-eviction-runs-millis: 60000 # 配置间隔多久才进行一次检测，检测需要关闭的空闲连接，单位：毫秒（1 分钟）
@@ -280,4 +280,4 @@ sso:
   admin-postfix: index?token=
   client-postfix: "#/home/index-page?token="
   callback-url: http://127.0.0.1:48080/sso/callback
-  front-end-url: http://192.168.1.34:8080/
+  front-end-url: http://10.0.16.206:8080/

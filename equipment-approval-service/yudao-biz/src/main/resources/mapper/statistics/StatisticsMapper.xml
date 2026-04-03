@@ -8,7 +8,8 @@
                 SUM(IF(app_type = 2, 1, 0)) AS cert_renew_count,
                SUM(IF(app_type = 3, 1, 0)) AS cert_change_count,
                SUM(IF(app_type = 4, 1, 0)) AS info_change_count,
-               SUM(IF(app_type = 5, 1, 0)) AS offline_count
+               SUM(IF(app_type = 5, 1, 0)) AS offline_count,
+               SUM(IF(app_type = 6, 1 , 0)) as cancel_count
         FROM biz_application a
         left join biz_institution_ext b on a.institution_id = b.dept_id
         where a.deleted = 0
@@ -45,6 +46,30 @@
         <if test="req.year != null">
             and YEAR(a.create_time) = #{req.year}
         </if>
+    </select>
+
+    <!-- 许可证统计汇总-按年份分组（选了设备筛选时使用） -->
+    <select id="licenseSummaryByYear" resultType="map">
+        SELECT
+            YEAR(a.create_time) AS `year`,
+            a.license_device_name AS deviceName,
+            COUNT(*) AS count
+        FROM biz_license_original a
+        LEFT JOIN biz_license_duplicate d ON a.id = d.original_id
+        LEFT JOIN biz_application b ON a.application_id = b.id
+        LEFT JOIN biz_institution_ext c ON b.institution_id = c.dept_id
+        WHERE a.deleted = 0 AND d.acceptance_status = 1
+        <if test="req.deviceNames != null and !req.deviceNames.isEmpty()">
+            AND a.license_device_name IN
+            <foreach collection="req.deviceNames" item="item" open="(" close=")" separator=",">
+                #{item}
+            </foreach>
+        </if>
+        <if test="req.region != null and req.region != ''">
+            AND c.region = #{req.region}
+        </if>
+        GROUP BY YEAR(a.create_time), a.license_device_name
+        ORDER BY `year`
     </select>
 
     <select id="expertSummary" resultType="map">
@@ -148,7 +173,7 @@
         left join biz_institution_ext a on d.institution_id = a.dept_id
         left join biz_license_original b on b.application_id = d.id
         left join biz_license_duplicate c on b.id = c.original_id
-        where d.app_status = 5
+        where d.app_status = 5 and d.app_type in (1, 5) and b.deleted = 0 and c.deleted = 0
         <if test="req.ladderConfigModel != null and req.ladderConfigModel != ''">
             and d.ladder_config_model = #{req.ladderConfigModel}
         </if>
@@ -298,5 +323,30 @@
                 and e.FULLNAME like concat('%', #{req.region},'%')
             </if>
         </where>
+    </select>
+
+    <!-- 历史数据统计-按年份分组（选了设备筛选时使用） -->
+    <select id="historySummaryByYear" resultType="java.util.Map">
+        SELECT
+            SUBSTRING_INDEX(a.CREATED_DATE, '/', 1) AS `year`,
+            c.itemname AS deviceName,
+            COUNT(DISTINCT a.id) AS count
+        FROM history_license a
+        JOIN history_dict c ON a.xksbmc = c.dictid
+        LEFT JOIN history_area e ON a.sbpzdzCode = e.id
+        <where>
+            c.itemname IS NOT NULL AND a.CREATED_DATE IS NOT NULL
+            <if test="req.deviceNames != null and !req.deviceNames.isEmpty()">
+                AND c.itemname IN
+                <foreach collection="req.deviceNames" item="item" open="(" close=")" separator=",">
+                    #{item}
+                </foreach>
+            </if>
+            <if test="req.region != null and req.region != ''">
+                AND e.FULLNAME LIKE CONCAT('%', #{req.region}, '%')
+            </if>
+        </where>
+        GROUP BY SUBSTRING_INDEX(a.CREATED_DATE, '/', 1), c.itemname
+        ORDER BY `year`
     </select>
 </mapper>

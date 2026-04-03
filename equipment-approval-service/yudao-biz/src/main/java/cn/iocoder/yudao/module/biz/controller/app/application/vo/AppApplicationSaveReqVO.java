@@ -1,5 +1,6 @@
 package cn.iocoder.yudao.module.biz.controller.app.application.vo;
 
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.*;
 import java.util.*;
@@ -15,7 +16,7 @@ public class AppApplicationSaveReqVO {
     @Schema(description = "机构ID（关联dept_id）", requiredMode = Schema.RequiredMode.REQUIRED, example = "2710")
     private Long institutionId;
 
-    @Schema(description = "申请类型：1-乙类许可证申请，2-乙类许可证补办，3-乙类许可证变更，4-基本信息变更", requiredMode = Schema.RequiredMode.REQUIRED, example = "1")
+    @Schema(description = "申请类型：1-乙类许可证申请，2-乙类许可证补办，3-乙类许可证变更，4-基本信息变更 5-线下申请 6-乙类许可证注销", requiredMode = Schema.RequiredMode.REQUIRED, example = "1")
     private Integer appType;
 
     @Schema(description = "许可设备名称", example = "李四")
@@ -26,5 +27,7 @@ public class AppApplicationSaveReqVO {
 
     @Schema(description = "配置理由", example = "不香")
     private String configReason;
+
+    private ObjectNode extra;
 
 }

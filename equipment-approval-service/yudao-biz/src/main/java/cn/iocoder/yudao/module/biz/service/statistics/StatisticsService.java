@@ -27,10 +27,34 @@ public class StatisticsService {
     @Resource
     private JdbcClient jdbcClient;
 
+    /**
+     * 数据概览-核心指标（不受筛选影响）
+     * 返回办件总量、许可证总量、历史数据总量
+     */
+    public Map<String, Object> overviewMetrics() {
+        QueryRequest emptyReq = new QueryRequest();
+        Map<String, Object> appData = statisticsMapper.applicationSummary(null, emptyReq);
+        Map<String, Object> licenseData = statisticsMapper.licenseSummary(emptyReq);
+        Map<String, Object> historyData = statisticsMapper.historySummary(emptyReq);
+
+        Map<String, Object> result = new LinkedHashMap<>();
+        result.put("totalApplications", appData != null ? appData.getOrDefault("total_count", 0) : 0);
+        result.put("totalLicenses", licenseData != null ? licenseData.getOrDefault("total_count", 0) : 0);
+        result.put("totalHistory", historyData != null ? historyData.getOrDefault("total", 0) : 0);
+        return result;
+    }
+
     public Map<String, Object> historySummary(QueryRequest request) {
         Map<String, Object> map = statisticsMapper.historySummary(request);
         Collection<Object> values = map.values();
         return map;
+    }
+
+    /**
+     * 历史数据统计-按年份分组（选了设备筛选时使用）
+     */
+    public List<Map<String, Object>> historySummaryByYear(QueryRequest request) {
+        return statisticsMapper.historySummaryByYear(request);
     }
 
 
@@ -61,6 +85,14 @@ public class StatisticsService {
 
     public Map<String, Object> licenseSummary(QueryRequest request) {
         return statisticsMapper.licenseSummary(request);
+    }
+
+    /**
+     * 许可证统计汇总-按年份分组（选了设备筛选时使用）
+     * 返回 List<Map>，每条记录包含 year, deviceName, count
+     */
+    public List<Map<String, Object>> licenseSummaryByYear(QueryRequest request) {
+        return statisticsMapper.licenseSummaryByYear(request);
     }
 
     public Map<String, Object> expertSummary() {
@@ -277,5 +309,87 @@ public class StatisticsService {
 
     public Map<String, Object> processedLicenseSummary(Integer year) {
         return NamedTransformation.convertKeysToCamelCase(statisticsMapper.licenseCount(year));
+    }
+
+    /**
+     * 配置分布情况V2 - 按设备品目统计各维度数据
+     */
+    public List<Map<String, Object>> configDistributionV2() {
+        // 固定的设备品目列表（与截图中的表格行对应）
+        List<String> deviceNames = Arrays.asList(
+                "X线正电子发射断层扫描仪",
+                "内窥镜手术器械控制系统",
+                "直线加速器",
+                "伽玛射线立体定向放射治疗系统",
+                "1.5T及以上磁共振成像系统",
+                "64排及以上X线计算机断层扫描仪"
+        );
+
+        String sql = """
+                SELECT
+                    b.license_device_name,
+                    COUNT(*) AS total,
+                    SUM(CASE WHEN a.subject = '公立' THEN 1 ELSE 0 END) AS public_count,
+                    SUM(CASE WHEN a.subject = '民营' THEN 1 ELSE 0 END) AS private_count,
+                    SUM(CASE WHEN a.management_level = '中央级' THEN 1 ELSE 0 END) AS central_count,
+                    SUM(CASE WHEN a.management_level = '省级' THEN 1 ELSE 0 END) AS province_count,
+                    SUM(CASE WHEN a.management_level = '市级' THEN 1 ELSE 0 END) AS city_count,
+                    SUM(CASE WHEN a.management_level = '县级' THEN 1 ELSE 0 END) AS county_count,
+                    SUM(CASE WHEN a.category = '综合' THEN 1 ELSE 0 END) AS general_count,
+                    SUM(CASE WHEN a.category = '专科' THEN 1 ELSE 0 END) AS specialist_count,
+                    SUM(CASE WHEN a.hos_class = '三级' THEN 1 ELSE 0 END) AS level3_count,
+                    SUM(CASE WHEN a.hos_class = '二级' THEN 1 ELSE 0 END) AS level2_count,
+                    SUM(CASE WHEN a.hos_class = '未定级' THEN 1 ELSE 0 END) AS unrated_count,
+                    SUM(CASE WHEN d.acceptance_status = 1 THEN 1 ELSE 0 END) AS accepted_count,
+                    SUM(CASE WHEN d.acceptance_status != 1 OR d.acceptance_status IS NULL THEN 1 ELSE 0 END) AS not_accepted_count
+                FROM biz_application b
+                INNER JOIN biz_license_original c ON b.id = c.application_id AND c.deleted = 0
+                INNER JOIN biz_license_duplicate d ON c.id = d.original_id AND d.deleted = 0
+                LEFT JOIN biz_institution_ext a ON b.institution_id = a.dept_id
+                WHERE b.app_status = 5 AND b.deleted = 0
+                GROUP BY b.license_device_name
+                """;
+
+        List<Map<String, Object>> dbResult = jdbcClient.sql(sql).query().listOfRows();
+
+        // 构建 deviceName -> 数据行 的映射
+        Map<String, Map<String, Object>> dataMap = new HashMap<>();
+        for (Map<String, Object> row : dbResult) {
+            String name = (String) row.get("license_device_name");
+            if (name != null) {
+                dataMap.put(name, row);
+            }
+        }
+
+        // 按固定顺序输出，缺失的设备补零行
+        List<Map<String, Object>> result = new ArrayList<>();
+        for (String deviceName : deviceNames) {
+            Map<String, Object> row = dataMap.getOrDefault(deviceName, new HashMap<>());
+            Map<String, Object> item = new LinkedHashMap<>();
+            item.put("deviceName", deviceName);
+            item.put("total", toInt(row.get("total")));
+            item.put("publicCount", toInt(row.get("public_count")));
+            item.put("privateCount", toInt(row.get("private_count")));
+            item.put("centralCount", toInt(row.get("central_count")));
+            item.put("provinceCount", toInt(row.get("province_count")));
+            item.put("cityCount", toInt(row.get("city_count")));
+            item.put("countyCount", toInt(row.get("county_count")));
+            item.put("generalCount", toInt(row.get("general_count")));
+            item.put("specialistCount", toInt(row.get("specialist_count")));
+            item.put("level3Count", toInt(row.get("level3_count")));
+            item.put("level2Count", toInt(row.get("level2_count")));
+            item.put("unratedCount", toInt(row.get("unrated_count")));
+            item.put("acceptedCount", toInt(row.get("accepted_count")));
+            item.put("notAcceptedCount", toInt(row.get("not_accepted_count")));
+            result.add(item);
+        }
+
+        return result;
+    }
+
+    private int toInt(Object val) {
+        if (val == null) return 0;
+        if (val instanceof Number num) return num.intValue();
+        return Integer.parseInt(val.toString());
     }
 }

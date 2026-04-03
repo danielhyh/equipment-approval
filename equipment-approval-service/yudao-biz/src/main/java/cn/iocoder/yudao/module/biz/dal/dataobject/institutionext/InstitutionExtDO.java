@@ -93,5 +93,24 @@ public class InstitutionExtDO extends BaseDO {
      */
     private Integer institutionType;
 
+    /**
+     * 办医主体 公立 民营
+     */
+    private String subject;
+
+    /**
+     * 管理级次  中央级、省级、市级、县级
+     */
+    private String managementLevel;
+
+    /**
+     * 医院性质 专科 综合
+     */
+    private String category;
+
+    private String hosLevel;
+
+    private String hosGrade;
+
 
 }

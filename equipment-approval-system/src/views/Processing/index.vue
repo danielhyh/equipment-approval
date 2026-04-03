@@ -264,6 +264,15 @@ let typeList = ref<TypeList[]>([
     type: 'acceptance',
     status: '',
     key: 'acceptance_material_count'
+  },
+  {
+    label: '证书注销',
+    size: 0,
+    value: 6,
+    type: 'cancel',
+    status: 'biz_app_status',
+    equipment: 'biz_main_equipment_type',
+    key: 'cancel_count'
   }
 ])
 let activeType = ref<string>('apply')
@@ -356,6 +365,17 @@ let tableConfig = computed<TableConfigType>(() => {
           { title: '变更内容', dataIndex: `extra`, dataIndex2: 'changeDesc' },
           { title: '申请日期', dataIndex: 'createTime' },
           { title: '状态', dataIndex: 'appStatus' }
+        ]
+      }
+    case 'cancel':
+      return {
+        columns: [
+          { title: '申请单位', dataIndex: 'institutionName' },
+          { title: '设备名称', dataIndex: 'licenseDeviceName' },
+          { title: '阶梯配置机型', dataIndex: 'ladderConfigModel' },
+          { title: '申请日期', dataIndex: 'createTime' },
+          { title: '状态', dataIndex: 'appStatus' },
+          { title: '剩余时间', dataIndex: 'remainingDays' }
         ]
       }
     default:

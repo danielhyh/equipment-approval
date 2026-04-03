@@ -32,6 +32,14 @@ export const useBasisStore = defineStore("basis", {
         iconName: "svg-icon:arrow-right",
         iconType: "blue",
       },
+      {
+        id: "cancel",
+        title: "注销",
+        description:
+          "乙类大型医用设备配置许可证注销适用于设备报废、停用或机构不再使用该设备等情况，需要注销已取得的配置许可证。",
+        iconName: "svg-icon:end",
+        iconType: "red",
+      },
     ],
     licenseBasis: isJsonString(sessionGet("licenseBasis")) ?JSON.parse(sessionGet("licenseBasis")):{},
   }),

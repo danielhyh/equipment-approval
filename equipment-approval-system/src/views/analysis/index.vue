@@ -26,6 +26,7 @@ import DeviceOwnership from './components/deviceOwnership.vue'
 import annualAmount from './components/annualAmount.vue'
 import StepConfiguration from './components/StepConfiguration.vue'
 import configScatter from './components/configScatter.vue'
+import configScatterV2 from './components/configScatterV2.vue'
 
 let typeList = reactive([
   {
@@ -52,11 +53,17 @@ let typeList = reactive([
     icon: 'bi:clipboard-data-fill',
     component: markRaw(StepConfiguration)
   },
+  // {
+  //   label: '配置分布情况',
+  //   key: 'configDistribution',
+  //   icon: 'material-symbols:map-pin-review-rounded',
+  //   component: markRaw(configScatter)
+  // },
   {
     label: '配置分布情况',
-    key: 'configDistribution',
-    icon: 'material-symbols:map-pin-review-rounded',
-    component: markRaw(configScatter)
+    key: 'configDistributionV2',
+    icon: 'material-symbols:table-chart-view-outline',
+    component: markRaw(configScatterV2)
   }
 ])
 let activeType = ref(typeList[0])

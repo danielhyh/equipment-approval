@@ -229,6 +229,9 @@ const handleDetail = (row) => {
     case 4:
       applyType = "basis";
       break;
+    case 6:
+      applyType = "cancel";
+      break;
     default:
       applyType = null;
   }
@@ -257,6 +260,9 @@ const handleEdit = (row) => {
       break;
     case 4:
       applyType = "basis";
+      break;
+    case 6:
+      applyType = "cancel";
       break;
     default:
       applyType = null;
@@ -312,7 +318,7 @@ onMounted(() => {
 .home-container {
   .card-container {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    grid-template-columns: repeat(4, 1fr);
     gap: 20px;
     margin-bottom: 32px;
   }
@@ -355,6 +361,10 @@ onMounted(() => {
 
         &.card-icon-blue {
           background-color: #3b82f6;
+        }
+
+        &.card-icon-red {
+          background-color: #ef4444;
         }
       }
 

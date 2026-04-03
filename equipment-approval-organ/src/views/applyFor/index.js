@@ -1080,4 +1080,242 @@ export default {
       remark: "办理该项业务，需提供以下申请材料，才能进行业务的办理，请自检是否具备该材料。",
     },
   },
+  // 注销
+  cancel: {
+    title: "乙类大型医用设备配置许可证注销",
+    // 办理信息
+    processInfo: [
+      { label: "到场次数", value: "0次" },
+      { label: "法定办结时限", value: "20个工作日" },
+      { label: "承诺办结时限", value: "20个工作日" },
+      { label: "办理深度", value: "全省" },
+      { label: "办理深度", value: "全程网办" },
+    ],
+    // 基础信息
+    basisInfo: [
+      { label: "事项名称", value: "乙类大型医用设备配置许可证注销" },
+      { label: "目录名称", value: "乙类大型医用设备配置许可证核发" },
+      { label: "实施机关", value: "省卫生健康委员会" },
+      { label: "承诺办结时限", value: "20 工作日" },
+      { label: "实施机构（科）室", value: "省卫健委财务处" },
+      { label: "承诺办结时限说明", value: "无" },
+      { label: "咨询电话", value: "029-88668313" },
+    ],
+    // 审批条件
+    condition: {
+      list: [
+        "持有有效的乙类大型医用设备配置许可证；",
+        "设备已报废、停用或机构不再使用该设备；",
+        "具有执业许可证，并设置相应的诊疗科目；或具备符合相关规定要求的从事医疗服务的其他法人资质；",
+        "已妥善处理与该设备相关的医疗服务事项；",
+      ],
+      remark: "办理该项业务，需满足以下申请条件，才能进行业务的办理，请自检是否满足审批条件。",
+    },
+    // 收取材料
+    material: {
+      dept: {
+        shby: {
+          label: "社会办医",
+          list: [
+            {
+              text: "乙类大型医用设备配置许可证注销申请表", // 材料名称
+              required: true, // 是否必填
+              accept: ".doc,.docx",
+              fileType: 1,
+              type: "原件和复印件", //材料类型
+              form: "纸质、电子", // 材料形式
+              paper: "原件1份,复印件1份", //纸质材料份数
+              standard: "无", // 受理标准
+              source: "自备", // 来源渠道
+              notice: "无", // 填表须知
+              sample: "", // 样表
+              empty: "", // 空表
+              view: "", // 查看模板
+            },
+            {
+              text: "配置许可证正本原件", // 材料名称
+              required: true, // 是否必填
+              accept: ".png,.jpg,.jpeg",
+              fileType: 1,
+              type: "原件和复印件", //材料类型
+              form: "纸质、电子", // 材料形式
+              paper: "原件1份,复印件1份", //纸质材料份数
+              standard: "无", // 受理标准
+              source: "自备", // 来源渠道
+              notice: "无", // 填表须知
+              sample: "", // 样表
+              empty: "", // 空表
+              view: "", // 查看模板
+            },
+            {
+              text: "配置许可证副本原件", // 材料名称
+              required: false, // 是否必填
+              accept: ".png,.jpg,.jpeg",
+              fileType: 1,
+              type: "原件和复印件", //材料类型
+              form: "纸质、电子", // 材料形式
+              paper: "原件1份,复印件1份", //纸质材料份数
+              standard: "无", // 受理标准
+              source: "自备", // 来源渠道
+              notice: "无", // 填表须知
+              sample: "", // 样表
+              empty: "", // 空表
+              view: "", // 查看模板
+            },
+          ],
+        },
+        cjzj: {
+          label: "筹建或在建",
+          list: [
+            {
+              text: "乙类大型医用设备配置许可证注销申请表", // 材料名称
+              required: true, // 是否必填
+              accept: ".doc,.docx",
+              fileType: 1,
+              type: "原件和复印件", //材料类型
+              form: "纸质、电子", // 材料形式
+              paper: "原件1份,复印件1份", //纸质材料份数
+              standard: "无", // 受理标准
+              source: "自备", // 来源渠道
+              notice: "无", // 填表须知
+              sample: "", // 样表
+              empty: "", // 空表
+              view: "", // 查看模板
+            },
+            {
+              text: "配置许可证正本原件", // 材料名称
+              required: true, // 是否必填
+              accept: ".png,.jpg,.jpeg",
+              fileType: 1,
+              type: "原件和复印件", //材料类型
+              form: "纸质、电子", // 材料形式
+              paper: "原件1份,复印件1份", //纸质材料份数
+              standard: "无", // 受理标准
+              source: "自备", // 来源渠道
+              notice: "无", // 填表须知
+              sample: "", // 样表
+              empty: "", // 空表
+              view: "", // 查看模板
+            },
+            {
+              text: "配置许可证副本原件", // 材料名称
+              required: false, // 是否必填
+              accept: ".png,.jpg,.jpeg",
+              fileType: 1,
+              type: "原件和复印件", //材料类型
+              form: "纸质、电子", // 材料形式
+              paper: "原件1份,复印件1份", //纸质材料份数
+              standard: "无", // 受理标准
+              source: "自备", // 来源渠道
+              notice: "无", // 填表须知
+              sample: "", // 样表
+              empty: "", // 空表
+              view: "", // 查看模板
+            },
+          ],
+        },
+        zmqnshby: {
+          label: "自贸区内社会办医",
+          list: [
+            {
+              text: "乙类大型医用设备配置许可证注销申请表", // 材料名称
+              required: true, // 是否必填
+              accept: ".doc,.docx",
+              fileType: 1,
+              type: "原件和复印件", //材料类型
+              form: "纸质、电子", // 材料形式
+              paper: "原件1份,复印件1份", //纸质材料份数
+              standard: "无", // 受理标准
+              source: "自备", // 来源渠道
+              notice: "无", // 填表须知
+              sample: "", // 样表
+              empty: "", // 空表
+              view: "", // 查看模板
+            },
+            {
+              text: "配置许可证正本原件", // 材料名称
+              required: true, // 是否必填
+              accept: ".png,.jpg,.jpeg",
+              fileType: 1,
+              type: "原件和复印件", //材料类型
+              form: "纸质、电子", // 材料形式
+              paper: "原件1份,复印件1份", //纸质材料份数
+              standard: "无", // 受理标准
+              source: "自备", // 来源渠道
+              notice: "无", // 填表须知
+              sample: "", // 样表
+              empty: "", // 空表
+              view: "", // 查看模板
+            },
+            {
+              text: "配置许可证副本原件", // 材料名称
+              required: false, // 是否必填
+              accept: ".png,.jpg,.jpeg",
+              fileType: 1,
+              type: "原件和复印件", //材料类型
+              form: "纸质、电子", // 材料形式
+              paper: "原件1份,复印件1份", //纸质材料份数
+              standard: "无", // 受理标准
+              source: "自备", // 来源渠道
+              notice: "无", // 填表须知
+              sample: "", // 样表
+              empty: "", // 空表
+              view: "", // 查看模板
+            },
+          ],
+        },
+        bwcjhzj: {
+          label: "不为筹建或在建",
+          list: [
+            {
+              text: "乙类大型医用设备配置许可证注销申请表", // 材料名称
+              required: true, // 是否必填
+              accept: ".doc,.docx",
+              fileType: 1,
+              type: "原件和复印件", //材料类型
+              form: "纸质、电子", // 材料形式
+              paper: "原件1份,复印件1份", //纸质材料份数
+              standard: "无", // 受理标准
+              source: "自备", // 来源渠道
+              notice: "无", // 填表须知
+              sample: "", // 样表
+              empty: "", // 空表
+              view: "", // 查看模板
+            },
+            {
+              text: "配置许可证正本原件", // 材料名称
+              required: true, // 是否必填
+              accept: ".png,.jpg,.jpeg",
+              fileType: 1,
+              type: "原件和复印件", //材料类型
+              form: "纸质、电子", // 材料形式
+              paper: "原件1份,复印件1份", //纸质材料份数
+              standard: "无", // 受理标准
+              source: "自备", // 来源渠道
+              notice: "无", // 填表须知
+              sample: "", // 样表
+              empty: "", // 空表
+              view: "", // 查看模板
+            },
+            {
+              text: "配置许可证副本原件", // 材料名称
+              required: false, // 是否必填
+              accept: ".png,.jpg,.jpeg",
+              fileType: 1,
+              type: "原件和复印件", //材料类型
+              form: "纸质、电子", // 材料形式
+              paper: "原件1份,复印件1份", //纸质材料份数
+              standard: "无", // 受理标准
+              source: "自备", // 来源渠道
+              notice: "无", // 填表须知
+              sample: "", // 样表
+              empty: "", // 空表
+              view: "", // 查看模板
+            },
+          ],
+        },
+      },
+      remark: "办理该项业务，需提供以下申请材料，才能进行业务的办理，请自检是否具备该材料。",
+    },
+  },
 };

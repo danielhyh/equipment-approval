@@ -54,6 +54,9 @@ public class AppLicensePageRespVO {
     @Schema(description = "已提交验收材料 Y提交 N未提交")
     private String hasAcceptanceMaterial;
 
+    @Schema(description = "设备id")
+    private Long equipmentId;
+
     @Schema(description = "状态：0-不通过，1-通过，2-驳回整改")
     private String status;
 

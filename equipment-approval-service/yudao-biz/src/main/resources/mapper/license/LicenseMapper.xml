@@ -57,6 +57,7 @@
                  left join biz_institution_ext d on c.institution_id = d.dept_id
                  left join biz_acceptance_material e on c.id = e.application_id
         <where>
+            a.deleted = 0 and b.deleted = 0 and c.deleted = 0
             <if test="p.acceptanceStatus == '0' || p.acceptanceStatus == 0">
                 and a.application_id in (SELECT DISTINCT application_id FROM biz_acceptance_material where status = '待审核')
             </if>
@@ -144,6 +145,7 @@
         c.specific_model,
         c.installation_date,
         d.app_type,
+        b.equipment_id,
         IF(b.id IS NOT NULL, 'Y', 'N') AS has_duplicate,
         IF(b.acceptance_status = 1, 'Y', 'N') AS has_acceptance_material
         from biz_license_original a
@@ -151,7 +153,7 @@
         left join biz_application d on d.id = a.application_id
         left join biz_class_a_equipment c on d.equipment_id = c.id
         <where>
-            and (d.creator = #{userId} or d.institution_id =#{deptId}) and d.app_status = 5
+            and (d.creator = #{userId} or d.institution_id =#{deptId}) and d.app_status = 5 and a.deleted = 0 and b.deleted = 0 and c.deleted = 0
             <if test="type != null and type != ''">
                 and a.license_device_name = #{type}
             </if>

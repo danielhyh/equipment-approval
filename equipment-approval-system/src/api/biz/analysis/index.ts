@@ -6,6 +6,10 @@ export const AnalysisApi = {
     return await request.get({ url: `/biz/statistics/application-summary`, params })
   },
   // ----------------------------------------------------------------------------------------
+  // 数据概览-核心指标（不受筛选影响）
+  getOverviewMetrics: async () => {
+    return await request.get({ url: `/biz/statistics/overview-metrics` })
+  },
   // 统计概览 ----------
   /**
    * 办件统计汇总
@@ -16,14 +20,14 @@ export const AnalysisApi = {
   },
   /**
    * 许可证统计汇总
-   * @params {region:'',year:int}
+   * @params {region:'',year:int,deviceNames:[]}
    */
   getLicenseSummary: async (params) => {
     return await request.get({ url: `/biz/statistics/license-summary`, params })
   },
   /**
    * 历史数据统计汇总
-   * @params {year:int}
+   * @params {year:int,deviceNames:[]}
    */
   getHistorySummary: async (params) => {
     return await request.get({ url: `/biz/statistics/history-summary`, params })
@@ -103,6 +107,14 @@ export const AnalysisApi = {
   getConfigDistribution: async () => {
     return await request.get({
       url: `/biz/statistics/medical-device-distribution`
+    })
+  },
+  /**
+   * 配置分布情况V2 - 按设备品目统计各维度
+   */
+  getConfigDistributionV2: async () => {
+    return await request.get({
+      url: `/biz/statistics/config-distribution-v2`
     })
   },
   // 导出excal

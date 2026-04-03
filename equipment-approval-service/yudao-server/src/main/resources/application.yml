@@ -247,6 +247,7 @@ yudao:
       - /app-api/biz/license/getOriginalById #二维码扫描正本
       - /app-api/biz/license/getDuplicateById #二维码扫描副本
       - /sync/**
+      - /admin-api/atg/**
   websocket:
     enable: true # websocket的开关
     path: /infra/ws # 路径

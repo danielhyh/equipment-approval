@@ -185,6 +185,9 @@ public class SSOController {
         if (params.containsKey("cacheKey")) {
             String cacheKey = params.get("cacheKey");
             String accessToken = template.opsForValue().get(cacheKey);
+            if (accessToken ==null) {
+                return success(true);
+            }
             template.delete(cacheKey);
             oauth2TokenService.removeAccessToken(accessToken);
             String ssoLogoutUrl = intranetBaseUrl + "/sso/logoutAll.do?cacheKey=" + cacheKey;

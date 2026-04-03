@@ -221,11 +221,13 @@ public class DataSyncServiceImpl implements DataSyncService {
                 INSERT INTO biz_institution_ext (
                     dept_id, institution_name, unified_social_credit_code,
                     institution_level, region, license_no, legal_person, 
-                    address, detailed_address, contact_person, contact_phone
+                    address, detailed_address, contact_person, contact_phone,
+                    subject, management_level, category, hos_class, hos_grade
                 ) VALUES (
                     :deptId, :institutionName, :unifiedSocialCreditCode,
                     :institutionLevel, :region, :licenseNo, :legalPerson,
-                    :address, :detailedAddress, :contactPerson, :contactPhone
+                    :address, :detailedAddress, :contactPerson, :contactPhone,
+                    :subject, :managementLevel, :category, :hosClass, :hosGrade
                 )
                 """;
 
@@ -246,7 +248,12 @@ public class DataSyncServiceImpl implements DataSyncService {
                     address = :address,
                     detailed_address = :detailedAddress,
                     contact_person = :contactPerson,
-                    contact_phone = :contactPhone
+                    contact_phone = :contactPhone,
+                    subject = :subject,
+                    management_level = :managementLevel,
+                    category = :category,
+                    hos_class = :hosClass,
+                    hos_grade = :hosGrade
                 WHERE dept_id = :deptId
                 """;
 
@@ -273,6 +280,54 @@ public class DataSyncServiceImpl implements DataSyncService {
                 .map(AreaUtils::getArea)
                 .map(Area::getName)
                 .orElse(null);
+
+        // 办医主体：JJLX 为 11 或 12 则公立，否则民营
+        String subject = null;
+        if (StrUtil.isNotBlank(dept.getJjlx())) {
+            subject = ("11".equals(dept.getJjlx()) || "12".equals(dept.getJjlx())) ? "公立" : "民营";
+        }
+
+        // 管理级次：根据 ZBDW 和 LSGX 判断
+        String managementLevel = null;
+        if (StrUtil.isNotBlank(dept.getZbdw()) && StrUtil.isNotBlank(dept.getLsgx())) {
+            if (("1".equals(dept.getZbdw()) || "2".equals(dept.getZbdw()))) {
+                switch (dept.getLsgx()) {
+                    case "1" -> managementLevel = "中央级";
+                    case "2" -> managementLevel = "省级";
+                    case "3" -> managementLevel = "市级";
+                    case "4", "5" -> managementLevel = "县级";
+                }
+            }
+        }
+
+        // 医院性质：根据 DEPT_CLASS 前两位判断
+        String category = null;
+        if (StrUtil.isNotBlank(dept.getDeptClass()) && dept.getDeptClass().length() >= 2) {
+            String prefix = dept.getDeptClass().substring(0, 2);
+            if ("A1".equals(prefix)) {
+                category = "综合";
+            } else if ("A5".equals(prefix)) {
+                category = "专科";
+            }
+        }
+
+        // 医院等级-级：根据 YYDJ_J 判断
+        String hosClass = null;
+        if (StrUtil.isNotBlank(dept.getYydjJ())) {
+            hosClass = switch (dept.getYydjJ()) {
+                case "3" -> "三级";
+                case "2" -> "二级";
+                case "9" -> "未定级";
+                default -> null;
+            };
+        }
+
+        // 医院等级-等：根据 YYDJ_D 判断
+        String hosGrade = null;
+        if (StrUtil.isNotBlank(dept.getYydjD())) {
+            hosGrade = classMap.getOrDefault(dept.getYydjD(), null);
+        }
+
         Map<String, Object> params = new HashMap<>();
         params.put("deptId", deptId);
         params.put("institutionName", dept.getCaption());
@@ -285,6 +340,11 @@ public class DataSyncServiceImpl implements DataSyncService {
         params.put("detailedAddress", dept.getTxDz());
         params.put("contactPerson", dept.getGovernor());
         params.put("contactPhone", dept.getTel());
+        params.put("subject", subject);
+        params.put("managementLevel", managementLevel);
+        params.put("category", category);
+        params.put("hosClass", hosClass);
+        params.put("hosGrade", hosGrade);
         return params;
     }
 

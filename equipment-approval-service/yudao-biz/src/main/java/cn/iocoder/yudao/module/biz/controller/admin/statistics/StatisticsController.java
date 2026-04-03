@@ -44,6 +44,12 @@ public class StatisticsController {
         return success(statisticsService.processedLicenseSummary(year));
     }
 
+    @GetMapping("/overview-metrics")
+    @Operation(summary = "数据概览-核心指标（不受筛选影响）")
+    public CommonResult<Map<String, Object>> overviewMetrics() {
+        return success(statisticsService.overviewMetrics());
+    }
+
     @GetMapping("/application-summary")
     @Operation(summary = "办件统计汇总")
     public CommonResult<Map<String, Object>> applicationSummary(@RequestParam(required = false, name = "status") Integer status, QueryRequest request) {
@@ -58,13 +64,19 @@ public class StatisticsController {
 
     @GetMapping("/history-summary")
     @Operation(summary = "历史数据统计汇总")
-    public CommonResult<Map<String, Object>> historySummary(QueryRequest request) {
+    public CommonResult<?> historySummary(QueryRequest request) {
+        if (request.getDeviceNames() != null && !request.getDeviceNames().isEmpty()) {
+            return success(statisticsService.historySummaryByYear(request));
+        }
         return success(statisticsService.historySummary(request));
     }
 
     @GetMapping("/license-summary")
     @Operation(summary = "许可证统计汇总")
-    public CommonResult<Map<String, Object>> licenseSummary(QueryRequest request) {
+    public CommonResult<?> licenseSummary(QueryRequest request) {
+        if (request.getDeviceNames() != null && !request.getDeviceNames().isEmpty()) {
+            return success(statisticsService.licenseSummaryByYear(request));
+        }
         return success(statisticsService.licenseSummary(request));
     }
 
@@ -121,6 +133,12 @@ public class StatisticsController {
     @Operation(summary = "配置分布-医疗设备分布")
     public CommonResult<List<Map<String, Object>>> medicalDeviceDistribution(FilterRequest req) {
         return success(statisticsService.deviceModelDistribution(req));
+    }
+
+    @GetMapping("/config-distribution-v2")
+    @Operation(summary = "配置分布情况V2-按设备品目统计各维度")
+    public CommonResult<List<Map<String, Object>>> configDistributionV2() {
+        return success(statisticsService.configDistributionV2());
     }
 
     @GetMapping("/export-excel")
