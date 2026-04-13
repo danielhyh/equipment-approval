@@ -20,7 +20,7 @@
             and app_status = 5
         </if>
         <if test="req.region != null and req.region != ''">
-            and b.region = #{req.region}
+            and b.city = #{req.region}
         </if>
          <if test="req.year != null">
              and YEAR(a.create_time) = #{req.year}
@@ -41,7 +41,7 @@
         left join biz_institution_ext c on b.institution_id = c.dept_id
         where a.deleted = 0 and d.acceptance_status = 1
         <if test="req.region != null and req.region != ''">
-            and c.region = #{req.region}
+            and c.city = #{req.region}
         </if>
         <if test="req.year != null">
             and YEAR(a.create_time) = #{req.year}
@@ -66,7 +66,7 @@
             </foreach>
         </if>
         <if test="req.region != null and req.region != ''">
-            AND c.region = #{req.region}
+            AND c.city = #{req.region}
         </if>
         GROUP BY YEAR(a.create_time), a.license_device_name
         ORDER BY `year`
@@ -96,7 +96,7 @@
         left join biz_institution_ext c on b.institution_id = c.dept_id
         where a.deleted = 0 and a.visibility = 'system' and a.creator='0'
         <if test="req.region != null and req.region != ''">
-            and c.region = #{req.region}
+            and c.city = #{req.region}
         </if>
         <if test="req.year != null">
             and YEAR(a.create_time) = #{req.year}
@@ -158,7 +158,7 @@
 
     <select id="equipmentStatisticsArea" resultType="map">
         select
-            b.region as region,
+            b.city as region,
             count(a.id) as total
         from biz_application a
         left join biz_institution_ext b on a.institution_id = b.dept_id
@@ -166,7 +166,7 @@
     </select>
 
     <select id="equipmentStatisticsDetail" resultType="cn.iocoder.yudao.module.biz.controller.admin.statistics.vo.DetailResponseVO">
-        select a.region, a.institution_name, b.license_device_name, b.ladder_config_model,
+        select a.city, a.institution_name, b.license_device_name, b.ladder_config_model,
                b.license_no, b.issue_date, c.installation_date, c.production_enterprise,
                c.specific_model, c.duplicate_issue_date, b.status
         from biz_application d
@@ -178,7 +178,7 @@
             and d.ladder_config_model = #{req.ladderConfigModel}
         </if>
         <if test="req.region != null and req.region != ''">
-            and a.region = #{req.region}
+            and a.city = #{req.region}
         </if>
         <if test="req.acceptanceStatus != null">
             and c.acceptance_status = #{req.acceptanceStatus}
@@ -254,7 +254,7 @@
     <select id="deviceModelDistribution" resultType="java.util.Map">
         SELECT
             count(b.id) as num,
-            a.region,
+            a.city,
             b.license_device_name,
             case when a.institution_type = 1 then '社会办医'
                  else '政府办医'
@@ -268,10 +268,10 @@
                 left join biz_license_duplicate d on c.id = d.original_id
         where b.app_status = 5 and b.deleted = 0
         <if test="req.region != null">
-            and a.region = #{req.region}
+            and a.city = #{req.region}
         </if>
         <if test="req.region != null and req.region == '其他城市'">
-            and a.region in ('铜川市', '渭南市', '安康市', '商洛市', '延安市', '榆林市')
+            and a.city in ('铜川市', '渭南市', '安康市', '商洛市', '延安市', '榆林市')
         </if>
         <if test="req.types != null and !req.types.isEmpty()">
             and b.license_device_name in

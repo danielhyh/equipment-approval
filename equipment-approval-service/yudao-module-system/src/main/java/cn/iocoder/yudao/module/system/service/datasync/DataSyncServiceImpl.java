@@ -6,6 +6,7 @@ import cn.hutool.crypto.digest.BCrypt;
 import cn.hutool.json.JSONUtil;
 import cn.iocoder.yudao.framework.common.enums.CommonStatusEnum;
 import cn.iocoder.yudao.framework.common.enums.UserTypeEnum;
+import cn.iocoder.yudao.framework.common.util.JdbcClientHelper;
 import cn.iocoder.yudao.framework.common.util.object.BeanUtils;
 import cn.iocoder.yudao.framework.ip.core.Area;
 import cn.iocoder.yudao.framework.ip.core.utils.AreaUtils;
@@ -18,6 +19,7 @@ import cn.iocoder.yudao.module.system.dal.mysql.dept.DeptMapper;
 import cn.iocoder.yudao.module.system.dal.mysql.user.AdminUserMapper;
 import cn.iocoder.yudao.module.system.dal.mysql.user.ExternalUserMapper;
 import cn.iocoder.yudao.module.system.service.datasync.dto.*;
+import jakarta.annotation.PostConstruct;
 import jakarta.annotation.Resource;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -54,6 +56,18 @@ public class DataSyncServiceImpl implements DataSyncService {
 
     @Resource
     private TransactionTemplate transactionTemplate;
+
+    private final Map<String, String> cityMap = new ConcurrentHashMap<>(256);
+
+    @PostConstruct
+    public void init() {
+        List<Map<String, String>> list = jdbcClient.sql("select code, name from system_regions where level = 2")
+                .query(JdbcClientHelper::resultSetToMap)
+                .list();
+        list.forEach(row -> {
+            cityMap.put(row.get("code"), row.get("name"));
+        });
+    }
 
     @Override
     public PushResultVO syncUser(SyncUserDTO user) {
@@ -253,7 +267,8 @@ public class DataSyncServiceImpl implements DataSyncService {
                     management_level = :managementLevel,
                     category = :category,
                     hos_class = :hosClass,
-                    hos_grade = :hosGrade
+                    hos_grade = :hosGrade,
+                    city = :city
                 WHERE dept_id = :deptId
                 """;
 
@@ -345,6 +360,10 @@ public class DataSyncServiceImpl implements DataSyncService {
         params.put("category", category);
         params.put("hosClass", hosClass);
         params.put("hosGrade", hosGrade);
+        if (StrUtil.isNotEmpty(dept.getDeptAddressCode())) {
+            String cityCode = StrUtil.sub(dept.getDeptAddressCode(), 0, 4) + "00";
+            params.put("city", cityMap.get(cityCode));
+        }
         return params;
     }
 

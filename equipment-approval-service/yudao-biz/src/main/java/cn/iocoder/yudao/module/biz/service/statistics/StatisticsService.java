@@ -114,31 +114,31 @@ public class StatisticsService {
     public List<Map<String, Object>> equipmentStatisticsArea() {
         String sql = """
                 WITH regions AS (
-                    SELECT '西安市' AS region UNION ALL
-                                SELECT '铜川市' UNION ALL
-                                SELECT '宝鸡市' UNION ALL
-                                SELECT '咸阳市' UNION ALL
-                                SELECT '渭南市' UNION ALL
-                                SELECT '延安市' UNION ALL
-                                SELECT '汉中市' UNION ALL
-                                SELECT '榆林市' UNION ALL
-                                SELECT '安康市' UNION ALL
-                                SELECT '商洛市' UNION ALL
-                                SELECT '杨凌区' UNION ALL
-                                SELECT '西咸新区' UNION ALL
-                                SELECT '中国（陕西）自由贸易试验区' UNION ALL
-                                SELECT '陕西省(仅本地市)'
-                )
-                SELECT
-                    r.region,
-                    COUNT(a.id) AS total
-                FROM regions r
-                LEFT JOIN biz_institution_ext b ON r.region = b.region
-                LEFT JOIN biz_application a ON a.institution_id = b.dept_id
-
-                where a.app_status = 5
-                GROUP BY r.region
-                ORDER BY total DESC, r.region
+                                    SELECT '西安市' AS region UNION ALL
+                                                SELECT '铜川市' UNION ALL
+                                                SELECT '宝鸡市' UNION ALL
+                                                SELECT '咸阳市' UNION ALL
+                                                SELECT '渭南市' UNION ALL
+                                                SELECT '延安市' UNION ALL
+                                                SELECT '汉中市' UNION ALL
+                                                SELECT '榆林市' UNION ALL
+                                                SELECT '安康市' UNION ALL
+                                                SELECT '商洛市' UNION ALL
+                                                SELECT '杨凌区' UNION ALL
+                                                SELECT '西咸新区' UNION ALL
+                                                SELECT '中国（陕西）自由贸易试验区' UNION ALL
+                                                SELECT '陕西省(仅本地市)'
+                                )
+                                SELECT
+                                    r.region,
+                                    COUNT(a.id) AS total
+                                FROM regions r
+                                LEFT JOIN biz_institution_ext b ON r.region = b.city
+                                LEFT JOIN biz_application a ON a.institution_id = b.dept_id
+                                LEFT JOIN "biz_license_original" c ON a.id = c.application_id
+                                where a.app_status = 5 and c.id is not null and c.deleted = 0
+                                GROUP BY r.region
+                                ORDER BY total DESC, r.region
                 """;
         List<Map<String, Object>> result = jdbcClient.sql(sql).query().listOfRows();
         return NamedTransformation.convertKeysToCamelCase(result);

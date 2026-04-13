@@ -140,8 +140,8 @@ public class ExcelDeptDTO {
     @ExcelProperty(index = 28)
     private String deptZyxkzdjh;
 
-    @ExcelProperty(index = 29)
-    private String jjlx;
+//    @ExcelProperty(index = 29)
+//    private String jjlx;
 
     @Schema(description = "操作类型 create/update/delete")
     private final String operation = "create";
