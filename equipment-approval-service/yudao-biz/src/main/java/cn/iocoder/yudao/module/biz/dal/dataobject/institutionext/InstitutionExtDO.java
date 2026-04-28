@@ -108,7 +108,7 @@ public class InstitutionExtDO extends BaseDO {
      */
     private String category;
 
-    private String hosLevel;
+    private String hosClass;
 
     private String hosGrade;
 

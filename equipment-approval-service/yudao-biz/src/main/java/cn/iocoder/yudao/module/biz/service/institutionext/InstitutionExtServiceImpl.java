@@ -1,6 +1,8 @@
 package cn.iocoder.yudao.module.biz.service.institutionext;
 
+import cn.hutool.core.util.StrUtil;
 import cn.iocoder.yudao.framework.common.exception.ServiceException;
+import cn.iocoder.yudao.framework.common.util.JdbcClientHelper;
 import org.springframework.jdbc.core.simple.JdbcClient;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
@@ -10,6 +12,8 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
 
 import java.util.*;
+import java.util.stream.Collectors;
+
 import cn.iocoder.yudao.module.biz.controller.admin.institutionext.vo.*;
 import cn.iocoder.yudao.module.biz.dal.dataobject.institutionext.InstitutionExtDO;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
@@ -97,7 +101,33 @@ public class InstitutionExtServiceImpl implements InstitutionExtService {
 
     @Override
     public PageResult<InstitutionExtDO> getInstitutionExtPage(InstitutionExtPageReqVO pageReqVO) {
-        return institutionExtMapper.selectPage(pageReqVO);
+        PageResult<InstitutionExtDO> pageResult = institutionExtMapper.selectPage(pageReqVO);
+        List<InstitutionExtDO> list = pageResult.getList();
+        List<Long> deptIdList = list.stream().map(InstitutionExtDO::getDeptId).toList();
+        String sql = """
+                SELECT
+                  a."institution_id" as id,
+                  count(b.id) as device_num
+                FROM
+                  "biz_application" a
+                  LEFT JOIN "biz_license_original" b ON a.id = b."application_id"
+                WHERE
+                  a."deleted" = 0 and b."deleted" = 0
+                  and a."institution_id" in (:ids)
+                  GROUP BY a."institution_id"
+                """;
+        List<Map<String, String>> deviceNumList = jdbcClient.sql(sql).param("ids", deptIdList)
+                .query(JdbcClientHelper::resultSetToMap)
+                .list();
+        Map<String,String> deviceNumMap = deviceNumList.stream()
+                .collect(Collectors.toMap(f -> f.get("id"), f -> f.get("deviceNum")));
+        list.forEach(item -> {
+            String id = StrUtil.toString(item.getDeptId());
+            if (deviceNumMap.containsKey(id)) {
+                item.setDeviceNum(Integer.parseInt(deviceNumMap.get(id)));
+            }
+        });
+        return pageResult;
     }
 
     @Override

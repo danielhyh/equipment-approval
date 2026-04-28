@@ -25,6 +25,8 @@ const largeMedicalReissue = getDocUrl("乙类大型医用设备配置许可证�
 // 乙类大型医用设备配置许可证信息变更申请表-样表.docx
 const largeMedicalChangeSample = getDocUrl("乙类大型医用设备配置许可证信息变更申请表-样表.docx");
 const largeMedicalChange = getDocUrl("乙类大型医用设备配置许可证信息变更申请表-空表.docx");
+// 乙类大型医用设备配置许可证注销申请表-空表
+const largeMedicalCancel = getDocUrl("乙类大型医用设备配置许可证注销申请表-空表.docx");
 
 export default {
   dept: {
@@ -1129,7 +1131,7 @@ export default {
               source: "自备", // 来源渠道
               notice: "无", // 填表须知
               sample: "", // 样表
-              empty: "", // 空表
+              empty: largeMedicalCancel, // 空表
               view: "", // 查看模板
             },
             {
@@ -1179,7 +1181,7 @@ export default {
               source: "自备", // 来源渠道
               notice: "无", // 填表须知
               sample: "", // 样表
-              empty: "", // 空表
+              empty: largeMedicalCancel, // 空表
               view: "", // 查看模板
             },
             {
@@ -1229,7 +1231,7 @@ export default {
               source: "自备", // 来源渠道
               notice: "无", // 填表须知
               sample: "", // 样表
-              empty: "", // 空表
+              empty: largeMedicalCancel, // 空表
               view: "", // 查看模板
             },
             {
@@ -1279,7 +1281,7 @@ export default {
               source: "自备", // 来源渠道
               notice: "无", // 填表须知
               sample: "", // 样表
-              empty: "", // 空表
+              empty: largeMedicalCancel, // 空表
               view: "", // 查看模板
             },
             {

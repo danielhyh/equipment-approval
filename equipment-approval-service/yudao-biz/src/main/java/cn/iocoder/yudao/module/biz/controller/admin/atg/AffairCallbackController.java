@@ -71,79 +71,75 @@ public class AffairCallbackController {
     @ResponseBody
     public CallbackAtgBizAffairReceiveResponse receiveAffair(@RequestBody CallbackAtgBizAffairReceiveRequest request) {
         CallbackAtgBizAffairReceiveResponse response = new CallbackAtgBizAffairReceiveResponse();
-        String projId = request.getProjId();
         log.info("receive request:{}", JSON.toJSONString(request));
-        log.info("project id:{}", projId);
         log.info("aff Form Info:{}", JSON.toJSONString(request.getAffFormInfo()));
 
-//        String projId = null;
-//        try {
-//            // 1. 获取关键数据
-//            projId = request.getProjId(); // 统一办件单号
-//            //String applicantName = request.getApplicantVO().getApplyName(); // 申请人
-//
-//            // 2. 幂等校验（事务外查询，避免长事务）
-//            AffairRecordDO existRecord = affairRecordMapper.selectByProjId(projId);
-//            if (existRecord != null && existRecord.getStatus() == 1) {
-//                log.info("办件单号 {} 已成功处理过，跳过重复回调", projId);
-//                response.setResultStatus("S");
-//                return response;
-//            }
-//            if (StrUtil.isBlank(request.getAffFormInfo())) {
-//                throw new IllegalArgumentException("参数为 null");
-//            }
-//            CallbackApplication callbackApplication = JSON.parseObject(request.getAffFormInfo(), CallbackApplication.class);
-//            //  先写为4065 由于数据是从高效通办系统来的，不知道具体申请部门
-//            callbackApplication.setInstitutionId(4065L);
-//            AppApplicationSaveReqVO reqVO = BeanUtils.toBean(callbackApplication, AppApplicationSaveReqVO.class);
-//
-//            // 3. 事务内：创建申请 + 远程受理 + 插入幂等记录，任一失败全部回滚
-//            final String finalProjId = projId;
-//            transactionTemplate.executeWithoutResult(status -> {
-//                // 3.1 创建申请
-//                Long id = createApplication(reqVO);
-//
-//                // 3.2 调用远程受理接口
-//                AtgBizAffairAcceptResponse bizAffairAcceptResponse;
-//                try {
-//                    AtgBizAffairAcceptRequest atgReq = new AtgBizAffairAcceptRequest();
-//                    atgReq.setAppId("286301");
-//                    atgReq.setAreaCode("610100");
-//                    atgReq.setDeptCode("100");
-//                    atgReq.setDeptName("陕西省卫生健康委员会");
-//                    atgReq.setProjId(finalProjId);
-//                    atgReq.setOperatorUid("1");
-//                    atgReq.setOperatorName("陕西省大型设备管理员");
-//                    atgReq.setGmtAccept(new Date());
-//                    atgReq.setPromiseTime(DateUtils.addTime(Duration.ofDays(30)));
-//                    bizAffairAcceptResponse = client.execute(atgReq);
-//                } catch (Exception e) {
-//                    throw new RuntimeException("远程受理接口调用异常", e);
-//                }
-//                // 远程调用没抛异常，但业务状态非成功
-//                boolean result = bizAffairAcceptResponse != null && "S".equals(bizAffairAcceptResponse.getResultStatus());
-//                if (!result) {
-//                    throw new RuntimeException("远程受理接口返回失败: " +
-//                            (bizAffairAcceptResponse != null ? bizAffairAcceptResponse.getResultMsg() : "响应为空"));
-//                }
-//
-//                // 3.3 插入幂等记录
-//                AffairRecordDO record = AffairRecordDO.builder()
-//                        .projId(finalProjId)
-//                        .applicationId(id)
-//                        .status(1)
-//                        .build();
-//                affairRecordMapper.insert(record);
-//            });
-//
-//            response.setResultStatus("S");
-//
-//        } catch (Exception e) {
-//            log.error("高效通办系统回调报错, projId={}", projId, e);
-//            response.setResultStatus("F");
-//            response.setResultMsg("系统内部错误：" + e.getMessage());
-//        }
+        String projId = null;
+        try {
+            // 1. 获取关键数据
+            projId = request.getProjId(); // 统一办件单号
+            //String applicantName = request.getApplicantVO().getApplyName(); // 申请人
 
+            // 2. 幂等校验（事务外查询，避免长事务）
+            AffairRecordDO existRecord = affairRecordMapper.selectByProjId(projId);
+            if (existRecord != null && existRecord.getStatus() == 1) {
+                log.info("办件单号 {} 已成功处理过，跳过重复回调", projId);
+                response.setResultStatus("S");
+                return response;
+            }
+            if (StrUtil.isBlank(request.getAffFormInfo())) {
+                throw new IllegalArgumentException("参数为 null");
+            }
+            String recvDeptCode = request.getRecvDeptCode();
+            String recvDeptName = request.getRecvDeptName();
+            String areaCode = request.getAreaCode();
+            // 3. 事务内：创建申请 + 远程受理 + 插入幂等记录，任一失败全部回滚
+            final String finalProjId = projId;
+            transactionTemplate.executeWithoutResult(status -> {
+                // 3.1 创建申请
+                //Long id = createApplication(reqVO);
+
+                // 3.2 调用远程受理接口
+                AtgBizAffairAcceptResponse bizAffairAcceptResponse;
+                try {
+                    AtgBizAffairAcceptRequest atgReq = new AtgBizAffairAcceptRequest();
+                    atgReq.setAppId("286301");
+                    atgReq.setAreaCode(areaCode);
+                    atgReq.setDeptCode(recvDeptCode);
+                    atgReq.setDeptName(recvDeptName);
+                    atgReq.setProjId(finalProjId);
+                    atgReq.setOperatorUid("1");
+                    atgReq.setOperatorName("陕西省大型设备管理员");
+                    atgReq.setGmtAccept(new Date());
+                    atgReq.setPromiseTime(DateUtils.addTime(Duration.ofDays(30)));
+                    bizAffairAcceptResponse = client.execute(atgReq);
+                } catch (Exception e) {
+                    throw new RuntimeException("远程受理接口调用异常", e);
+                }
+                // 远程调用没抛异常，但业务状态非成功
+                boolean result = bizAffairAcceptResponse != null && "S".equals(bizAffairAcceptResponse.getResultStatus());
+                if (!result) {
+                    throw new RuntimeException("远程受理接口返回失败: " +
+                            (bizAffairAcceptResponse != null ? bizAffairAcceptResponse.getResultMsg() : "响应为空"));
+                }
+
+                // 3.3 插入幂等记录
+                AffairRecordDO record = AffairRecordDO.builder()
+                        .projId(finalProjId)
+//                        .applicationId(id)
+                        .status(1)
+                        .build();
+                affairRecordMapper.insert(record);
+            });
+
+            response.setResultStatus("S");
+
+        } catch (Exception e) {
+            log.error("高效通办系统回调报错, projId={}", projId, e);
+            response.setResultStatus("F");
+            response.setResultMsg("系统内部错误：" + e.getMessage());
+        }
+        response.setResultStatus("S");
         return response;
     }
 

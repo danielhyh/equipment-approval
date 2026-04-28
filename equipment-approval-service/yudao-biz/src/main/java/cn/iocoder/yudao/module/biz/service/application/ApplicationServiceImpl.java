@@ -211,8 +211,13 @@ public class ApplicationServiceImpl implements ApplicationService {
             LocalDateTime dateTime = LocalDateTime.parse(deadline, formatter);
             LocalDate localDate = dateTime.toLocalDate();
             long between = ChronoUnit.DAYS.between(LocalDate.now(), localDate);
-            record.setRemainingDays(String.valueOf(between));
-            record.setRemainingDays(record.getRemainingDays() + "天");
+            if (between > 0) {
+                record.setRemainingDays(String.valueOf(between));
+                record.setRemainingDays(record.getRemainingDays() + "天");
+            } else {
+                record.setRemainingDays("-");
+            }
+
             if ("5".equals(appStatus)) {
                 record.setRemainingDays("-");
             }
