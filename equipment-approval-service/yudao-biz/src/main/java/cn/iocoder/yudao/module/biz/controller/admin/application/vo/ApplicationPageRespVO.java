@@ -45,4 +45,6 @@ public class ApplicationPageRespVO {
     private String licenseNo;
 
     private ObjectNode extra;
+
+    private Integer source;
 }

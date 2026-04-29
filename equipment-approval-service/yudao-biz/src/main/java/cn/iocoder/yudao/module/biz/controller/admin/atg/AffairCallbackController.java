@@ -5,12 +5,14 @@ import cn.iocoder.yudao.framework.common.util.date.DateUtils;
 import cn.iocoder.yudao.framework.common.util.object.BeanUtils;
 import cn.iocoder.yudao.framework.security.core.util.SecurityFrameworkUtils;
 import cn.iocoder.yudao.module.biz.controller.admin.atg.dto.CallbackApplication;
+import cn.iocoder.yudao.module.biz.controller.admin.atg.vo.AtgApplicationCreateReqVO;
 import cn.iocoder.yudao.module.biz.controller.app.application.vo.AppApplicationSaveReqVO;
 import cn.iocoder.yudao.module.biz.dal.dataobject.affairrecord.AffairRecordDO;
 import cn.iocoder.yudao.module.biz.dal.dataobject.application.ApplicationDO;
 import cn.iocoder.yudao.module.biz.dal.mysql.affairrecord.AffairRecordMapper;
 import cn.iocoder.yudao.module.biz.dal.mysql.application.ApplicationMapper;
 import cn.iocoder.yudao.module.biz.service.application.ApplicationService;
+import cn.iocoder.yudao.module.biz.service.atg.AtgApplicationService;
 import cn.iocoder.yudao.module.biz.service.notification.CreateNotificationRequest;
 import cn.iocoder.yudao.module.biz.service.notification.NotificationService;
 import cn.iocoder.yudao.module.biz.service.operation.OperationLogService;
@@ -59,6 +61,9 @@ public class AffairCallbackController {
     @Resource
     private TransactionTemplate transactionTemplate;
 
+    @Resource
+    private AtgApplicationService atgApplicationService;
+
     private final DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("yyyyMMddHHmmss");
 
     private final Map<Integer, String> actionDescMap = Map.of(1, "许可证申请", 2, "许可证补办", 3, "许可证变更", 4, "基本信息变更");
@@ -96,10 +101,7 @@ public class AffairCallbackController {
             // 3. 事务内：创建申请 + 远程受理 + 插入幂等记录，任一失败全部回滚
             final String finalProjId = projId;
             transactionTemplate.executeWithoutResult(status -> {
-                // 3.1 创建申请
-                //Long id = createApplication(reqVO);
-
-                // 3.2 调用远程受理接口
+                // 3.1 调用远程受理接口
                 AtgBizAffairAcceptResponse bizAffairAcceptResponse;
                 try {
                     AtgBizAffairAcceptRequest atgReq = new AtgBizAffairAcceptRequest();
@@ -123,10 +125,19 @@ public class AffairCallbackController {
                             (bizAffairAcceptResponse != null ? bizAffairAcceptResponse.getResultMsg() : "响应为空"));
                 }
 
+                // 3.2 创建高办系统申请（appType=7, appStatus=5）
+                AtgApplicationCreateReqVO createReqVO = new AtgApplicationCreateReqVO();
+                createReqVO.setProjId(finalProjId);
+                createReqVO.setFormInfo(request.getAffFormInfo());
+                // 如果有机构信息可以设置
+                // createReqVO.setInstitutionId(...);
+                // createReqVO.setInstitutionName(...);
+                Long applicationId = atgApplicationService.createAtgApplication(createReqVO);
+
                 // 3.3 插入幂等记录
                 AffairRecordDO record = AffairRecordDO.builder()
                         .projId(finalProjId)
-//                        .applicationId(id)
+                        .applicationId(applicationId)
                         .status(1)
                         .build();
                 affairRecordMapper.insert(record);

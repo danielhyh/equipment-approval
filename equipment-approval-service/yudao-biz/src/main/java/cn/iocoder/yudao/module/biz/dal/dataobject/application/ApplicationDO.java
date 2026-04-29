@@ -60,7 +60,7 @@ public class ApplicationDO extends BaseDO {
      */
     private String configReason;
     /**
-     * 申请状态：1-待初审，2-初审不通过，3-待专家审核，4-专家审核不通过5-专家审核通过
+     * 申请状态：1-待初审，2-初审不通过，3-待专家审核，4-专家审核不通过5-专家审核通过 6 通用审核系统通过审核
      */
     private Integer appStatus;
     /**
@@ -125,5 +125,9 @@ public class ApplicationDO extends BaseDO {
     @TableField(typeHandler = JacksonTypeHandler.class)
     private ObjectNode extra;
 
+    /**
+     * 数据来源：0-本系统（默认），1-高效通办系统
+     */
+    private Integer source;
 
 }

@@ -61,6 +61,48 @@ public class TestImport {
        dataSyncService.batchSync(new ExternalBatchPushDTO(bean, new ArrayList<>()));
     }
 
+    /**
+     * 插入一条高效通办系统来源的测试数据
+     * institution_id=2714 (洛川博爱医院), app_type=1, app_status=5, source=1
+     * 设备名称和阶梯机型为空，模拟高办系统回调后待管理员补充信息的场景
+     */
+    @Test
+    void insertAtgTestData() {
+        String extra = """
+            {
+                "projId": "PROJ202604280001",
+                "institutionName": "洛川博爱医院",
+                "applicantName": "张三",
+                "contactPhone": "13800138000",
+                "formInfo": "高效通办系统表单数据",
+                "attachments": [
+                    {"name": "乙类大型医用设备配置许可申请表.pdf", "url": "https://example.com/files/apply-form.pdf", "size": 1258000},
+                    {"name": "营业执照.jpg", "url": "https://example.com/files/license.jpg", "size": 856000},
+                    {"name": "技术条件材料.docx", "url": "https://example.com/files/tech-doc.docx", "size": 2340000}
+                ]
+            }
+            """;
+        jdbcClient.sql("""
+            INSERT INTO biz_application (
+                app_no, institution_id, app_type, app_status, source,
+                extra, creator, create_time, updater, update_time, deleted
+            ) VALUES (
+                :appNo, :institutionId, :appType, :appStatus, :source,
+                :extra, :creator, SYSDATE, :updater, SYSDATE, 0
+            )
+            """)
+            .param("appNo", "ATG-20260428160000")
+            .param("institutionId", 2714L)
+            .param("appType", 1)
+            .param("appStatus", 5)
+            .param("source", 1)
+            .param("extra", extra)
+            .param("creator", "0")
+            .param("updater", "0")
+            .update();
+        System.out.println("高办系统测试数据插入成功");
+    }
+
     @Test
     void updateInstitutionExtCity() {
         List<Map<String, String>> list = jdbcClient.sql("select code, name from system_regions where level = 2")

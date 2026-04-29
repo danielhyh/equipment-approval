@@ -92,7 +92,14 @@
           >
             <template #default="scope">
               <span
-                v-if="column.dataIndex === 'appStatus'"
+                v-if="column.dataIndex === 'appStatus' && isAtgSource(scope.row)"
+                class="status-label"
+                :class="getAtgStatusClass(scope.row)"
+              >
+                {{ getAtgStatusText(scope.row) }}
+              </span>
+              <span
+                v-else-if="column.dataIndex === 'appStatus'"
                 class="status-label"
                 :class="
                   scope.row.appType !== '4'
@@ -115,45 +122,77 @@
                 }}
               </span>
               <span v-else>
-                {{
-                  column?.dataIndex2
-                    ? scope.row[column.dataIndex]?.[column.dataIndex2]
-                    : scope.row[column.dataIndex]
-                }}
+                <template v-if="isAtgSource(scope.row) && (column.dataIndex === 'licenseDeviceName' || column.dataIndex === 'ladderConfigModel') && !scope.row[column.dataIndex]">
+                  <el-tag type="warning" size="small">待补充</el-tag>
+                </template>
+                <template v-else>
+                  {{
+                    column?.dataIndex2
+                      ? scope.row[column.dataIndex]?.[column.dataIndex2]
+                      : scope.row[column.dataIndex]
+                  }}
+                </template>
               </span>
             </template>
           </el-table-column>
           <el-table-column label="操作" min-width="120" :align="'center'">
             <template #default="scope">
-              <el-button
-                size="small"
-                class="btn view-btn"
-                type="primary"
-                :icon="View"
-                @click.stop="gotoDetailFn(scope.row, 'view', '')"
-              >
-                查看
-              </el-button>
-              <el-button
-                size="small"
-                class="btn audit-btn"
-                type="primary"
-                :icon="Search"
-                v-if="scope.row.appStatus === '1'"
-                @click.stop="gotoDetailFn(scope.row, 'perliminary', 'firstAudit')"
-              >
-                {{ activeType === 'basicInfoChange' ? '信息审核' : '初步审核' }}
-              </el-button>
-              <el-button
-                size="small"
-                class="btn expert-btn"
-                type="primary"
-                :icon="Avatar"
-                v-if="scope.row.appStatus === '3' && scope.row.appType !== '4'"
-                @click.stop="gotoDetailFn(scope.row, 'expert', 'expertAudit')"
-              >
-                专家审批
-              </el-button>
+              <!-- ===== 本系统来源的操作按钮 ===== -->
+              <template v-if="!isAtgSource(scope.row)">
+                <el-button
+                  size="small"
+                  class="btn view-btn"
+                  type="primary"
+                  :icon="View"
+                  @click.stop="gotoDetailFn(scope.row, 'view', '')"
+                >
+                  查看
+                </el-button>
+                <el-button
+                  size="small"
+                  class="btn audit-btn"
+                  type="primary"
+                  :icon="Search"
+                  v-if="scope.row.appStatus === '1'"
+                  @click.stop="gotoDetailFn(scope.row, 'perliminary', 'firstAudit')"
+                >
+                  {{ activeType === 'basicInfoChange' ? '信息审核' : '初步审核' }}
+                </el-button>
+                <el-button
+                  size="small"
+                  class="btn expert-btn"
+                  type="primary"
+                  :icon="Avatar"
+                  v-if="scope.row.appStatus === '3' && scope.row.appType !== '4'"
+                  @click.stop="gotoDetailFn(scope.row, 'expert', 'expertAudit')"
+                >
+                  专家审批
+                </el-button>
+              </template>
+              <!-- ===== 高办系统来源的操作按钮 ===== -->
+              <template v-else>
+                <el-tag type="info" size="small" class="atg-tag">高办</el-tag>
+                <el-button
+                  size="small"
+                  class="btn view-btn"
+                  type="primary"
+                  :icon="View"
+                  @click.stop="openAtgMaterialDialog(scope.row)"
+                >
+                  查看材料
+                </el-button>
+                <el-button
+                  v-if="!scope.row.originalId"
+                  size="small"
+                  class="btn atg-edit-btn"
+                  type="warning"
+                  :icon="Edit"
+                  @click.stop="openAtgCompleteDialog(scope.row)"
+                >
+                  补充信息
+                </el-button>
+              </template>
+              <!-- ===== 通用按钮：正本/副本 ===== -->
               <el-button
                 size="small"
                 class="btn"
@@ -200,17 +239,104 @@
         <licence ref="licenceRef" v-bind="licenceData" />
       </div>
     </Dialog>
+
+    <!-- 高办系统 - 查看材料弹窗 -->
+    <el-dialog v-model="atgMaterialDialogVisible" title="申请材料" width="700px" destroy-on-close>
+      <div class="atg-material-section" v-loading="atgMaterialLoading">
+        <template v-if="atgMaterials.length > 0">
+          <div class="material-item" v-for="(item, index) in atgMaterials" :key="index">
+            <el-icon class="file-icon" :size="28" color="#165DFF"><Document /></el-icon>
+            <div class="material-info">
+              <div class="material-name">{{ item.name }}</div>
+              <div class="material-meta">
+                <span v-if="item.size">文件大小: {{ item.size }}</span>
+                <span v-if="item.uploadTime">&nbsp;|&nbsp;上传时间: {{ item.uploadTime }}</span>
+              </div>
+            </div>
+            <div class="material-actions">
+              <el-button size="small" type="primary" round :icon="View" @click="previewAtgMaterial(item)">
+                预览
+              </el-button>
+              <el-button size="small" type="warning" round :icon="Download" @click="downloadAtgMaterial(item)">
+                下载
+              </el-button>
+            </div>
+          </div>
+        </template>
+        <el-empty v-else description="暂无材料" :image-size="80" />
+      </div>
+    </el-dialog>
+
+    <!-- 高办系统 - 补充设备信息弹窗 -->
+    <el-dialog v-model="atgDialogVisible" title="补充设备信息" width="560px" destroy-on-close>
+      <el-form ref="atgFormRef" :model="atgFormData" :rules="atgFormRules" label-width="120px">
+        <el-form-item label="许可设备名称" prop="licenseDeviceName">
+          <el-select v-model="atgFormData.licenseDeviceName" placeholder="请选择许可设备名称" style="width: 100%">
+            <el-option
+              v-for="item in atgDeviceOptions"
+              :key="String(item.value)"
+              :label="item.label"
+              :value="item.label"
+            />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="阶梯配置机型" prop="ladderConfigModel">
+          <el-select v-model="atgFormData.ladderConfigModel" placeholder="请选择阶梯配置机型" style="width: 100%">
+            <el-option
+              v-for="item in atgModelOptions"
+              :key="String(item.value)"
+              :label="item.label"
+              :value="item.label"
+            />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="设备配置地址">
+          <el-input v-model="atgFormData.equipmentConfigAddress" placeholder="请输入设备配置地址" />
+        </el-form-item>
+        <el-form-item label="联系人">
+          <el-input v-model="atgFormData.contactPerson" placeholder="请输入联系人" />
+        </el-form-item>
+        <el-form-item label="联系电话">
+          <el-input v-model="atgFormData.contactPhone" placeholder="请输入联系电话" />
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <el-button @click="atgDialogVisible = false">取消</el-button>
+        <el-button type="primary" @click="handleAtgSubmitComplete" :loading="atgSubmitLoading">
+          确认提交
+        </el-button>
+      </template>
+    </el-dialog>
+
+    <!-- 高办系统 - 材料预览弹窗 -->
+    <el-dialog v-model="atgPreviewVisible" :title="atgPreviewTitle" width="80%" destroy-on-close>
+      <div class="atg-preview-container" v-loading="atgPreviewLoading">
+        <div v-if="atgPreviewType === 'image'" style="text-align: center;">
+          <el-image :src="atgPreviewUrl" fit="contain" :preview-src-list="[atgPreviewUrl]" style="max-height: 70vh;" />
+        </div>
+        <div v-else-if="atgPreviewType === 'pdf'" style="height: 70vh;">
+          <iframe :src="atgPreviewUrl" frameborder="0" style="width: 100%; height: 100%;"></iframe>
+        </div>
+        <div v-else>
+          <el-result icon="warning" title="暂不支持该格式的在线预览" sub-title="请下载后查看" />
+        </div>
+      </div>
+    </el-dialog>
   </div>
 </template>
 
 <script setup lang="ts" name="ProcessingCenter">
 import { Dialog } from '@/components/Dialog/index'
-import { View, Search, Avatar, Download, Printer } from '@element-plus/icons-vue'
+import { View, Search, Avatar, Download, Printer, Edit } from '@element-plus/icons-vue'
+import { ElMessage } from 'element-plus'
+import { Document } from '@element-plus/icons-vue'
 import licence from './components/license.vue'
 import Acceptance from './components/acceptance.vue'
 import { getDictOptions } from '@/utils/dict'
 import type { DictDataType } from '@/utils/dict'
 import { ApplicationApi } from '@/api/biz/application'
+import { AtgApplicationApi } from '@/api/biz/atg'
+import { ApplicationMaterialApi } from '@/api/biz/applicationmaterial'
 import type {
   licenseProfileType,
   originalProfile,
@@ -502,6 +628,152 @@ const downloadFn = () => {
   licenceRef.value?.download()
 }
 
+// ===== 高办系统相关 =====
+/** 判断是否为高办系统来源 */
+const isAtgSource = (row: any) => {
+  return row.source === 1 || row.source === '1'
+}
+
+/** 高办系统状态样式 */
+const getAtgStatusClass = (row: any) => {
+  if (!row.licenseDeviceName || !row.ladderConfigModel) return 'info'
+  if (!row.originalId) return 'warning'
+  return 'success'
+}
+
+/** 高办系统状态文本 */
+const getAtgStatusText = (row: any) => {
+  if (!row.licenseDeviceName || !row.ladderConfigModel) return '待补充信息'
+  if (!row.originalId) return '待生成许可证'
+  return '已完成'
+}
+
+/** 高办系统 - 补充信息弹窗 */
+const atgDialogVisible = ref(false)
+const atgSubmitLoading = ref(false)
+const atgFormRef = ref()
+const atgFormData = reactive({
+  id: 0 as number,
+  licenseDeviceName: '',
+  ladderConfigModel: '',
+  equipmentConfigAddress: '',
+  contactPerson: '',
+  contactPhone: ''
+})
+const atgFormRules = {
+  licenseDeviceName: [{ required: true, message: '请选择许可设备名称', trigger: 'change' }],
+  ladderConfigModel: [{ required: true, message: '请选择阶梯配置机型', trigger: 'change' }]
+}
+const atgDeviceOptions = computed(() => getDictOptions('biz_main_equipment_type'))
+const atgModelOptions = computed(() => getDictOptions('biz_ladder_config_model'))
+
+/** 高办系统 - 材料列表 */
+interface AtgMaterialItem {
+  name: string
+  url: string
+  size: string
+  uploadTime: string
+  fileType: string
+}
+const atgMaterialLoading = ref(false)
+const atgMaterials = ref<AtgMaterialItem[]>([])
+
+/** 高办系统 - 材料预览 */
+const atgPreviewVisible = ref(false)
+const atgPreviewLoading = ref(false)
+const atgPreviewTitle = ref('')
+const atgPreviewUrl = ref('')
+const atgPreviewType = ref('')
+
+const formatFileSize = (bytes: number) => {
+  if (!bytes || bytes === 0) return '0 B'
+  if (bytes < 1024) return bytes + ' B'
+  if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB'
+  return (bytes / (1024 * 1024)).toFixed(2) + ' MB'
+}
+
+const getFileExtension = (filename: string) => {
+  if (!filename) return ''
+  const lastDot = filename.lastIndexOf('.')
+  if (lastDot === -1) return ''
+  return filename.substring(lastDot + 1).toLowerCase()
+}
+
+const previewAtgMaterial = (item: AtgMaterialItem) => {
+  if (!item.url) {
+    ElMessage.warning('文件地址为空，无法预览')
+    return
+  }
+  atgPreviewTitle.value = item.name
+  atgPreviewUrl.value = item.url
+  const ext = item.fileType
+  if (['png', 'jpg', 'jpeg', 'gif', 'bmp', 'webp'].includes(ext)) {
+    atgPreviewType.value = 'image'
+  } else if (ext === 'pdf') {
+    atgPreviewType.value = 'pdf'
+  } else {
+    atgPreviewType.value = 'other'
+  }
+  atgPreviewVisible.value = true
+}
+
+const downloadAtgMaterial = (item: AtgMaterialItem) => {
+  if (item.url) {
+    window.open(item.url, '_blank')
+  } else {
+    ElMessage.warning('文件地址为空，无法下载')
+  }
+}
+
+const openAtgCompleteDialog = (row: any) => {
+  atgFormData.id = row.id
+  atgFormData.licenseDeviceName = row.licenseDeviceName || ''
+  atgFormData.ladderConfigModel = row.ladderConfigModel || ''
+  atgFormData.equipmentConfigAddress = ''
+  atgFormData.contactPerson = ''
+  atgFormData.contactPhone = ''
+  atgDialogVisible.value = true
+}
+
+/** 打开材料查看弹窗 */
+const atgMaterialDialogVisible = ref(false)
+const openAtgMaterialDialog = async (row: any) => {
+  atgMaterialDialogVisible.value = true
+  atgMaterialLoading.value = true
+  atgMaterials.value = []
+  try {
+    const materialList = await ApplicationMaterialApi.list({ id: row.id })
+    if (materialList && materialList.length > 0) {
+      atgMaterials.value = materialList.map((item: any) => ({
+        name: item.materialName || '未命名文件',
+        url: item.filePath,
+        size: item.fileSize ? formatFileSize(item.fileSize) : '',
+        uploadTime: item.uploadTime ? new Date(item.uploadTime).toLocaleString() : '',
+        fileType: getFileExtension(item.filePath || item.materialName)
+      }))
+    }
+  } catch (err) {
+    console.error('获取材料列表失败', err)
+  } finally {
+    atgMaterialLoading.value = false
+  }
+}
+
+const handleAtgSubmitComplete = async () => {
+  await atgFormRef.value?.validate()
+  atgSubmitLoading.value = true
+  try {
+    const licenseNo = await AtgApplicationApi.completeAndGenerateLicense(atgFormData)
+    ElMessage.success(`许可证生成成功，编号：${licenseNo}`)
+    atgDialogVisible.value = false
+    getList()
+  } catch (err) {
+    console.error('补充信息并生成许可证失败', err)
+  } finally {
+    atgSubmitLoading.value = false
+  }
+}
+
 // 查看 审核 专家审批
 const gotoDetailFn = (row, type, page) => {
   applicationDataStore.updateProcessingType(activeType.value) //当前类型
@@ -702,6 +974,13 @@ onMounted(() => {
         &.expert-btn {
           background-image: linear-gradient(135deg, #f59e0b, #d97706);
         }
+        &.atg-edit-btn {
+          background-image: linear-gradient(135deg, #f59e0b, #d97706);
+        }
+      }
+      .atg-tag {
+        margin-right: 4px;
+        vertical-align: middle;
       }
       .el-dropdown {
         margin-left: 12px;
@@ -722,5 +1001,53 @@ onMounted(() => {
     align-items: center;
     justify-content: flex-end;
   }
+}
+
+.atg-material-section {
+  max-height: 500px;
+  overflow-y: auto;
+  .material-item {
+    display: flex;
+    align-items: center;
+    padding: 10px 12px;
+    margin-bottom: 8px;
+    background-color: #f8fafc;
+    border: 1px solid rgba(226, 232, 240, 0.6);
+    border-radius: 8px;
+    transition: all 0.2s;
+    &:hover {
+      border-color: rgba(22, 93, 255, 0.3);
+      box-shadow: 0 2px 8px rgba(22, 93, 255, 0.08);
+    }
+    .file-icon {
+      flex-shrink: 0;
+      margin-right: 12px;
+    }
+    .material-info {
+      flex: 1;
+      min-width: 0;
+      .material-name {
+        font-size: 14px;
+        font-weight: 500;
+        color: #1e293b;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+      .material-meta {
+        font-size: 12px;
+        color: #94a3b8;
+        margin-top: 2px;
+      }
+    }
+    .material-actions {
+      flex-shrink: 0;
+      margin-left: 12px;
+    }
+  }
+}
+
+.atg-preview-container {
+  min-height: 400px;
 }
 </style>

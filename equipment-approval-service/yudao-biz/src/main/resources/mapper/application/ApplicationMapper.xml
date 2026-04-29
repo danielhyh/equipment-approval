@@ -25,6 +25,7 @@
         ba.app_no,
         ba.extra,
         ba.institution_id,
+        ba.source,
         blo.id as original_id,
         blo.license_no,
         bld.id as duplicate_id
@@ -71,6 +72,7 @@
         ba.app_type,
         ba.app_no,
         ba.institution_id,
+        ba.source,
         blo.id as original_id,
         blo.license_no,
         bld.id as duplicate_id
@@ -180,6 +182,7 @@
             ba.app_type,
             ba.app_no,
             ba.institution_id,
+            ba.source,
             blo.id as original_id,
             blo.license_no,
             bld.id as duplicate_id
