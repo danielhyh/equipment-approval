@@ -27,6 +27,18 @@ public interface StatisticsMapper {
 
     //许可证统计汇总-按年份分组（选了设备筛选时使用）
     List<Map<String, Object>> licenseSummaryByYear(@Param("req") QueryRequest request);
+
+    List<Map<String, Object>> licenseSummaryByCity(@Param("req") QueryRequest request,
+                                                   @Param("deviceName") String deviceName);
+
+    List<Map<String, Object>> licenseSummaryByCounty(@Param("req") QueryRequest request,
+                                                     @Param("deviceName") String deviceName,
+                                                     @Param("region") String region);
+
+    List<Map<String, Object>> licenseSummaryByInstitution(@Param("req") QueryRequest request,
+                                                          @Param("deviceName") String deviceName,
+                                                          @Param("region") String region,
+                                                          @Param("county") String county);
     // totalCount: 专家总数
     // radiologyCount: 放射影像专业专家数量
     // radiotherapyCount: 放射治疗专业专家数量
@@ -66,4 +78,19 @@ public interface StatisticsMapper {
 
     //历史汇总-按年份分组（选了设备筛选时使用）
     List<Map<String, Object>> historySummaryByYear(@Param("req") QueryRequest request);
+
+    List<Map<String, Object>> historySummaryByCity(@Param("req") QueryRequest request,
+                                                   @Param("deviceName") String deviceName,
+                                                   @Param("deviceCode") String deviceCode);
+
+    List<Map<String, Object>> historySummaryByCounty(@Param("req") QueryRequest request,
+                                                     @Param("deviceName") String deviceName,
+                                                     @Param("deviceCode") String deviceCode,
+                                                     @Param("region") String region);
+
+    List<Map<String, Object>> historySummaryByInstitution(@Param("req") QueryRequest request,
+                                                          @Param("deviceName") String deviceName,
+                                                          @Param("deviceCode") String deviceCode,
+                                                          @Param("region") String region,
+                                                          @Param("county") String county);
 }

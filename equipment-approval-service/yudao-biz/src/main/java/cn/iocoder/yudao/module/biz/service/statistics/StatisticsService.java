@@ -57,6 +57,18 @@ public class StatisticsService {
         return statisticsMapper.historySummaryByYear(request);
     }
 
+    public List<Map<String, Object>> historySummaryByCity(QueryRequest request, String deviceName, String deviceCode) {
+        return statisticsMapper.historySummaryByCity(request, deviceName, deviceCode);
+    }
+
+    public List<Map<String, Object>> historySummaryByCounty(QueryRequest request, String deviceName, String deviceCode, String region) {
+        return statisticsMapper.historySummaryByCounty(request, deviceName, deviceCode, region);
+    }
+
+    public List<Map<String, Object>> historySummaryByInstitution(QueryRequest request, String deviceName, String deviceCode, String region, String county) {
+        return statisticsMapper.historySummaryByInstitution(request, deviceName, deviceCode, region, county);
+    }
+
 
     public Map<String, Object> applicationSummary(Integer status, QueryRequest request) {
         Integer cnt = jdbcClient.sql("SELECT count(DISTINCT application_id) as cnt FROM biz_acceptance_material where status = '待审核'")
@@ -93,6 +105,18 @@ public class StatisticsService {
      */
     public List<Map<String, Object>> licenseSummaryByYear(QueryRequest request) {
         return statisticsMapper.licenseSummaryByYear(request);
+    }
+
+    public List<Map<String, Object>> licenseSummaryByCity(QueryRequest request, String deviceName) {
+        return statisticsMapper.licenseSummaryByCity(request, deviceName);
+    }
+
+    public List<Map<String, Object>> licenseSummaryByCounty(QueryRequest request, String deviceName, String region) {
+        return statisticsMapper.licenseSummaryByCounty(request, deviceName, region);
+    }
+
+    public List<Map<String, Object>> licenseSummaryByInstitution(QueryRequest request, String deviceName, String region, String county) {
+        return statisticsMapper.licenseSummaryByInstitution(request, deviceName, region, county);
     }
 
     public Map<String, Object> expertSummary() {

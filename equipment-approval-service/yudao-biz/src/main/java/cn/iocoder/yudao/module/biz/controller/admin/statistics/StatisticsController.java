@@ -71,6 +71,24 @@ public class StatisticsController {
         return success(statisticsService.historySummary(request));
     }
 
+    @GetMapping("/history-drilldown")
+    @Operation(summary = "历史设备数据下钻")
+    public CommonResult<List<Map<String, Object>>> historyDrilldown(
+            QueryRequest request,
+            @RequestParam(name = "level") String level,
+            @RequestParam(name = "deviceName") String deviceName,
+            @RequestParam(required = false, name = "deviceCode") String deviceCode,
+            @RequestParam(required = false, name = "region") String region,
+            @RequestParam(required = false, name = "county") String county) {
+        if ("institution".equals(level)) {
+            return success(statisticsService.historySummaryByInstitution(request, deviceName, deviceCode, region, county));
+        }
+        if ("county".equals(level)) {
+            return success(statisticsService.historySummaryByCounty(request, deviceName, deviceCode, region));
+        }
+        return success(statisticsService.historySummaryByCity(request, deviceName, deviceCode));
+    }
+
     @GetMapping("/license-summary")
     @Operation(summary = "许可证统计汇总")
     public CommonResult<?> licenseSummary(QueryRequest request) {
@@ -78,6 +96,23 @@ public class StatisticsController {
             return success(statisticsService.licenseSummaryByYear(request));
         }
         return success(statisticsService.licenseSummary(request));
+    }
+
+    @GetMapping("/license-drilldown")
+    @Operation(summary = "璁稿彲璇佽澶囨暟鎹笅閽?")
+    public CommonResult<List<Map<String, Object>>> licenseDrilldown(
+            QueryRequest request,
+            @RequestParam(name = "level") String level,
+            @RequestParam(name = "deviceName") String deviceName,
+            @RequestParam(required = false, name = "region") String region,
+            @RequestParam(required = false, name = "county") String county) {
+        if ("institution".equals(level)) {
+            return success(statisticsService.licenseSummaryByInstitution(request, deviceName, region, county));
+        }
+        if ("county".equals(level)) {
+            return success(statisticsService.licenseSummaryByCounty(request, deviceName, region));
+        }
+        return success(statisticsService.licenseSummaryByCity(request, deviceName));
     }
 
     @GetMapping("/expert-summary")

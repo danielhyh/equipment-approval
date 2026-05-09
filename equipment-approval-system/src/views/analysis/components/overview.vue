@@ -3,7 +3,59 @@
     <!-- 顶部筛选栏 -->
     <div class="filter-bar">
       <div class="filter-title">数据概览</div>
-      <el-button type="primary" size="small" :icon="Filter" @click="openDialog">筛选</el-button>
+      <el-form :model="filterParams" class="overview-filter-form" label-position="top">
+        <el-form-item label="起始年份" prop="startYear">
+          <el-date-picker
+            v-model="filterParams.startYear"
+            type="year"
+            format="YYYY年"
+            value-format="YYYY"
+            placeholder="请选择起始年份"
+            clearable
+          />
+        </el-form-item>
+        <el-form-item label="结束年份" prop="endYear">
+          <el-date-picker
+            v-model="filterParams.endYear"
+            type="year"
+            format="YYYY年"
+            value-format="YYYY"
+            placeholder="请选择结束年份"
+            clearable
+          />
+        </el-form-item>
+        <el-form-item label="区域" prop="region">
+          <el-select v-model="filterParams.region" placeholder="请选择区域" clearable>
+            <el-option
+              v-for="item in regionOptions"
+              :key="item.value"
+              :label="item.label"
+              :value="item.value"
+            />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="设备品目" prop="deviceNames" class="device-form-item">
+          <el-select
+            v-model="filterParams.deviceNames"
+            placeholder="请选择设备品目"
+            clearable
+            multiple
+            collapse-tags
+            collapse-tags-tooltip
+          >
+            <el-option
+              v-for="item in deviceNameOptions"
+              :key="item.value"
+              :label="item.label"
+              :value="item.label"
+            />
+          </el-select>
+        </el-form-item>
+        <div class="filter-actions">
+          <el-button type="info" @click="handleReset">重置</el-button>
+          <el-button type="primary" @click="handleFilter">筛选</el-button>
+        </div>
+      </el-form>
     </div>
 
     <!-- 核心指标卡片 -->
@@ -21,7 +73,7 @@
 
     <!-- 图表区域 -->
     <div class="charts-grid">
-      <!-- 第一行：2个图表 -->
+      <!-- 第一行：办件统计 + 设备生产企业统计 -->
       <div class="chart-row row-2">
         <!-- 办件统计 -->
         <div class="chart-card">
@@ -34,15 +86,15 @@
           <div ref="handingChartRef" class="chart-container"></div>
         </div>
 
-        <!-- 许可证统计 -->
+        <!-- 设备生产企业统计 -->
         <div class="chart-card">
           <div class="chart-header">
             <div class="chart-title">
               <span class="title-icon"></span>
-              许可证设备分类统计
+              设备生产企业分类统计
             </div>
           </div>
-          <div ref="licenseChartRef" class="chart-container"></div>
+          <div ref="deviceChartRef" class="chart-container"></div>
         </div>
       </div>
 
@@ -59,16 +111,21 @@
       </div>
       -->
 
-      <!-- 第二行：历史数据统计（全宽） -->
+      <!-- 第二行：融合许可证与历史设备数据统计（全宽） -->
       <div class="chart-row row-1">
-        <div class="chart-card">
+        <div class="chart-card device-data-card">
           <div class="chart-header">
             <div class="chart-title">
               <span class="title-icon"></span>
-              历史设备数据统计
+              设备数据统计
             </div>
           </div>
-          <div ref="historyChartRef" class="chart-container"></div>
+          <div class="history-drill-actions" v-if="historyDrillState.level !== 'device'">
+            <span class="drill-path">{{ historyDrillTitle }}</span>
+            <el-button size="small" @click="backHistoryDrill">返回上级</el-button>
+            <el-button size="small" type="primary" plain @click="resetHistoryDrill">重置</el-button>
+          </div>
+          <div ref="historyChartRef" class="chart-container device-data-chart"></div>
         </div>
       </div>
 
@@ -85,21 +142,9 @@
       </div>
       -->
 
-      <!-- 第三行：设备生产企业统计（全宽） -->
+      <!-- 已注释：医疗机构设备配置统计（与许可证设备分类统计重复） -->
+      <!--
       <div class="chart-row row-1">
-        <!-- 设备生产企业统计 -->
-        <div class="chart-card">
-          <div class="chart-header">
-            <div class="chart-title">
-              <span class="title-icon"></span>
-              设备生产企业分类统计
-            </div>
-          </div>
-          <div ref="deviceChartRef" class="chart-container"></div>
-        </div>
-
-        <!-- 已注释：医疗机构设备配置统计（与许可证设备分类统计重复） -->
-        <!--
         <div class="chart-card">
           <div class="chart-header">
             <div class="chart-title">
@@ -109,64 +154,9 @@
           </div>
           <div ref="hospitalChartRef" class="chart-container"></div>
         </div>
-        -->
       </div>
+      -->
     </div>
-
-    <!-- 筛选弹窗 -->
-    <Dialog v-model:model-value="filterVisible" v-bind="filterDialogProp">
-      <el-form v-model="filterParams" label-position="top">
-        <el-form-item label="年份" prop="fullYears">
-          <el-date-picker
-            v-model="filterParams.fullYears"
-            type="year"
-            format="YYYY年"
-            value-format="YYYY"
-            placeholder="请选择年份"
-            style="width: 100%"
-          />
-        </el-form-item>
-        <el-form-item label="区域" prop="region">
-          <el-select
-            v-model="filterParams.region"
-            placeholder="请选择区域"
-            style="width: 100%"
-            clearable
-          >
-            <el-option
-              v-for="item in regionOptions"
-              :key="item.value"
-              :label="item.label"
-              :value="item.value"
-            />
-          </el-select>
-        </el-form-item>
-        <el-form-item label="设备品目" prop="deviceNames">
-          <el-select
-            v-model="filterParams.deviceNames"
-            placeholder="请选择设备品目"
-            style="width: 100%"
-            clearable
-            multiple
-            collapse-tags
-            collapse-tags-tooltip
-          >
-            <el-option
-              v-for="item in deviceNameOptions"
-              :key="item.value"
-              :label="item.label"
-              :value="item.label"
-            />
-          </el-select>
-        </el-form-item>
-      </el-form>
-      <template #footer>
-        <div style="display: flex; justify-content: center; align-items: center">
-          <el-button type="info" @click="filterVisible = false">取消</el-button>
-          <el-button type="primary" @click="handleFilter">筛选</el-button>
-        </div>
-      </template>
-    </Dialog>
   </div>
 </template>
 
@@ -174,7 +164,6 @@
 import { ref, reactive, onMounted, onUnmounted, nextTick, computed } from 'vue'
 import { getDictOptions } from '@/utils/dict'
 import type { DictDataType } from '@/utils/dict'
-import { Filter } from '@element-plus/icons-vue'
 import { AnalysisApi } from '@/api/biz/analysis'
 import * as echarts from 'echarts'
 
@@ -190,6 +179,15 @@ let regionOptions = computed<DictDataTypeT[]>(() => {
 let deviceNameOptions = computed<DictDataTypeT[]>(() => {
   return getDictOptions('biz_main_equipment_type')
 })
+
+const historyDeviceCodes: Record<string, string> = {
+  'X线正电子发射断层扫描仪': 'DXSB0374_5',
+  '内窥镜手术器械控制系统': 'DXSB0374_6',
+  '64排及以上X线计算机断层扫描仪': 'DXSB0374_7',
+  '1.5T及以上磁共振成像系统': 'DXSB0374_8',
+  '直线加速器': 'DXSB0374_9',
+  '伽玛射线立体定向放射治疗系统': 'DXSB0374_10'
+}
 
 // 核心指标数据
 const coreMetrics = reactive([
@@ -226,7 +224,6 @@ const coreMetrics = reactive([
 
 // ECharts 实例引用
 const handingChartRef = ref<HTMLElement>()
-const licenseChartRef = ref<HTMLElement>()
 const historyChartRef = ref<HTMLElement>()
 // const expertChartRef = ref<HTMLElement>()  // 已注释：专家领域分布
 // const noticeChartRef = ref<HTMLElement>()  // 已注释：公告统计概览
@@ -234,7 +231,6 @@ const deviceChartRef = ref<HTMLElement>()
 // const hospitalChartRef = ref<HTMLElement>()  // 已注释：医疗机构设备配置统计
 
 let handingChart: echarts.ECharts | null = null
-let licenseChart: echarts.ECharts | null = null
 let historyChart: echarts.ECharts | null = null
 // let expertChart: echarts.ECharts | null = null  // 已注释：专家领域分布
 // let noticeChart: echarts.ECharts | null = null  // 已注释：公告统计概览
@@ -248,17 +244,40 @@ const chartData = reactive({
   history: [] as any[],
   // expert: [] as any[],  // 已注释：专家领域分布
   // notice: [] as any[],  // 已注释：公告统计概览
-  device: [] as any[]
+  device: [] as any[],
+  historyDrill: [] as any[]
   // hospital: [] as any[]  // 已注释：医疗机构设备配置统计
 })
 
 let loading = ref(false)
 
+type HistoryDrillLevel = 'device' | 'city' | 'county' | 'institution'
+
+const historyDrillState = reactive({
+  level: 'device' as HistoryDrillLevel,
+  deviceName: '',
+  deviceCode: '',
+  region: '',
+  county: ''
+})
+
+const historyDrillTitle = computed(() => {
+  if (historyDrillState.level === 'institution') {
+    return `${historyDrillState.deviceName} / ${historyDrillState.region} / ${historyDrillState.county}`
+  }
+  if (historyDrillState.level === 'county') {
+    return `${historyDrillState.deviceName} / ${historyDrillState.region}`
+  }
+  if (historyDrillState.level === 'city') {
+    return historyDrillState.deviceName
+  }
+  return ''
+})
+
 // 初始化所有图表
 const initCharts = () => {
   nextTick(() => {
     initHandingChart()
-    initLicenseChart()
     initHistoryChart()
     // initExpertChart()  // 已注释：专家领域分布
     // initNoticeChart()  // 已注释：公告统计概览
@@ -320,137 +339,51 @@ const initHandingChart = () => {
   handingChart.setOption(option)
 }
 
-// 许可证统计图表 - 柱状图 / 折线图（按设备筛选时切换）
-const initLicenseChart = () => {
-  if (!licenseChartRef.value) return
-  licenseChart = echarts.init(licenseChartRef.value)
+const toNumber = (value: unknown) => Number(value || 0)
 
-  const hasDeviceFilter = filterParams.deviceNames.length > 0
-
-  let option: any
-
-  if (hasDeviceFilter) {
-    // 按年份趋势展示，每个设备一条折线
-    const rawData = chartData.license as any[]
-    // 提取所有年份并排序
-    const yearSet = new Set<number>()
-    const deviceSet = new Set<string>()
-    rawData.forEach((item) => {
-      yearSet.add(Number(item.year))
-      deviceSet.add(item.deviceName)
+const mergeRowsByName = (rows: any[]) => {
+  const map = new Map<string, { name: string; value: number; code?: string }>()
+  rows.forEach((item) => {
+    if (!item?.name) return
+    const current = map.get(item.name)
+    map.set(item.name, {
+      name: item.name,
+      value: (current?.value || 0) + toNumber(item.value),
+      code: current?.code || item.code
     })
-    const years = Array.from(yearSet).sort()
-    const devices = Array.from(deviceSet)
-
-    // 构建每个设备的年份数据
-    const dataMap: Record<string, Record<number, number>> = {}
-    rawData.forEach((item) => {
-      if (!dataMap[item.deviceName]) dataMap[item.deviceName] = {}
-      dataMap[item.deviceName][Number(item.year)] = Number(item.count)
-    })
-
-    const series = devices.map((device) => ({
-      name: device,
-      type: 'line',
-      smooth: true,
-      data: years.map((y) => dataMap[device]?.[y] || 0),
-      symbolSize: 6
-    }))
-
-    option = {
-      tooltip: {
-        trigger: 'axis',
-        textStyle: { fontSize: 12 }
-      },
-      legend: {
-        bottom: '3%',
-        left: 'center',
-        itemWidth: 12,
-        itemHeight: 12,
-        textStyle: { fontSize: 10 }
-      },
-      grid: {
-        left: '8%',
-        right: '4%',
-        bottom: '18%',
-        top: '8%',
-        containLabel: true
-      },
-      xAxis: {
-        type: 'category',
-        data: years.map(String),
-        axisLabel: { fontSize: 11 }
-      },
-      yAxis: {
-        type: 'value',
-        axisLabel: { fontSize: 11 }
-      },
-      series
-    }
-  } else {
-    // 原有的品目对比柱状图
-    const categories = chartData.license.map((item) => item.name)
-    const values = chartData.license.map((item) => item.value)
-
-    option = {
-      tooltip: {
-        trigger: 'axis',
-        axisPointer: { type: 'shadow' },
-        textStyle: { fontSize: 12 }
-      },
-      grid: {
-        left: '8%',
-        right: '4%',
-        bottom: '12%',
-        top: '8%',
-        containLabel: true
-      },
-      xAxis: {
-        type: 'category',
-        data: categories,
-        axisLabel: {
-          interval: 0,
-          rotate: 25,
-          fontSize: 10
-        }
-      },
-      yAxis: {
-        type: 'value',
-        axisLabel: { fontSize: 11 }
-      },
-      series: [
-        {
-          name: '数量',
-          type: 'bar',
-          data: values,
-          itemStyle: {
-            color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-              { offset: 0, color: '#83bff6' },
-              { offset: 0.5, color: '#188df0' },
-              { offset: 1, color: '#188df0' }
-            ])
-          },
-          barWidth: '35%'
-        }
-      ]
-    }
-  }
-
-  licenseChart.setOption(option)
+  })
+  return Array.from(map.values())
 }
 
-// 历史数据统计图表 - 横向柱状图 / 折线图（按设备筛选时切换）
+const mergeTrendRows = (rows: any[]) => {
+  const map = new Map<string, { year: number; deviceName: string; count: number }>()
+  rows.forEach((item) => {
+    if (!item?.deviceName || item.year === undefined || item.year === null) return
+    const year = Number(item.year)
+    const key = `${year}-${item.deviceName}`
+    const current = map.get(key)
+    map.set(key, {
+      year,
+      deviceName: item.deviceName,
+      count: (current?.count || 0) + toNumber(item.count)
+    })
+  })
+  return Array.from(map.values())
+}
+
+// 设备数据统计图表 - 融合许可证与历史数据，并支持历史数据下钻
 const initHistoryChart = () => {
   if (!historyChartRef.value) return
   historyChart = echarts.init(historyChartRef.value)
 
   const hasDeviceFilter = filterParams.deviceNames.length > 0
+  const isDrilling = historyDrillState.level !== 'device'
 
   let option: any
 
   if (hasDeviceFilter) {
-    // 按年份趋势展示，每个设备一条折线
-    const rawData = chartData.history as any[]
+    // 按年份趋势展示，每个设备一条合计线
+    const rawData = mergeTrendRows([...(chartData.history as any[]), ...(chartData.license as any[])])
     const yearSet = new Set<number>()
     const deviceSet = new Set<string>()
     rawData.forEach((item) => {
@@ -463,7 +396,7 @@ const initHistoryChart = () => {
     const dataMap: Record<string, Record<number, number>> = {}
     rawData.forEach((item) => {
       if (!dataMap[item.deviceName]) dataMap[item.deviceName] = {}
-      dataMap[item.deviceName][Number(item.year)] = Number(item.count)
+      dataMap[item.deviceName][Number(item.year)] = toNumber(item.count)
     })
 
     const series = devices.map((device) => ({
@@ -471,7 +404,8 @@ const initHistoryChart = () => {
       type: 'line',
       smooth: true,
       data: years.map((y) => dataMap[device]?.[y] || 0),
-      symbolSize: 6
+      symbolSize: 6,
+      lineStyle: { width: 2 }
     }))
 
     option = {
@@ -484,7 +418,8 @@ const initHistoryChart = () => {
         left: 'center',
         itemWidth: 12,
         itemHeight: 12,
-        textStyle: { fontSize: 10 }
+        textStyle: { fontSize: 10 },
+        type: 'scroll'
       },
       grid: {
         left: '5%',
@@ -504,10 +439,14 @@ const initHistoryChart = () => {
       },
       series
     }
-  } else {
-    // 原有的横向柱状图
-    const categories = chartData.history.map((item) => item.name)
-    const values = chartData.history.map((item) => item.value)
+  } else if (isDrilling) {
+    const rows = chartData.historyDrill
+    const categories = rows.map((item) => item.name)
+    const values = rows.map((item) => ({
+      value: item.value,
+      name: item.name
+    }))
+    const needsScroll = categories.length > 12
 
     option = {
       tooltip: {
@@ -517,8 +456,8 @@ const initHistoryChart = () => {
       },
       grid: {
         left: '5%',
-        right: '8%',
-        bottom: '3%',
+        right: needsScroll ? '11%' : '8%',
+        bottom: needsScroll ? '8%' : '3%',
         top: '3%',
         containLabel: true
       },
@@ -529,11 +468,113 @@ const initHistoryChart = () => {
       yAxis: {
         type: 'category',
         data: categories,
+        inverse: true,
         axisLabel: { fontSize: 11 }
       },
+      dataZoom: needsScroll
+        ? [
+            {
+              type: 'slider',
+              yAxisIndex: 0,
+              right: 4,
+              width: 14,
+              startValue: 0,
+              endValue: 11,
+              brushSelect: false,
+              fillerColor: 'rgba(102, 126, 234, 0.16)',
+              borderColor: 'rgba(102, 126, 234, 0.22)',
+              handleSize: 0
+            },
+            {
+              type: 'inside',
+              yAxisIndex: 0,
+              zoomOnMouseWheel: false,
+              moveOnMouseWheel: true,
+              moveOnMouseMove: true
+            }
+          ]
+        : [],
       series: [
         {
-          name: '数量',
+          name: '设备数量',
+          type: 'bar',
+          data: values,
+          itemStyle: {
+            color: new echarts.graphic.LinearGradient(1, 0, 0, 0, [
+              { offset: 0, color: '#a18cd1' },
+              { offset: 1, color: '#fbc2eb' }
+            ])
+          },
+          barWidth: '45%',
+          label: {
+            show: true,
+            position: 'right',
+            formatter: '{c}',
+            fontSize: 11
+          }
+        }
+      ]
+    }
+  } else {
+    // 设备维度融合展示：历史数据 + 新许可证数据合计
+    const rows = mergeRowsByName([...chartData.history, ...chartData.license])
+    const categories = rows.map((item) => item.name)
+    const values = rows.map((item) => ({
+      value: item.value,
+      name: item.name,
+      code: item.code
+    }))
+    const needsScroll = categories.length > 12
+
+    option = {
+      tooltip: {
+        trigger: 'axis',
+        axisPointer: { type: 'shadow' },
+        textStyle: { fontSize: 12 }
+      },
+      grid: {
+        left: '5%',
+        right: needsScroll ? '11%' : '8%',
+        bottom: needsScroll ? '8%' : '3%',
+        top: '3%',
+        containLabel: true
+      },
+      xAxis: {
+        type: 'value',
+        axisLabel: { fontSize: 11 }
+      },
+      yAxis: {
+        type: 'category',
+        data: categories,
+        inverse: true,
+        axisLabel: { fontSize: 11 }
+      },
+      dataZoom: needsScroll
+        ? [
+            {
+              type: 'slider',
+              yAxisIndex: 0,
+              right: 4,
+              width: 14,
+              startValue: 0,
+              endValue: 11,
+              brushSelect: false,
+              fillerColor: 'rgba(102, 126, 234, 0.16)',
+              borderColor: 'rgba(102, 126, 234, 0.22)',
+              handleSize: 0
+            },
+            {
+              type: 'inside',
+              yAxisIndex: 0,
+              zoomOnMouseWheel: false,
+              moveOnMouseWheel: true,
+              moveOnMouseMove: true
+            }
+          ]
+        : [],
+      series: [
+        {
+          name: '设备数量',
           type: 'bar',
           data: values,
           itemStyle: {
@@ -555,9 +596,124 @@ const initHistoryChart = () => {
   }
 
   historyChart.setOption(option)
+  historyChart.off('click')
+  historyChart.on('click', (params) => {
+    void handleHistoryChartClick(params)
+  })
 }
 
 // 已注释：专家统计图表 - 玫瑰图
+const normalizeHistoryDrillRows = (rows: any[], nameKey: 'region' | 'county' | 'institutionName') => {
+  return (rows || [])
+    .map((item) => ({
+      name: item?.[nameKey] || item?.[nameKey.toUpperCase()] || '',
+      value: Number(item?.count || item?.COUNT || 0)
+    }))
+    .filter((item) => item.name)
+}
+
+const mergeDrillRows = (
+  historyRows: any[],
+  licenseRows: any[],
+  nameKey: 'region' | 'county' | 'institutionName'
+) => {
+  return mergeRowsByName([
+    ...normalizeHistoryDrillRows(historyRows, nameKey),
+    ...normalizeHistoryDrillRows(licenseRows, nameKey)
+  ]).sort((a, b) => b.value - a.value)
+}
+
+const renderHistoryChart = () => {
+  historyChart?.dispose()
+  historyChart = null
+  initHistoryChart()
+}
+
+const loadHistoryDrilldown = async (level: 'city' | 'county' | 'institution') => {
+  try {
+    loading.value = true
+    const nameKey = level === 'city' ? 'region' : level === 'county' ? 'county' : 'institutionName'
+    const commonParams = {
+      level,
+      ...buildOverviewQueryParams(),
+      deviceName: historyDrillState.deviceName,
+      region:
+        level === 'county' || level === 'institution'
+          ? historyDrillState.region
+          : filterParams.region || undefined,
+      county: level === 'institution' ? historyDrillState.county : undefined
+    }
+    const [historyData, licenseData] = await Promise.all([
+      AnalysisApi.getHistoryDrilldown({
+        ...commonParams,
+        deviceCode: historyDrillState.deviceCode
+      }),
+      AnalysisApi.getLicenseDrilldown(commonParams)
+    ])
+    chartData.historyDrill = mergeDrillRows(historyData as any[], licenseData as any[], nameKey)
+    renderHistoryChart()
+  } catch (err) {
+    console.log(err)
+  } finally {
+    loading.value = false
+  }
+}
+
+const handleHistoryChartClick = async (params: any) => {
+  if (filterParams.deviceNames.length > 0 || !params?.name) return
+  const name = String(params.name)
+
+  if (historyDrillState.level === 'device') {
+    historyDrillState.level = 'city'
+    historyDrillState.deviceName = name
+    historyDrillState.deviceCode = params?.data?.code || historyDeviceCodes[name] || ''
+    historyDrillState.region = ''
+    historyDrillState.county = ''
+    await loadHistoryDrilldown('city')
+    return
+  }
+
+  if (historyDrillState.level === 'city') {
+    historyDrillState.level = 'county'
+    historyDrillState.region = name
+    historyDrillState.county = ''
+    await loadHistoryDrilldown('county')
+    return
+  }
+
+  if (historyDrillState.level === 'county') {
+    historyDrillState.level = 'institution'
+    historyDrillState.county = name
+    await loadHistoryDrilldown('institution')
+  }
+}
+
+const resetHistoryDrill = () => {
+  historyDrillState.level = 'device'
+  historyDrillState.deviceName = ''
+  historyDrillState.deviceCode = ''
+  historyDrillState.region = ''
+  historyDrillState.county = ''
+  chartData.historyDrill = []
+  renderHistoryChart()
+}
+
+const backHistoryDrill = async () => {
+  if (historyDrillState.level === 'institution') {
+    historyDrillState.level = 'county'
+    historyDrillState.county = ''
+    await loadHistoryDrilldown('county')
+    return
+  }
+  if (historyDrillState.level === 'county') {
+    historyDrillState.level = 'city'
+    historyDrillState.region = ''
+    await loadHistoryDrilldown('city')
+    return
+  }
+  resetHistoryDrill()
+}
+
 // const initExpertChart = () => {
 //   if (!expertChartRef.value) return
 //   expertChart = echarts.init(expertChartRef.value)
@@ -801,14 +957,35 @@ const updateChartsData = (data: any) => {
     chartData.history = data.history as any[]
   } else {
     chartData.history = [
-      { name: 'x线正电子发射断层扫描仪', value: data.history?.petCtScanner || 0 },
-      { name: '内窥镜手术器械控制系统', value: data.history?.endoscopicSurgicalSystem || 0 },
-      { name: '64排以上X线计算机断层扫描仪', value: data.history?.ctScanner64SlicePlus || 0 },
-      { name: '1.5T及以上磁共振成像系统', value: data.history?.mriSystem1_5tPlus || 0 },
-      { name: '直线加速器', value: data.history?.linearAccelerator || 0 },
       {
-        name: '伽马射线立体定向放射治疗系统',
-        value: data.history?.gammaRayStereotacticRtSystem || 0
+        name: 'X线正电子发射断层扫描仪',
+        value: data.history?.petCtScanner || 0,
+        code: historyDeviceCodes['X线正电子发射断层扫描仪']
+      },
+      {
+        name: '内窥镜手术器械控制系统',
+        value: data.history?.endoscopicSurgicalSystem || 0,
+        code: historyDeviceCodes['内窥镜手术器械控制系统']
+      },
+      {
+        name: '64排及以上X线计算机断层扫描仪',
+        value: data.history?.ctScanner64SlicePlus || 0,
+        code: historyDeviceCodes['64排及以上X线计算机断层扫描仪']
+      },
+      {
+        name: '1.5T及以上磁共振成像系统',
+        value: data.history?.mriSystem1_5tPlus || 0,
+        code: historyDeviceCodes['1.5T及以上磁共振成像系统']
+      },
+      {
+        name: '直线加速器',
+        value: data.history?.linearAccelerator || 0,
+        code: historyDeviceCodes['直线加速器']
+      },
+      {
+        name: '伽玛射线立体定向放射治疗系统',
+        value: data.history?.gammaRayStereotacticRtSystem || 0,
+        code: historyDeviceCodes['伽玛射线立体定向放射治疗系统']
       }
     ]
   }
@@ -864,9 +1041,6 @@ const updateChartsData = (data: any) => {
 
   // 重新渲染所有图表
   handingChart?.setOption({ series: [{ data: chartData.handing }] })
-  licenseChart?.dispose()
-  licenseChart = null
-  initLicenseChart()
   historyChart?.dispose()
   historyChart = null
   initHistoryChart()
@@ -886,27 +1060,24 @@ const updateChartsData = (data: any) => {
 const getOverviewData = async () => {
   try {
     loading.value = true
+    const queryParams = buildOverviewQueryParams()
     let response = await Promise.all([
-      AnalysisApi.getApplicationSummary({
-        year: filterParams.fullYears
-      }),
+      AnalysisApi.getApplicationSummary(queryParams),
       AnalysisApi.getLicenseSummary({
-        year: filterParams.fullYears,
+        ...queryParams,
         deviceNames: filterParams.deviceNames.length > 0 ? filterParams.deviceNames : undefined
       }),
       AnalysisApi.getHistorySummary({
-        year: filterParams.fullYears,
+        ...queryParams,
         deviceNames: filterParams.deviceNames.length > 0 ? filterParams.deviceNames : undefined
       }),
       // AnalysisApi.getExpertSummary(),  // 已注释：专家领域分布
       // AnalysisApi.getNoticeSummary({   // 已注释：公告统计概览
-      //   year: filterParams.fullYears
+      //   ...queryParams
       // }),
-      AnalysisApi.getEquipmentCompanySummary({
-        year: filterParams.fullYears
-      })
+      AnalysisApi.getEquipmentCompanySummary({})
       // AnalysisApi.getHealthcareSummary({  // 已注释：医疗机构设备配置统计
-      //   year: filterParams.fullYears
+      //   ...queryParams
       // })
     ])
 
@@ -928,31 +1099,48 @@ const getOverviewData = async () => {
   }
 }
 
-// 筛选弹窗
+// 筛选条件
 let filterParams = reactive({
-  fullYears: '',
+  startYear: '',
+  endYear: '',
   region: '',
   deviceNames: [] as string[]
 })
-let filterVisible = ref(false)
-let filterDialogProp = reactive({
-  title: '筛选',
-  width: '500px'
-})
 
-const openDialog = () => {
-  filterVisible.value = true
+const buildOverviewQueryParams = () => {
+  return {
+    startYear: filterParams.startYear || undefined,
+    endYear: filterParams.endYear || undefined,
+    region: filterParams.region || undefined
+  }
+}
+
+const resetHistoryDrillState = () => {
+  historyDrillState.level = 'device'
+  historyDrillState.deviceName = ''
+  historyDrillState.deviceCode = ''
+  historyDrillState.region = ''
+  historyDrillState.county = ''
+  chartData.historyDrill = []
+}
+
+const handleReset = () => {
+  filterParams.startYear = ''
+  filterParams.endYear = ''
+  filterParams.region = ''
+  filterParams.deviceNames = []
+  resetHistoryDrillState()
+  getOverviewData()
 }
 
 const handleFilter = () => {
-  filterVisible.value = false
+  resetHistoryDrillState()
   getOverviewData()
 }
 
 // 窗口大小改变时重新调整图表
 const handleResize = () => {
   handingChart?.resize()
-  licenseChart?.resize()
   historyChart?.resize()
   // expertChart?.resize()  // 已注释：专家领域分布
   // noticeChart?.resize()  // 已注释：公告统计概览
@@ -982,7 +1170,6 @@ onMounted(() => {
 onUnmounted(() => {
   window.removeEventListener('resize', handleResize)
   handingChart?.dispose()
-  licenseChart?.dispose()
   historyChart?.dispose()
   // expertChart?.dispose()  // 已注释：专家领域分布
   // noticeChart?.dispose()  // 已注释：公告统计概览
@@ -1000,6 +1187,17 @@ onUnmounted(() => {
 }
 
 @media (width <= 1200px) {
+  .filter-bar {
+    .overview-filter-form {
+      grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+
+      .device-form-item,
+      .filter-actions {
+        grid-column: span 2 !important;
+      }
+    }
+  }
+
   .charts-grid {
     .chart-row {
       &.row-2,
@@ -1021,6 +1219,19 @@ onUnmounted(() => {
 
     .filter-title {
       font-size: 15px;
+    }
+
+    .overview-filter-form {
+      grid-template-columns: 1fr !important;
+
+      .device-form-item,
+      .filter-actions {
+        grid-column: auto !important;
+      }
+
+      .filter-actions {
+        justify-content: flex-start !important;
+      }
     }
   }
 
@@ -1077,16 +1288,17 @@ onUnmounted(() => {
 
 .filter-bar {
   display: flex;
+  flex-direction: column;
+  gap: 12px;
   padding: 10px 16px;
   margin-bottom: 12px;
   background: #fff;
   border-radius: 6px;
   box-shadow: 0 1px 4px rgb(0 0 0 / 6%);
-  justify-content: space-between;
-  align-items: center;
 
   .filter-title {
     position: relative;
+    align-self: flex-start;
     padding-left: 12px;
     font-size: 17px;
     font-weight: 600;
@@ -1102,6 +1314,31 @@ onUnmounted(() => {
       border-radius: 2px;
       content: '';
       transform: translateY(-50%);
+    }
+  }
+
+  .overview-filter-form {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(160px, 220px)) minmax(180px, 240px) minmax(240px, 1fr) auto;
+    gap: 12px;
+    width: 100%;
+    align-items: flex-end;
+
+    :deep(.el-form-item) {
+      margin-bottom: 0;
+    }
+
+    :deep(.el-date-editor.el-input),
+    :deep(.el-select) {
+      width: 100%;
+    }
+
+    .filter-actions {
+      display: flex;
+      gap: 8px;
+      padding-bottom: 1px;
+      justify-content: flex-end;
+      white-space: nowrap;
     }
   }
 }
@@ -1214,10 +1451,34 @@ onUnmounted(() => {
       }
     }
 
+    .history-drill-actions {
+      display: flex;
+      gap: 8px;
+      margin: -2px 0 8px;
+      align-items: center;
+      justify-content: flex-end;
+
+      .drill-path {
+        max-width: 70%;
+        overflow: hidden;
+        font-size: 12px;
+        color: #666;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+    }
+
     .chart-container {
       width: 100%;
       height: 260px;
     }
+
+    &.device-data-card {
+      .device-data-chart {
+        height: 380px;
+      }
+    }
   }
 }
+
 </style>

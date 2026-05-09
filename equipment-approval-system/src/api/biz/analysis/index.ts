@@ -32,6 +32,12 @@ export const AnalysisApi = {
   getHistorySummary: async (params) => {
     return await request.get({ url: `/biz/statistics/history-summary`, params })
   },
+  getHistoryDrilldown: async (params) => {
+    return await request.get({ url: `/biz/statistics/history-drilldown`, params })
+  },
+  getLicenseDrilldown: async (params) => {
+    return await request.get({ url: `/biz/statistics/license-drilldown`, params })
+  },
   /**
    * 专家统计汇总
    * @params {region:'',year:int}

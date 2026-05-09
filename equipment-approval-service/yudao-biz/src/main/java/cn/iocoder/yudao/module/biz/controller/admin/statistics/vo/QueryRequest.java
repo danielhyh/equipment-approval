@@ -14,6 +14,12 @@ public class QueryRequest {
     @Schema(description = "统计年份")
     private Integer year;
 
+    @Schema(description = "起始年份")
+    private Integer startYear;
+
+    @Schema(description = "结束年份")
+    private Integer endYear;
+
     @Schema(description = "设备品目名称列表")
     private List<String> deviceNames;
 }
