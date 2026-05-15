@@ -46,6 +46,10 @@ export const LicenseApi = {
   getLicenseHistory: async (params: { id: number }) => {
     return await request.get({ url: `/biz/log/list`, params })
   },
+  // 获取补充信息列表
+  getSupplementaryInfoList: async (params: { applicationId: number }) => {
+    return await request.get({ url: `/biz/supplementary-info/list`, params })
+  },
   // 获取许可证统计
   getLicenseStatistics: async () => {
     return await request.get({ url: `/biz/statistics/application-summary`, status: 5 })

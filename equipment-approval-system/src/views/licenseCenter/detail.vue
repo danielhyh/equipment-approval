@@ -69,6 +69,7 @@
                 <component
                   ref="typeRef"
                   :list="allLicenseData"
+                  :supplementary-list="supplementaryInfoList"
                   :disabled="true"
                   :is="typeActive.component"
                   :key="typeActive.value"
@@ -256,6 +257,7 @@ const handlerType = (item) => {
 }
 let applictionStore = useApplicationDataStore()
 let allLicenseData = ref({})
+let supplementaryInfoList = ref([])
 const getBasisInfo = async () => {
   try {
     loading.value = true
@@ -271,9 +273,11 @@ const getBasisInfo = async () => {
 
     let responseAll = await Promise.all([
       LicenseApi.getLicenseOriginal({ id: Number(originalId) }),
-      LicenseApi.getLicenseCopy({ id: Number(duplicateId) })
+      LicenseApi.getLicenseCopy({ id: Number(duplicateId) }),
+      LicenseApi.getSupplementaryInfoList({ applicationId: Number(licenseId) })
     ])
     allLicenseData.value = { ...responseAll[0], ...responseAll[1], code: licenseCode }
+    supplementaryInfoList.value = responseAll[2] || []
     loading.value = false
 
     // 初始化第一个选中模块

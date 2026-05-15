@@ -4,7 +4,6 @@
       <Icon icon="mingcute:group-3-fill" />
       <span>设备使用人员</span>
     </div>
-    <!-- 设备使用人员 -->
     <el-table
       :data="devUsePersonData"
       style="width: 100%"
@@ -24,28 +23,43 @@
       <Icon icon="mdi:address-marker" />
       <span>正本悬挂位置</span>
     </div>
-    <!-- 正本悬挂位置 -->
-    <License v-bind="licenseProps" ref="licenseRef" />
+    <div class="hanging-location">
+      <el-image
+        v-if="hangingLocation"
+        :src="hangingLocation"
+        fit="contain"
+        preview-teleported
+        :preview-src-list="[hangingLocation]"
+      />
+      <el-empty v-else :image-size="80" />
+    </div>
+
     <div class="title-row">
       <Icon icon="typcn:chart-line" />
       <span>设备使用情况</span>
     </div>
-    <!-- 设备使用情况 -->
-    <div class="remark-row"> {{ devuseRemark }}</div>
+    <div class="remark-row">{{ devuseRemark }}</div>
 
     <div class="title-row">
       <Icon icon="fa-solid:tools" />
       <span>检查保养情况</span>
     </div>
-    <!-- 检查保养情况 -->
-    <div class="remark-row"> {{ checkRemark }}</div>
+    <div class="remark-row">{{ checkRemark }}</div>
   </div>
 </template>
 
 <script setup lang="ts" name="OtherMsg">
-import { onMounted, onBeforeUnmount } from 'vue'
-import License from '@/views/Processing/components/license.vue'
-// 设备使用人员
+const props = defineProps({
+  list: {
+    type: Object,
+    default: () => ({})
+  },
+  supplementaryList: {
+    type: Array,
+    default: () => []
+  }
+})
+
 let devUsePersonColumns = ref([
   { label: '身份证号', prop: 'idCard' },
   { label: '姓名', prop: 'name' },
@@ -54,55 +68,62 @@ let devUsePersonColumns = ref([
   { label: '职称', prop: 'title' },
   { label: '联系电话', prop: 'phone' }
 ])
-let devUsePersonData = ref([
-  {
-    idCard: '44030219900101001X',
-    name: '张三',
-    gender: '男',
-    birthDate: '1990-01-01',
-    title: '工程师',
-    phone: '13800000000'
-  },
-  {
-    idCard: '44030219900101002X',
-    name: '李四',
-    gender: '女',
-    birthDate: '1990-01-01',
-    title: '工程师',
-    phone: '13800000000'
-  },
-  {
-    idCard: '44030219900101003X',
-    name: '王五',
-    gender: '男',
-    birthDate: '1990-01-01',
-    title: '工程师',
-    phone: '13800000000'
-  }
-])
-// 正本悬挂位置
-let licenseProps = ref({})
-// 设备使用情况 备注
-let devuseRemark = ref('')
-// 检查保养情况 备注
-let checkRemark = ref('')
 
-let contentMsgPageRef = ref<HTMLDivElement | null>(null)
-let licenseRef = ref<InstanceType<typeof License> | null>(null)
-const licenseDomResize = () => {
-  if (licenseRef.value && contentMsgPageRef.value) {
-    let radio = contentMsgPageRef.value.clientWidth / licenseRef.value.$el.clientWidth
-    if (radio > 1) radio = 1
-    licenseRef.value.$el.style.transform = `scale(${radio})`
-    licenseRef.value.$el.style.transformOrigin = 'top left'
+const parseJsonList = (value: any) => {
+  if (Array.isArray(value)) return value
+  if (!value || typeof value !== 'string') return []
+  try {
+    const parsed = JSON.parse(value)
+    return Array.isArray(parsed) ? parsed : []
+  } catch {
+    return []
   }
 }
-onMounted(() => {
-  window.addEventListener('resize', licenseDomResize)
+
+const getTimeValue = (item: any) => {
+  const value = item?.createTime || item?.submitTime || ''
+  const time = new Date(value).getTime()
+  return Number.isNaN(time) ? 0 : time
+}
+
+const latestInfo = (infoType: number) => {
+  return [...(props.supplementaryList as any[])]
+    .filter((item) => item?.infoType === infoType)
+    .sort((a, b) => getTimeValue(b) - getTimeValue(a) || (Number(b?.id) || 0) - (Number(a?.id) || 0))[0]
+}
+
+const formatGender = (value: any) => {
+  if (value === '1') return '男'
+  if (value === '2') return '女'
+  return value || ''
+}
+
+const normalizeUsers = (users: any[]) => {
+  return users.map((item) => ({
+    idCard: item?.idCard || item?.IdCard || '',
+    name: item?.name || '',
+    gender: formatGender(item?.gender),
+    birthDate: item?.birthDate || '',
+    title: item?.title || item?.careerTitle || '',
+    phone: item?.phone || item?.phoneNumber || item?.contactPhone || ''
+  }))
+}
+
+let devUsePersonData = computed(() => {
+  const supplementaryUsers = parseJsonList(latestInfo(4)?.infoContent)
+  const users = supplementaryUsers.length ? supplementaryUsers : parseJsonList((props.list as any)?.equipmentUsers)
+  return normalizeUsers(users)
 })
-onBeforeUnmount(() => {
-  window.removeEventListener('resize', licenseDomResize)
+
+let hangingLocation = computed(() => {
+  const info = latestInfo(1)
+  return info?.filePath || info?.infoContent || (props.list as any)?.originalPosition || ''
 })
+
+let devuseRemark = computed(() => latestInfo(2)?.infoContent || (props.list as any)?.remark || '')
+let checkRemark = computed(() => latestInfo(3)?.infoContent || (props.list as any)?.specialDescription || '')
+
+let contentMsgPageRef = ref<HTMLDivElement | null>(null)
 </script>
 
 <style lang="scss" scoped>
@@ -137,6 +158,19 @@ onBeforeUnmount(() => {
       }
     }
   }
+  .hanging-location {
+    min-height: 120px;
+    margin-bottom: 16px;
+    padding: 10px;
+    background-color: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 4px;
+    :deep(.el-image) {
+      width: 100%;
+      max-height: 420px;
+      display: block;
+    }
+  }
   .remark-row {
     padding: 4px 10px;
     background-color: #f8fafc;
@@ -147,6 +181,7 @@ onBeforeUnmount(() => {
     color: #000;
     font-size: 14px;
     line-height: 22px;
+    white-space: pre-wrap;
   }
 }
 </style>

@@ -99,4 +99,13 @@ public class SupplementaryInfoServiceImpl implements SupplementaryInfoService {
         return supplementaryInfoMapper.selectList(queryWrapper);
     }
 
+    @Override
+    public List<SupplementaryInfoDO> listAllByApplicationId(Long id) {
+        LambdaQueryWrapper<SupplementaryInfoDO> queryWrapper = Wrappers.lambdaQuery(SupplementaryInfoDO.class)
+                .eq(SupplementaryInfoDO::getApplicationId, id)
+                .orderByDesc(SupplementaryInfoDO::getCreateTime)
+                .orderByDesc(SupplementaryInfoDO::getId);
+        return supplementaryInfoMapper.selectList(queryWrapper);
+    }
+
 }

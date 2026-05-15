@@ -61,4 +61,6 @@ public interface SupplementaryInfoService {
 
     List<SupplementaryInfoDO> list(Long id);
 
+    List<SupplementaryInfoDO> listAllByApplicationId(Long id);
+
 }
